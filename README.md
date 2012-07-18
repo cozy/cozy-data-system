@@ -3,8 +3,6 @@
 Little API that act as a middleware between applications and data sent to the 
 database, to the indexer and to the file system.
 
-NB: built from Bueda Tornado Boilerplate
-
 ## About Cozy
 
 Cozy Notes is suited to be deployed on the Cozy platform. Cozy allow you to 
