@@ -16,14 +16,10 @@ walk = (dir, fileList) ->
 
 {exec} = require 'child_process'
 testFiles = walk("test", [])
-uiTestFiles = walk("client/test", [])
 
 task 'tests', 'run tests through mocha', ->
     runTests testFiles
     
-task 'tests:client', 'run tests through mocha', ->
-    runTests uiTestFiles
-
 runTests = (fileList) ->
   console.log "Run tests with Mocha for " + fileList.join(" ")
   command = "mocha " + fileList.join(" ") + " --reporter spec "
@@ -52,10 +48,4 @@ task "xunit", "", ->
   exec command, (err, stdout, stderr) ->
     console.log stdout
 
-task "xunit:client", "", ->
-  process.env.TZ = "Europe/Paris"
-  command = "mocha client/test/*"
-  command += " --require should --compilers coffee:coffee-script -R xunit > xunitclient.xml"
-  exec command, (err, stdout, stderr) ->
-    console.log stdout
 
