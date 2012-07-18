@@ -8,7 +8,6 @@ catch error
     global.secret_session_key = "secret"
 
 
-passport = require 'passport'
 
 app.configure ->
     cwd = process.cwd()
