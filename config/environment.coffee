@@ -13,7 +13,8 @@ createDb = ->
     connection = new cradle.Connection
         cache: true,
         raw: false
-    global.db = connection.database("cozy")
+    db = connection.database("cozy")
+
     db.exists (err, exists) ->
         if err
             console.log "error", err
@@ -23,7 +24,9 @@ createDb = ->
             console.log "database does not exists."
             db.create()
 
-createBaseView
+createBaseView = ->
+    console.log "base view created"
+createBaseView()
 createDb()
 
 app.configure ->

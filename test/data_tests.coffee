@@ -20,14 +20,11 @@ describe "Test section", ->
     describe "Existence", ->
         it "When I send a request to check existence of Note with id 123", \
                 (done) ->
-            data =
-                id: 123
-            client.post "data/note/exist/", data, (error, response, body) =>
-                @body = body
+            client.get "data/exist/123/", (error, response, body) =>
+                @body = JSON.parse body
                 done()
 
         it "Then {exist: false} should be returned", ->
-            should.exist @body
             should.exist @body.exist
             @body.exist.should.not.be.ok
             

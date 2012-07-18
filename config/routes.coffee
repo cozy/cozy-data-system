@@ -1,2 +1,2 @@
 exports.routes = (map) ->
-    map.post '/data/:type/exist/', 'data#exist'
+    map.get '/data/exist/:id/', 'data#exist'
