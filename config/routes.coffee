@@ -1,2 +1,2 @@
 exports.routes = (map) ->
-    map.get '/', 'templates#index'
+    map.post '/data/:type/exist/', 'data#exist'
