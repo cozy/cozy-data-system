@@ -10,3 +10,21 @@ host all your personnal application in a single place you control.
 That allows you to manage efficiently your data while protecting your privacy.
 You will find more on our website : http://www.mycozycloud.com
 
+## Setup 
+
+Load submodules
+
+  git submodule init
+  git submodule update
+
+Load dependencies
+
+  npm install
+
+Run tests
+
+  cake tests
+
+Then, run server
+
+  coffee server.coffee
