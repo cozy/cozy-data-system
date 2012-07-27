@@ -23,7 +23,7 @@ Load dependencies
 
 Run tests
 
-    NODE\_ENV="test" cake tests
+    NODE_ENV="test" cake tests
 
 Then, run server
 
