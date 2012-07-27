@@ -14,17 +14,17 @@ You will find more on our website : http://www.mycozycloud.com
 
 Load submodules
 
-  git submodule init
-  git submodule update
+    git submodule init
+    git submodule update
 
 Load dependencies
 
-  npm install
+    npm install
 
 Run tests
 
-  NODE·\_ENV="test" cake tests
+    NODE\_ENV="test" cake tests
 
 Then, run server
 
-  coffee server.coffee
+    coffee server.coffee
