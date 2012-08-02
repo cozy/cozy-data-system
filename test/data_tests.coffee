@@ -28,4 +28,14 @@ describe "Test section", ->
             should.exist @body.exist
             @body.exist.should.not.be.ok
             
+	# L'element d'id 321 doit etre ajoute a la main dans la base.
+        it "When I send a request to check existence of Note with id 321", \
+                (done) ->
+            client.get "data/exist/321/", (error, response, body) =>
+                @body = JSON.parse body
+                done()
+
+        it "Then {exist: true} should be returned", ->
+            should.exist @body.exist
+            @body.exist.should.be.ok
 
