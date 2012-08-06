@@ -54,6 +54,7 @@ describe "Test section", ->
         it "When I send a request to get Note with id 123", (done) ->
             client.get "data/123/", (error, response, body) =>
                 @response = response
+                done()
 
         it "Then error 404 should be returned", ->
             @response.statusCode.should.equal(404)
@@ -64,5 +65,5 @@ describe "Test section", ->
                 @body = JSON.parse body
                 done()
 
-        it "Then {} should be returned", ->
-            @body.should.equal {"value":"val"}
+        it "Then { _id: '321', value: 'val'} should be returned", ->
+            @body.should.deep.equal {"_id": '321', "value":"val"}
