@@ -53,10 +53,10 @@ describe "Test section", ->
     describe "Find", ->
         it "When I send a request to get Note with id 123", (done) ->
             client.get "data/123/", (error, response, body) =>
-                # TODO add catch of needed elements
+                @response = response
 
         it "Then error 404 should be returned", ->
-            # TODO add check http return value
+            @response.statusCode.should.be.equal.to(404)
 
         it "When I send a request to get Note with id 321", (done) ->
             client.get 'data/321/', (error, response, body) =>
