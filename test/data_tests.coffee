@@ -56,7 +56,7 @@ describe "Test section", ->
                 @response = response
 
         it "Then error 404 should be returned", ->
-            @response.statusCode.should.be.equal.to(404)
+            @response.statusCode.should.equal(404)
 
         it "When I send a request to get Note with id 321", (done) ->
             client.get 'data/321/', (error, response, body) =>
