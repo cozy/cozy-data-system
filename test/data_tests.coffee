@@ -1,4 +1,4 @@
-should = require('should')
+should = require('chai').Should()
 async = require('async')
 Client = require('../common/test/client').Client
 app = require('../server')
