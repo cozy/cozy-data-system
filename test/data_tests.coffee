@@ -34,6 +34,7 @@ describe "Existence", ->
                 (done) ->
             client.get "data/exist/123/", (error, response, body) =>
                 response.should.be.json
+                response.statusCode.should.equal(200)
                 @body = JSON.parse body
                 done()
 
@@ -46,6 +47,7 @@ describe "Existence", ->
                 (done) ->
             client.get "data/exist/321/", (error, response, body) =>
                 response.should.be.json
+                response.statusCode.should.equal(200)
                 @body = JSON.parse body
                 done()
 
@@ -69,6 +71,7 @@ describe "Find", ->
         it "When I send a request to get Note with id 321", (done) ->
             client.get 'data/321/', (error, response, body) =>
                 response.should.be.json
+                response.statusCode.should.equal(200)
                 @body = JSON.parse body
                 done()
 
