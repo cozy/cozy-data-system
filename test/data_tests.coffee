@@ -98,7 +98,7 @@ describe "Find", ->
             @body.should.deep.equal {"_id": '321', "value":"val"}
 
 describe "Create", ->
-    describe "Try to Create a Document with id 321", ->
+    describe "Try to Create a Document existing in Database", ->
         before cleanRequest
 
         it "When I send a request to create a document with id 321", (done) ->
@@ -110,7 +110,7 @@ describe "Create", ->
         it "Then error 409 should be returned", ->
             @response.statusCode.should.equal(409)
 
-    describe "Create a Document with id 987", ->
+    describe "Create a new Document with a given id", ->
         before cleanRequest
 
         it "When I send a request to create a document with id 987", (done) ->
@@ -123,7 +123,7 @@ describe "Create", ->
         it "Then { _id: '987' } should be returned", ->
             @body.should.have.property '_id', '987'
 
-    describe "Create a Document without an id", ->
+    describe "Create a new Document without an id", ->
         before cleanRequest
 
         it "When I send a request to create a document without an id", (done) ->
