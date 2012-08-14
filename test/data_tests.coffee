@@ -21,6 +21,11 @@ cleanRequest = ->
 parseBody = (response, body) ->
     if typeof body is "object" then body else JSON.parse body
 
+randomString = (length=32) ->
+    string = ""
+    string += Math.random().toString(36).substr(2) while string.length < length
+    string.substr 0, length
+
 # Clear DB, create a new one, then init data for tests.
 before (done) ->
     db.destroy ->
@@ -112,9 +117,12 @@ describe "Create", ->
 
     describe "Create a new Document with a given id", ->
         before cleanRequest
+        after ->
+            delete @randomValue
 
         it "When I send a request to create a document with id 987", (done) ->
-            client.post 'data/987/', {"value":"created value"}, \
+            @randomValue = randomString()
+            client.post 'data/987/', {"value":@randomValue}, \
                         (error, response, body) =>
                 response.statusCode.should.equal 201
                 @body = parseBody response, body
@@ -123,11 +131,27 @@ describe "Create", ->
         it "Then { _id: '987' } should be returned", ->
             @body.should.have.property '_id', '987'
 
+        it "Then the Document with id 987 should exist in Database", (done) ->
+            client.get "data/exist/987/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.exist.should.be.true
+                done()
+
+        it "Then the Document in DB should equal the sent Document", (done) ->
+            client.get "data/987/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.should.have.property 'value', @randomValue
+                done()
+
     describe "Create a new Document without an id", ->
         before cleanRequest
+        after ->
+            delete @randomValue
+            delete @_id
 
         it "When I send a request to create a document without an id", (done) ->
-            client.post 'data/', {"value":"created value"}, \
+            @randomValue = randomString()
+            client.post 'data/', {"value":@randomValue}, \
                         (error, response, body) =>
                 response.statusCode.should.equal(201)
                 @body = parseBody response, body
@@ -135,4 +159,16 @@ describe "Create", ->
 
         it "Then the id of the new document should be returned", ->
             @body.should.have.property '_id'
+            @_id = @body._id
 
+        it "Then the Document should exist in Database", (done) ->
+            client.get "data/exist/" + @_id + "/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.exist.should.be.true
+                done()
+
+        it "Then the Document in DB should equal the sent Document", (done) ->
+            client.get "data/" + @_id + "/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.should.have.property 'value', @randomValue
+                done()
