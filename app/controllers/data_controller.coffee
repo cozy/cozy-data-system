@@ -9,8 +9,11 @@ db = connection.database("cozy")
 
 
 action 'exist', ->
-    db.get params.id, (err, doc) ->
-        send exist: doc?
+    db.head params.id, (err, res, status) ->
+        if status is 200
+            send {"exist": true}
+        else if status is 404
+            send {"exist": false}
 
 action 'find', ->
     db.get params.id, (err, doc) ->
