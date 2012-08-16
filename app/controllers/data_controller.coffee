@@ -38,7 +38,20 @@ action 'create', ->
         db.save body, (err, res) ->
             if err
                 # oops unexpected error !                
-                console.log "Unexpected err: " + JSON.stringify err
+                console.log "[Create] err: " + JSON.stringify err
                 send 500
             else
                 send {"_id": res.id}, 201
+
+action 'update', ->
+    db.get params.id, (err, doc) ->
+        if doc
+            db.save params.id, body, (err, res) ->
+                if err
+                    # oops unexpected error !                
+                    console.log "[Update] err: " + JSON.stringify err
+                    send 500
+                else
+                    send 200
+        else
+            send 404

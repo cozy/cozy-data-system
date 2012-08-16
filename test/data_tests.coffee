@@ -157,7 +157,7 @@ describe "Create", ->
                 @body = parseBody response, body
                 done()
 
-        it "Then the id of the new document should be returned", ->
+        it "Then the id of the new Document should be returned", ->
             @body.should.have.property '_id'
             @_id = @body._id
 
@@ -171,4 +171,48 @@ describe "Create", ->
             client.get "data/" + @_id + "/", (error, response, body) =>
                 @body = parseBody response, body
                 @body.should.have.property 'value', @randomValue
+                done()
+
+describe "Update", ->
+    describe "Try to Update a Document that doesn't exist", ->
+        before cleanRequest
+
+        it "When I send a request to update a Document with id 123", (done) ->
+            client.put 'data/123/', {"value":"created_value"}, \
+                        (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then error 404 should be returned", ->
+            @response.statusCode.should.equal 404
+
+    describe "Update a modified Document in DB (concurrent access)", ->
+        before cleanRequest
+
+    describe "Update a Document (no concurrent access)", ->
+        before cleanRequest
+        after ->
+            delete @randomValue
+
+        it "When I send a request to update Document with id 987", (done) ->
+            @randomValue = randomString()
+            client.put 'data/987/', {"new_value":@randomValue}, \
+                        (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then HTTP status 200 should be returned", ->
+            @response.statusCode.should.equal 200
+
+        it "Then the Document should exist in DataBase", (done) ->
+            client.get "data/exist/987/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.exist.should.be.true
+                done()
+
+        it "Then the old Document must have been replaced", (done) ->
+            client.get "data/987/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.should.not.have.property 'value'
+                @body.should.have.property 'new_value', @randomValue
                 done()
