@@ -216,3 +216,60 @@ describe "Update", ->
                 @body.should.not.have.property 'value'
                 @body.should.have.property 'new_value', @randomValue
                 done()
+
+describe "Upsert", ->
+    describe "Upsert a Document that is not in the Database", ->
+        before cleanRequest
+        after ->
+            delete @randomValue
+
+        it "When I send a request to upsert Document with id 654", (done) ->
+            @randomValue = randomString()
+            client.put 'data/upsert/654/', {"value":@randomValue}, \
+                        (error, response, body) =>
+                response.statusCode.should.equal 201
+                @body = parseBody response, body
+                done()
+
+        it "Then { _id: '654' } should be returned", ->
+            @body.should.have.property '_id', '654'
+
+        it "Then the Document with id 654 should exist in Database", (done) ->
+            client.get "data/exist/654/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.exist.should.be.true
+                done()
+
+        it "Then the Document in DB should equal the sent Document", (done) ->
+            client.get "data/654/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.should.have.property 'value', @randomValue
+                done()
+
+    describe "Upsert an existing Document", ->
+        before cleanRequest
+        after ->
+            delete @randomValue
+
+        it "When I send a request to upsert Document with id 654", (done) ->
+            @randomValue = randomString()
+            client.put 'data/upsert/654/', {"new_value":@randomValue}, \
+                        (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then HTTP status 200 should be returned", ->
+            @response.statusCode.should.equal 200
+
+        it "Then the Document should exist in DataBase", (done) ->
+            client.get "data/exist/654/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.exist.should.be.true
+                done()
+
+        it "Then the old Document must have been replaced", (done) ->
+            client.get "data/654/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.should.not.have.property 'value'
+                @body.should.have.property 'new_value', @randomValue
+                done()
