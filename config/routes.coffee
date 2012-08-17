@@ -7,3 +7,5 @@ exports.routes = (map) ->
 
     map.put '/data/upsert/:id/', 'data#upsert'
     map.put '/data/:id/', 'data#update'
+
+    map.delete '/data/:id/', 'data#delete'

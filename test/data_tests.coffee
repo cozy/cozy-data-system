@@ -273,3 +273,32 @@ describe "Upsert", ->
                 @body.should.not.have.property 'value'
                 @body.should.have.property 'new_value', @randomValue
                 done()
+
+describe "Delete", ->
+    describe "Delete a document that is not in Database", ->
+        before cleanRequest
+
+        it "When I send a request to delete Document with id 123", (done) ->
+            client.delete "data/123/", (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then HTTP status 404 should be returned", ->
+            @response.statusCode.should.equal 404
+
+    describe "Delete a document that is in Database", ->
+        before cleanRequest
+
+        it "When I send a request to delete Document with id 654", (done) ->
+            client.delete "data/654/", (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then HTTP status 204 should be returned", ->
+            @response.statusCode.should.equal 204
+
+        it "Then Document with id 654 shouldn't exist in Database", (done) ->
+            client.get 'data/exist/654/', (error, response, body) =>
+                @body = parseBody response, body
+                @body.exist.should.be.false
+                done()
