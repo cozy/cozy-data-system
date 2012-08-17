@@ -44,6 +44,7 @@ action 'create', ->
                 send {"_id": res.id}, 201
 
 action 'update', ->
+    # this version don't take care of conflict (erase DB with the sent value)
     db.get params.id, (err, doc) ->
         if doc
             db.save params.id, body, (err, res) ->
@@ -55,3 +56,16 @@ action 'update', ->
                     send 200
         else
             send 404
+
+action 'upsert', ->
+    # this version don't take care of conflict (erase DB with the sent value)
+    db.get params.id, (err, doc) ->
+        db.save params.id, body, (err, res) ->
+            if err
+                # oops unexpected error !                
+                console.log "[Upsert] err: " + JSON.stringify err
+                send 500
+            else if doc
+                send 200
+            else
+                send {"_id": res.id}, 201
