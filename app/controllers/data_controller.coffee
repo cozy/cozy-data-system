@@ -49,7 +49,7 @@ action 'update', ->
         if doc
             db.save params.id, body, (err, res) ->
                 if err
-                    # oops unexpected error !                
+                    # oops unexpected error !
                     console.log "[Update] err: " + JSON.stringify err
                     send 500
                 else
@@ -62,7 +62,7 @@ action 'upsert', ->
     db.get params.id, (err, doc) ->
         db.save params.id, body, (err, res) ->
             if err
-                # oops unexpected error !                
+                # oops unexpected error !
                 console.log "[Upsert] err: " + JSON.stringify err
                 send 500
             else if doc
@@ -76,7 +76,7 @@ action 'delete', ->
         if doc
             db.remove params.id, (err, res) ->
                 if err
-                    # oops unexpected error !                
+                    # oops unexpected error !
                     console.log "[Delete] err: " + JSON.stringify err
                     send 500
                 else
@@ -84,3 +84,16 @@ action 'delete', ->
         else
             send 404
 
+action 'merge', ->
+    # this version don't take care of conflict (erase DB with the sent value)
+    db.get params.id, (err, doc) ->
+        if doc
+            db.merge params.id, body, (err, res) ->
+                if err
+                    # oops unexpected error !
+                    console.log "[Merge] err: " + JSON.stringify err
+                    send 500
+                else
+                    send 200
+        else
+            send 404

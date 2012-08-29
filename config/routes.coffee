@@ -6,6 +6,7 @@ exports.routes = (map) ->
     map.post '/data/:id/', 'data#create'
 
     map.put '/data/upsert/:id/', 'data#upsert'
+    map.put '/data/merge/:id/', 'data#merge'
     map.put '/data/:id/', 'data#update'
 
     map.delete '/data/:id/', 'data#delete'

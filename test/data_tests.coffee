@@ -102,6 +102,8 @@ describe "Find", ->
         it "Then { _id: '321', value: 'val'} should be returned", ->
             @body.should.deep.equal {"_id": '321', "value":"val"}
 
+
+
 describe "Create", ->
     describe "Try to Create a Document existing in Database", ->
         before cleanRequest
@@ -173,6 +175,8 @@ describe "Create", ->
                 @body.should.have.property 'value', @randomValue
                 done()
 
+
+
 describe "Update", ->
     describe "Try to Update a Document that doesn't exist", ->
         before cleanRequest
@@ -216,6 +220,8 @@ describe "Update", ->
                 @body.should.not.have.property 'value'
                 @body.should.have.property 'new_value', @randomValue
                 done()
+
+
 
 describe "Upsert", ->
     describe "Upsert a Document that is not in the Database", ->
@@ -274,6 +280,8 @@ describe "Upsert", ->
                 @body.should.have.property 'new_value', @randomValue
                 done()
 
+
+
 describe "Delete", ->
     describe "Delete a document that is not in Database", ->
         before cleanRequest
@@ -301,4 +309,75 @@ describe "Delete", ->
             client.get 'data/exist/654/', (error, response, body) =>
                 @body = parseBody response, body
                 @body.exist.should.be.false
+                done()
+
+
+
+describe "Merge", ->
+    describe "Try to Merge a field of a non-existing Document", ->
+        before cleanRequest
+
+        it "When I send a request to merge with Document with id 123", (done) ->
+            client.put 'data/merge/123/', {"new_field":"created_value"}, \
+                        (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then HTTP status 404 should be returned", ->
+            @response.statusCode.should.equal 404
+
+    describe "Try to Merge a new field of an existing Document", ->
+        before cleanRequest
+        after ->
+            delete @randomValue
+
+        it "When I send a request to merge with Document with id 987", (done) ->
+            @randomValue = randomString()
+            client.put 'data/merge/987/', {"new_field":@randomValue}, \
+                        (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then HTTP status 200 should be returned", ->
+            @response.statusCode.should.equal 200
+
+        it "Then the Document should exist in DataBase", (done) ->
+            client.get "data/exist/987/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.exist.should.be.true
+                done()
+
+        it "Then the old/new field should be in the Document", (done) ->
+            client.get "data/987/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.should.have.property 'new_value'  # TODO ? check value ?
+                @body.should.have.property 'new_field', @randomValue
+                done()
+
+    describe "Try to Merge an existing field of an existing Document", ->
+        before cleanRequest
+        after ->
+            delete @randomValue
+
+        it "When I send a request to merge with Document with id 987", (done) ->
+            @randomValue = randomString()
+            client.put 'data/merge/987/', {"new_value":@randomValue}, \
+                        (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then HTTP status 200 should be returned", ->
+            @response.statusCode.should.equal 200
+
+        it "Then the Document should exist in DataBase", (done) ->
+            client.get "data/exist/987/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.exist.should.be.true
+                done()
+
+        it "Then the old field should have been changed in the Document", (done) ->
+            client.get "data/987/", (error, response, body) =>
+                @body = parseBody response, body
+                @body.should.have.property 'new_value', @randomValue
+                @body.should.have.property 'new_field'
                 done()
