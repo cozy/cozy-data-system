@@ -3,14 +3,9 @@
 Little API that act as a middleware between applications and data sent to the 
 database, to the indexer and to the file system.
 
-## About Cozy
-
-Cozy Notes is suited to be deployed on the Cozy platform. Cozy allow you to 
-host all your personnal application in a single place you control. 
-That allows you to manage efficiently your data while protecting your privacy.
-You will find more on our website : http://www.mycozycloud.com
-
 ## Setup 
+
+Install CouchDB, NodeJS then clone repository.
 
 Load submodules
 
@@ -28,3 +23,14 @@ Run tests
 Then, run server
 
     coffee server.coffee
+
+
+# About Cozy
+
+Cozy Data Systemer is part of the Cozy platform backend. Cozy is the personal
+server for everyone. It allows you to install your every day web applications 
+easily on your server, a single place you control. This means you can manage 
+efficiently your data while protecting your privacy without technical skills.
+
+More informations and hosting services on:
+http://www.mycozycloud.com
