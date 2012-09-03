@@ -13,7 +13,9 @@ createDb = ->
         else if exists
             console.log "Database Cozy found."
         else
-            console.log "database does not exists."
-            db.create()
-createDb()
+            console.log "Database Cozy does not exist."
+            db.create ->
+                console.log "Database Cozy created."
+                return
 
+createDb()

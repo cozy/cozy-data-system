@@ -8,6 +8,7 @@ connection = new cradle.Connection
 db = connection.database("cozy")
 
 
+# GET /data/exist/:id
 action 'exist', ->
     db.head params.id, (err, res, status) ->
         if status is 200
@@ -15,6 +16,7 @@ action 'exist', ->
         else if status is 404
             send {"exist": false}
 
+# GET /data/:id
 action 'find', ->
     db.get params.id, (err, doc) ->
         if err
@@ -23,6 +25,8 @@ action 'find', ->
             delete doc._rev # CouchDB specific, user don't need it
             send doc
 
+# POST /data
+# POST /data/:id
 action 'create', ->
     if params.id
         db.get params.id, (err, doc) -> # this GET needed because of cache
@@ -43,13 +47,14 @@ action 'create', ->
             else
                 send {"_id": res.id}, 201
 
+# PUT /data/:id
 action 'update', ->
     # this version don't take care of conflict (erase DB with the sent value)
     db.get params.id, (err, doc) ->
         if doc
             db.save params.id, body, (err, res) ->
                 if err
-                    # oops unexpected error !                
+                    # oops unexpected error !
                     console.log "[Update] err: " + JSON.stringify err
                     send 500
                 else
@@ -57,12 +62,13 @@ action 'update', ->
         else
             send 404
 
+# PUT /data/upsert/:id
 action 'upsert', ->
     # this version don't take care of conflict (erase DB with the sent value)
     db.get params.id, (err, doc) ->
         db.save params.id, body, (err, res) ->
             if err
-                # oops unexpected error !                
+                # oops unexpected error !
                 console.log "[Upsert] err: " + JSON.stringify err
                 send 500
             else if doc
@@ -70,13 +76,14 @@ action 'upsert', ->
             else
                 send {"_id": res.id}, 201
 
+# DELETE /data/:id
 action 'delete', ->
     # this version don't take care of conflict (erase DB with the sent value)
     db.get params.id, (err, doc) ->
         if doc
             db.remove params.id, (err, res) ->
                 if err
-                    # oops unexpected error !                
+                    # oops unexpected error !
                     console.log "[Delete] err: " + JSON.stringify err
                     send 500
                 else
@@ -84,3 +91,17 @@ action 'delete', ->
         else
             send 404
 
+# PUT /data/merge/:id
+action 'merge', ->
+    # this version don't take care of conflict (erase DB with the sent value)
+    db.get params.id, (err, doc) ->
+        if doc
+            db.merge params.id, body, (err, res) ->
+                if err
+                    # oops unexpected error !
+                    console.log "[Merge] err: " + JSON.stringify err
+                    send 500
+                else
+                    send 200
+        else
+            send 404
