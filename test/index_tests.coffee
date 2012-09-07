@@ -34,11 +34,12 @@ describe "Indexation", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
-        db.destroy ->
-            console.log 'DB destroyed'
-            db.create ->
-                console.log 'DB recreated'
-                done()
+        client.del "data/index/clear-all/", (err, response) ->
+            db.destroy ->
+                console.log 'DB destroyed'
+                db.create ->
+                    console.log 'DB recreated'
+                    done()
 
     # Start application before starting tests.
     before (done) ->

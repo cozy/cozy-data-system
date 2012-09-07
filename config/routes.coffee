@@ -13,4 +13,5 @@ exports.routes = (map) ->
     
     map.post '/data/index/:id', 'index#index'
     map.post '/data/search/:type', 'index#search'
+    map.delete '/data/index/clear-all/', 'index#removeAll'
     map.delete '/data/index/:id', 'index#remove'

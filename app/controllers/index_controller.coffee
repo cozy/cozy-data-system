@@ -63,3 +63,13 @@ action 'remove', ->
     db.get params.id, (err, doc) ->
         if doc? then removeIndex(doc) else send 404
 
+
+action 'removeAll', ->
+    client.del "clear-all/", (err, res, resbody) ->
+        if err
+            send 500
+        else
+            send resbody, res.statusCode
+                
+
+
