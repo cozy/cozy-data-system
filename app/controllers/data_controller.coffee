@@ -7,7 +7,6 @@ connection = new cradle.Connection
     raw: false
 db = connection.database("cozy")
 
-
 # GET /data/exist/:id
 action 'exist', ->
     db.head params.id, (err, res, status) ->
@@ -39,12 +38,14 @@ action 'create', ->
                     else
                         send {"_id": res.id}, 201
     else
+        console.log "ok"
         db.save body, (err, res) ->
             if err
                 # oops unexpected error !                
                 console.log "[Create] err: " + JSON.stringify err
                 send 500
             else
+                console.log res.id
                 send {"_id": res.id}, 201
 
 # PUT /data/:id
