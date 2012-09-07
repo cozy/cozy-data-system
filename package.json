@@ -17,13 +17,14 @@
   , "mime":             ">= 1.2.2"
   , "qs":               ">= 0.1.0"
   , "async":            ">= 0"
-  , "request":          ">= 0"
   , "cradle":           ">= 0"
+  , "request-json":     ">= 0"
   }
 , "devDependencies": 
   { "should":           ">= 0"
   , "chai":             "*"
   , "mocha":            ">= 0"
+  , "request":          ">= 0"
   }
 , "scripts":
   { "test": "cake tests"
