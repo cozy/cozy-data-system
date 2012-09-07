@@ -14,11 +14,7 @@ client = new Client("http://localhost:5000/")
 # Index given fields of document matching id.
 action 'index', ->
     indexDoc = (doc) =>
-        
-        console.log doc._id
-        
         doc["id"] = doc._id
-        console.log doc
         data =
             doc: doc
             fields: body.fields
@@ -37,9 +33,9 @@ action 'index', ->
 action 'search', ->
     data =
         docType: params.type
-        query: body
+        query: body.query
 
-    client.post "search/", body, (err, res, resbody) ->
+    client.post "search/", data, (err, res, resbody) ->
         if err
             send 500
         if res.statusCode != 200
