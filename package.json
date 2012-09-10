@@ -19,6 +19,7 @@
   , "async":            ">= 0"
   , "request":          ">= 0"
   , "cradle":           ">= 0"
+  , "mime":             ">= 0"
   }
 , "devDependencies": 
   { "should":           ">= 0"
