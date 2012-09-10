@@ -5,7 +5,7 @@ database, to the indexer and to the file system.
 
 ## Setup 
 
-Install CouchDB, NodeJS then clone repository.
+Install CouchDB, NodeJS then clone this repository.
 
 Load submodules
 
@@ -27,7 +27,7 @@ Then, run server
 
 # About Cozy
 
-Cozy Data Systemer is part of the Cozy platform backend. Cozy is the personal
+Cozy Data System is part of the Cozy platform backend. Cozy is the personal
 server for everyone. It allows you to install your every day web applications 
 easily on your server, a single place you control. This means you can manage 
 efficiently your data while protecting your privacy without technical skills.

@@ -7,7 +7,6 @@ connection = new cradle.Connection
     raw: false
 db = connection.database("cozy")
 
-
 # GET /data/exist/:id
 action 'exist', ->
     db.head params.id, (err, res, status) ->
