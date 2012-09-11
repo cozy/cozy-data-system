@@ -25,6 +25,7 @@
   { "should":           ">= 0"
   , "chai":             ">= 0"
   , "mocha":            ">= 0"
+  , "request":            ">= 0"
   }
 , "scripts":
   { "test": "cake tests"
