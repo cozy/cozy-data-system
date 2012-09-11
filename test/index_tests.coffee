@@ -3,7 +3,7 @@ async = require('async')
 Client = require('request-json').JsonClient
 app = require('../server')
 
-client = new Client("http://localhost:7000/")
+client = new Client("http://localhost:8888/")
 
 
 # connection to DB for "hand work"
@@ -25,6 +25,7 @@ createNoteFunction = (title, content) ->
             docType: "Note"
 
         client.post "data/", note, (error, response, body) ->
+            console.log error if error
             client.post "data/index/#{body._id}",
                 fields: ["title", "content"]
                 , callback
@@ -32,20 +33,20 @@ createNoteFunction = (title, content) ->
 
 describe "Indexation", ->
 
-    # Clear DB, create a new one, then init data for tests.
-    before (done) ->
-        client.del "data/index/clear-all/", (err, response) ->
-            db.destroy ->
-                console.log 'DB destroyed'
-                db.create ->
-                    console.log 'DB recreated'
-                    done()
-
     # Start application before starting tests.
     before (done) ->
         app.listen(8888)
         done()
 
+    # Clear DB, create a new one, then init data for tests.
+    before (done) ->
+        client.del "data/index/clear-all/", (err, response) ->
+            console.log err if err
+            db.destroy ->
+                console.log 'DB destroyed'
+                db.create ->
+                    console.log 'DB recreated'
+                    done()
 
 
     describe "indexing and searching", ->
