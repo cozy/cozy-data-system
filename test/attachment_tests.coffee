@@ -7,7 +7,6 @@ FormData = require 'form-data'
 request = require "request"
 
 Client = require("request-json").JsonClient
-client = new Client("http://localhost:8888/")
 
 # connection to DB for "hand work"
 cradle = require 'cradle'
@@ -30,6 +29,7 @@ describe "Attachments", ->
 
     # Start application before starting tests.
     before (done) ->
+        @client = new Client("http://localhost:8888/")
         app.listen(8888)
         done()
 
@@ -37,9 +37,8 @@ describe "Attachments", ->
     describe "Add an attachment", ->
         
         it "When I post an attachment to an unexisting document", (done) ->
-            form = new FormData
-            form.append 'file', fs.createReadStream("./test/test.png")
-            form.submit "http://localhost:8888/data/123/attachments/", (err, res) =>
+            @client.sendFile "data/123/attachments/", "./test/test.png", \
+                            (err, res, body) =>
                 console.log err if err
                 @response = res
                 done()
@@ -48,9 +47,8 @@ describe "Attachments", ->
             @response.statusCode.should.equal 404
         
         it "When I post an attachment", (done) ->
-            form = new FormData
-            form.append 'file', fs.createReadStream("./test/test.png")
-            form.submit "http://localhost:8888/data/321/attachments/", (err, res) =>
+            @client.sendFile "data/321/attachments/", "./test/test.png", \
+                            (err, res, body) =>
                 console.log err if err
                 @response = res
                 done()
@@ -61,8 +59,9 @@ describe "Attachments", ->
     describe "Retrieve an attachment", ->
 
         it "When I claim this attachment", (done) ->
-            stream = request('http://localhost:8888/data/321/attachments/test.png', -> done())
-            stream.pipe fs.createWriteStream('./test/test-get.png')
+            @client = new Client("http://localhost:8888/")
+            @client.saveFile "data/321/attachments/test.png", \
+                             './test/test-get.png', -> done()
 
         it "I got the same file I attached before", ->
             fileStats = fs.statSync('./test/test.png')
@@ -74,8 +73,7 @@ describe "Attachments", ->
 
         it "When I remove this attachment", (done) ->
             delete @response
-            request.del 'http://localhost:8888/data/321/attachments/test.png', \
-                        (err, res) =>
+            @client.del 'data/321/attachments/test.png', (err, res) =>
                 @response = res
                 done()
 
@@ -84,8 +82,7 @@ describe "Attachments", ->
 
         it "When I claim this attachment", (done) ->
             delete @response
-            request 'http://localhost:8888/data/321/attachments/test.png', \
-                    (err, res, body) =>
+            @client.get 'data/321/attachments/test.png', (err, res, body) =>
                 @response = res
                 done()
 
