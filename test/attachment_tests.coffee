@@ -6,6 +6,8 @@ fs = require 'fs'
 FormData = require 'form-data'
 request = require "request"
 
+Client = require("request-json").JsonClient
+client = new Client("http://localhost:8888/")
 
 # connection to DB for "hand work"
 cradle = require 'cradle'
