@@ -26,35 +26,37 @@ randomString = (length=32) ->
     string += Math.random().toString(36).substr(2) while string.length < length
     string.substr 0, length
 
-# Clear DB, create a new one, then init data for tests.
-before (done) ->
-    db.destroy ->
-        console.log 'DB destroyed'
-        db.create ->
-            console.log 'DB recreated'
-            db.save '321', {"value":"val"}, ->
-                done()
+describe "Request handling tests", ->
 
-# Start application before starting tests.
-before (done) ->
-    app.listen(8888)
-    done()
+    # Clear DB, create a new one, then init data for tests.
+    before (done) ->
+        db.destroy ->
+            console.log 'DB destroyed'
+            db.create ->
+                console.log 'DB recreated'
+                db.save '321', {"value":"val"}, ->
+                    done()
 
-# Stop application after finishing tests.
-after (done) ->
-    app.close()
-    done()
+    # Start application before starting tests.
+    before (done) ->
+        app.listen(8888)
+        done()
+
+    # Stop application after finishing tests.
+    after (done) ->
+        app.close()
+        done()
 
 
 
-describe "Access to a view", ->
-    describe "Access to a non existing view", ->
-        before cleanRequest
+    describe "Access to a view", ->
+        describe "Access to a non existing view", ->
+            before cleanRequest
 
-        it "When I send a request to access view dont-exist", (done) ->
-            client.get "request/dont-exist", (error, response, body) =>
-                @response = response
-                done()
+            it "When I send a request to access view dont-exist", (done) ->
+                client.get "request/dont-exist", (error, response, body) =>
+                    @response = response
+                    done()
 
-        it "Then error 404 should be returned", ->
-            @response.statusCode.should.equal 404
+            it "Then error 404 should be returned", ->
+                @response.statusCode.should.equal 404
