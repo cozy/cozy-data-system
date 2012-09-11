@@ -1,6 +1,6 @@
 should = require('chai').Should()
 async = require('async')
-Client = require('../common/test/client').Client
+Client = require('request-json').JsonClient
 app = require('../server')
 
 client = new Client("http://localhost:8888/")
@@ -287,7 +287,7 @@ describe "Delete", ->
         before cleanRequest
 
         it "When I send a request to delete Document with id 123", (done) ->
-            client.delete "data/123/", (error, response, body) =>
+            client.del "data/123/", (error, response, body) =>
                 @response = response
                 done()
 
@@ -298,7 +298,7 @@ describe "Delete", ->
         before cleanRequest
 
         it "When I send a request to delete Document with id 654", (done) ->
-            client.delete "data/654/", (error, response, body) =>
+            client.del "data/654/", (error, response, body) =>
                 @response = response
                 done()
 
