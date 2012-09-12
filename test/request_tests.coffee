@@ -35,15 +35,15 @@ describe "Request handling tests", ->
             db.create ->
                 console.log 'DB recreated'
                 docs = ({'type':'dumb_doc', 'num':num} for num in [0..100])
-                db.save docs, ->
-                    map_no_doc = (doc) ->
-                    map_every_docs = (doc) ->
-                        emit doc._id, null
+                map_no_doc = (doc) ->
+                map_every_docs = (doc) ->
+                    emit doc._id, null
 
-                    views = {no_doc:{map:map_no_doc}, \
-                            every_docs:{map:map_every_docs}}
+                views = {no_doc:{map:map_no_doc}, \
+                        every_docs:{map:map_every_docs}}
 
-                    db.save "_design/cozy-request", views, ->
+                db.save "_design/cozy-request", views, ->
+                    db.save docs, ->
                         done()
 
     # Start application before starting tests.
