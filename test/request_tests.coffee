@@ -34,8 +34,17 @@ describe "Request handling tests", ->
             console.log 'DB destroyed'
             db.create ->
                 console.log 'DB recreated'
-                db.save '321', {"value":"val"}, ->
-                    done()
+                docs = ({'type':'dumb_doc', 'num':num} for num in [0..100])
+                db.save docs, ->
+                    map_no_doc = (doc) ->
+                    map_every_docs = (doc) ->
+                        emit doc._id, null
+
+                    views = {no_doc:{map:map_no_doc}, \
+                            every_docs:{map:map_every_docs}}
+
+                    db.save "_design/cozy-request", views, ->
+                        done()
 
     # Start application before starting tests.
     before (done) ->
@@ -49,7 +58,7 @@ describe "Request handling tests", ->
 
 
 
-    describe "Access to a view", ->
+    describe "Access to a view without option", ->
         describe "Access to a non existing view", ->
             before cleanRequest
 
@@ -60,3 +69,27 @@ describe "Request handling tests", ->
 
             it "Then error 404 should be returned", ->
                 @response.statusCode.should.equal 404
+        
+        describe "Access to an existing view : no_doc", ->
+            before cleanRequest
+
+            it "When I send a request to access view no_doc", (done) ->
+                client.get "request/no_doc/", (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = parseBody response, body
+                    done()
+
+            it "Then I should have no document returned", ->
+                @body.should.have.length 0
+
+        describe "Access to an existing view : every_docs", (done) ->
+            before cleanRequest
+
+            it "When I send a request to access view every-docs", (done) ->
+                client.get "request/every_docs/", (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = parseBody response, body
+                    done()
+
+            it "Then I should have 101 documents returned", ->
+                @body.should.have.length 101
