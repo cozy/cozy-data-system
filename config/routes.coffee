@@ -1,4 +1,5 @@
 exports.routes = (map) ->
+    # Data managing
     map.get '/data/exist/:id/', 'data#exist'
     map.get '/data/:id/', 'data#find'
 
@@ -10,3 +11,6 @@ exports.routes = (map) ->
     map.put '/data/:id/', 'data#update'
 
     map.delete '/data/:id/', 'data#delete'
+
+    #Request handling
+    map.get '/request/:req_name/', 'request#access'
