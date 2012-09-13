@@ -166,13 +166,13 @@ describe "Data handling tests", ->
                 @_id = @body._id
 
             it "Then the Document should exist in Database", (done) ->
-                client.get "data/exist/" + @_id + "/", (error, response, body) =>
+                client.get "data/exist/#{@_id}/", (error, response, body) =>
                     @body = parseBody response, body
                     @body.exist.should.be.true
                     done()
 
             it "Then the Document in DB should equal the sent Document", (done) ->
-                client.get "data/" + @_id + "/", (error, response, body) =>
+                client.get "data/#{@_id}/", (error, response, body) =>
                     @body = parseBody response, body
                     @body.should.have.property 'value', @randomValue
                     done()

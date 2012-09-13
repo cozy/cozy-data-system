@@ -10,7 +10,7 @@ db = connection.database("cozy")
 
 # GET /request/:req_name
 action 'access', ->
-    db.view 'cozy-request/' + params.req_name, (err, res) ->
+    db.view "cozy-request/#{params.req_name}", (err, res) ->
         if err
             send 404
         else
