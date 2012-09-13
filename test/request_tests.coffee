@@ -38,6 +38,7 @@ describe "Request handling tests", ->
                 map_no_doc = (doc) ->
                 map_every_docs = (doc) ->
                     emit doc._id, null
+                    return
 
                 views = {no_doc:{map:map_no_doc}, \
                         every_docs:{map:map_every_docs}}
@@ -80,12 +81,12 @@ describe "Request handling tests", ->
                     done()
 
             it "Then I should have no document returned", ->
-                @body.should.have.length 0
+                @body.should.be.empty
 
         describe "Access to an existing view : every_docs", (done) ->
             before cleanRequest
 
-            it "When I send a request to access view every-docs", (done) ->
+            it "When I send a request to access view every_docs", (done) ->
                 client.get "request/every_docs/", (error, response, body) =>
                     response.statusCode.should.equal 200
                     @body = parseBody response, body
@@ -93,3 +94,38 @@ describe "Request handling tests", ->
 
             it "Then I should have 101 documents returned", ->
                 @body.should.have.length 101
+
+    describe "View creation or update", ->
+        describe "Creation of a new view", ->
+            before cleanRequest
+
+            it "When I send a request to create view even_num", (done) ->
+                map = (doc) ->
+                    emit doc._id, null if (doc.num && (doc.num % 2) is 0)
+                view = {map:map}
+
+                client.put '/request/even_num/', view, \
+                        (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    done()
+
+            it "Then this view should be accessible", (done) ->
+                client.get '/request/even_num/', (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = parseBody response, body
+                    done()
+
+            it "And the other views should still exist", (done) ->
+                db.get '_design/cozy-request', (err, res) ->
+                    should.not.exist err
+                    res.views.should.have.property 'every_docs'
+                    res.views.should.have.property 'no_doc'
+                    done()
+
+            it "And I should retrieve 51 documents with even num", ->
+                @body.should.have.length 51
+                @body.forEach (doc) ->
+                    expect(doc.num % 2).to.equal 0
+
+        describe "Update of an existing view", ->
+            before cleanRequest
