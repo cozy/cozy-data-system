@@ -20,6 +20,7 @@ action 'access', ->
 
 # PUT /request/:req_name
 action 'definition', ->
+    # no need to precise language because it's javascript
     db.get "_design/cozy-request", (err, res) ->
         if err && err.error is 'not_found'
             design_doc = {}
