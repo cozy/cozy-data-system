@@ -8,7 +8,7 @@ client = new Client("http://localhost:8888/")
 # connection to DB for "hand work"
 cradle = require 'cradle'
 connection = new cradle.Connection
-    cache: true,
+    cache: false,
     raw: false
 db = connection.database('cozy')
 
