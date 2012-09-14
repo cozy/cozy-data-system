@@ -8,7 +8,7 @@ client = new Client("http://localhost:8888/")
 # connection to DB for "hand work"
 cradle = require 'cradle'
 connection = new cradle.Connection
-    cache: true,
+    cache: false,
     raw: false
 db = connection.database('cozy')
 
@@ -35,17 +35,8 @@ describe "Request handling tests", ->
             db.create ->
                 console.log 'DB recreated'
                 docs = ({'type':'dumb_doc', 'num':num} for num in [0..100])
-                map_no_doc = (doc) ->
-                map_every_docs = (doc) ->
-                    emit doc._id, null
-                    return
-
-                views = {no_doc:{map:map_no_doc}, \
-                        every_docs:{map:map_every_docs}}
-
-                db.save "_design/cozy-request", views, ->
-                    db.save docs, ->
-                        done()
+                db.save docs, ->
+                    done()
 
     # Start application before starting tests.
     before (done) ->
@@ -59,6 +50,52 @@ describe "Request handling tests", ->
 
 
 
+    describe "View creation", ->
+        describe "Creation of the first view + design document creation", ->
+            before cleanRequest
+
+            it "When I send a request to create view every_docs", (done) ->
+                map = (doc) ->
+                    emit doc._id, doc
+                    return
+                @viewAll = {map:map.toString()}
+
+                client.put 'request/every_docs/', @viewAll, \
+                        (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    done()
+            
+            it "Then the design document should exist and contain the view", \
+                    (done) ->
+                db.get '_design/cozy-request', (err, res) ->
+                    should.not.exist err
+                    should.exist res
+                    res.views.should.have.property 'every_docs', @viewAll
+                    done()
+
+        describe "Creation of a new view", ->
+            before cleanRequest
+
+            it "When I send a request to create view even_num", (done) ->
+                map = (doc) ->
+                    emit doc._id, doc if (doc.num? && (doc.num % 2) is 0)
+                    return
+                @viewEven = {map:map.toString()}
+
+                client.put 'request/even_num/', @viewEven, \
+                        (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    done()
+
+            it "Then the design document should exist and contain the views", \
+                    (done) ->
+                db.get '_design/cozy-request', (err, res) ->
+                    should.not.exist err
+                    should.exist res
+                    res.views.should.have.property 'every_docs', @viewAll
+                    res.views.should.have.property 'even_num', @viewEven
+                    done()
+
     describe "Access to a view without option", ->
         describe "Access to a non existing view", ->
             before cleanRequest
@@ -69,19 +106,7 @@ describe "Request handling tests", ->
                     done()
 
             it "Then error 404 should be returned", ->
-                @response.statusCode.should.equal 404
-        
-        describe "Access to an existing view : no_doc", ->
-            before cleanRequest
-
-            it "When I send a request to access view no_doc", (done) ->
-                client.get "request/no_doc/", (error, response, body) =>
-                    response.statusCode.should.equal 200
-                    @body = parseBody response, body
-                    done()
-
-            it "Then I should have no document returned", ->
-                @body.should.be.empty
+                @response.statusCode.should.equal
 
         describe "Access to an existing view : every_docs", (done) ->
             before cleanRequest
@@ -95,37 +120,45 @@ describe "Request handling tests", ->
             it "Then I should have 101 documents returned", ->
                 @body.should.have.length 101
 
-    describe "View creation or update", ->
-        describe "Creation of a new view", ->
+        describe "Access to an existing view : even_num", (done) ->
             before cleanRequest
 
-            it "When I send a request to create view even_num", (done) ->
-                map = (doc) ->
-                    emit doc._id, null if (doc.num && (doc.num % 2) is 0)
-                view = {map:map}
-
-                client.put '/request/even_num/', view, \
-                        (error, response, body) =>
-                    response.statusCode.should.equal 200
-                    done()
-
-            it "Then this view should be accessible", (done) ->
-                client.get '/request/even_num/', (error, response, body) =>
+            it "When I send a request to access view every_docs", (done) ->
+                client.get "request/even_num/", (error, response, body) =>
                     response.statusCode.should.equal 200
                     @body = parseBody response, body
                     done()
 
-            it "And the other views should still exist", (done) ->
-                db.get '_design/cozy-request', (err, res) ->
-                    should.not.exist err
-                    res.views.should.have.property 'every_docs'
-                    res.views.should.have.property 'no_doc'
+            it "Then I should have 51 documents returned", ->
+                @body.should.have.length 51
+
+    describe "Update of an existing view", ->
+        describe "Redefinition of existing view even_num", ->
+            before cleanRequest
+
+            it "When I send a request to create view even_num", (done) ->
+                map = (doc) ->
+                    emit doc._id, doc if (doc.num? && (doc.num % 2) isnt 0)
+                    return
+                @viewEven = {map:map.toString()}
+
+                client.put 'request/even_num/', @viewEven, \
+                        (error, response, body) =>
+                    response.statusCode.should.equal 200
                     done()
 
-            it "And I should retrieve 51 documents with even num", ->
-                @body.should.have.length 51
-                @body.forEach (doc) ->
-                    expect(doc.num % 2).to.equal 0
+            it "Then the design document should exist and contain the views", \
+                    (done) ->
+                db.get '_design/cozy-request', (err, res) ->
+                    should.not.exist err
+                    should.exist res
+                    res.views.should.have.property 'every_docs', @viewAll
+                    res.views.should.have.property 'even_num', @viewEven
+                    done()
 
-        describe "Update of an existing view", ->
-            before cleanRequest
+            it "And I should retrieve the good values", (done) ->
+                client.get "request/even_num/", (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = parseBody response, body
+                    @body.should.have.length 50
+                    done()
