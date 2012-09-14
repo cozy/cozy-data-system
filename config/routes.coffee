@@ -14,3 +14,5 @@ exports.routes = (map) ->
 
     #Request handling
     map.get '/request/:req_name/', 'request#access'
+
+    map.put 'request/:req_name/', 'request#definition'
