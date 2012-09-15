@@ -1,2 +1,0 @@
-VCAP_SERVICES='{"mongodb-1.8":[{"name":"mongodb-ae2322","label":"mongodb-1.8","plan":"free","tags":["nosql","document","mongodb-1.8","mongodb"],"credentials":{"hostname":"10.0.0.25","host":"10.0.0.25","port":25004,"username":"220d2102-aef4-4f85-b5b1-27a089edfc43","password":"9d29c539-c9da-4e43-8ad2-7634abaf1ef8","name":"75ec5ef1-5216-4eba-a689-209173d83663","db":"db","url":"mongodb://220d2102-aef4-4f85-b5b1-27a089edfc43:9d29c539-c9da-4e43-8ad2-7634abaf1ef8@10.0.0.25:25004/db"}}]}' coffee environment.coffee 
-
