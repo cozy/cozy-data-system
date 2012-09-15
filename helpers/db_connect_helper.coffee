@@ -27,24 +27,8 @@ setup_credentials = ->
 
 #console.log JSON.stringify setup_credentials(), null, 4
 
-connect_db = ->
+exports.db_connect = ->
     credentials = setup_credentials()
     connection = new cradle.Connection credentials
     db = connection.database credentials.db
     return db
-
-db = connect_db()
-#console.log JSON.stringify db, null, 4
-
-#---------------------------------------
-
-db.exists (err, exists) ->
-    if err?
-        console.log "err: ", err
-    else if exists
-        console.log "database #{db.name} on #{db.connection.host}:#{db.connection.port} found"
-    else
-        console.log "database #{db.name} on #{db.connection.host}:#{db.connection.port} not found"
-        db.create ->
-            console.log "database #{db.name} on #{db.connection.host}:#{db.connection.port} created"
-            return
