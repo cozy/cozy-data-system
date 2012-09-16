@@ -1,6 +1,7 @@
 load 'application'
 
 cradle = require "cradle"
+fs = require "fs"
 
 connection = new cradle.Connection
     cache: true,
@@ -104,3 +105,4 @@ action 'merge', ->
                     send 200
         else
             send 404
+
