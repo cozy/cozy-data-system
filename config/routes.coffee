@@ -1,4 +1,5 @@
 exports.routes = (map) ->
+    # Data managing
     map.get '/data/exist/:id/', 'data#exist'
     map.get '/data/:id/', 'data#find'
 
@@ -11,11 +12,18 @@ exports.routes = (map) ->
 
     map.delete '/data/:id/', 'data#delete'
     
+    # Indexation
     map.post '/data/index/:id', 'index#index'
     map.post '/data/search/:type', 'index#search'
     map.delete '/data/index/clear-all/', 'index#removeAll'
     map.delete '/data/index/:id', 'index#remove'
 
+    # File management
     map.post '/data/:id/attachments/', 'attachment#addAttachment'
     map.get '/data/:id/attachments/:name', 'attachment#getAttachment'
     map.delete '/data/:id/attachments/:name', 'attachment#removeAttachment'
+
+    #Request handling
+    map.get '/request/:type/:req_name/', 'request#access'
+    map.put '/request/:type/:req_name/', 'request#definition'
+    map.delete '/request/:type/:req_name/', 'request#remove'
