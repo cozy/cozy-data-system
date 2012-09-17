@@ -1,6 +1,6 @@
 should = require('chai').Should()
 async = require('async')
-Client = require('../common/test/client').Client
+Client = require('request-json').JsonClient
 app = require('../server')
 
 client = new Client("http://localhost:8888/")
@@ -18,8 +18,6 @@ cleanRequest = ->
     delete @body
     delete @response
 
-parseBody = (response, body) ->
-    if typeof body is "object" then body else JSON.parse body
 
 randomString = (length=32) ->
     string = ""
@@ -106,7 +104,7 @@ describe "Request handling tests", ->
                     done()
 
             it "Then error 404 should be returned", ->
-                @response.statusCode.should.equal
+                @response.statusCode.should.equal 404
 
         describe "Access to an existing view : every_docs", (done) ->
             before cleanRequest
@@ -114,7 +112,7 @@ describe "Request handling tests", ->
             it "When I send a request to access view every_docs", (done) ->
                 client.get "request/every_docs/", (error, response, body) =>
                     response.statusCode.should.equal 200
-                    @body = parseBody response, body
+                    @body = body
                     done()
 
             it "Then I should have 101 documents returned", ->
@@ -126,7 +124,7 @@ describe "Request handling tests", ->
             it "When I send a request to access view every_docs", (done) ->
                 client.get "request/even_num/", (error, response, body) =>
                     response.statusCode.should.equal 200
-                    @body = parseBody response, body
+                    @body = body
                     done()
 
             it "Then I should have 51 documents returned", ->
@@ -159,6 +157,23 @@ describe "Request handling tests", ->
             it "And I should retrieve the good values", (done) ->
                 client.get "request/even_num/", (error, response, body) =>
                     response.statusCode.should.equal 200
-                    @body = parseBody response, body
+                    @body = body
                     @body.should.have.length 50
                     done()
+                    
+    describe "Deletion of an existing view", ->
+        before cleanRequest
+
+        it "When I send a request to delete view even_num", (done) ->
+            client.del "request/even_num/", (error, response, body) =>
+                    response.statusCode.should.equal 204
+
+        it "And I send a request to access view even_num", (done) ->
+            client.get "request/even_num", (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then error 404 should be returned", ->
+            @response.statusCode.should.equal 404
+
+
