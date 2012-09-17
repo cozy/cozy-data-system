@@ -13,6 +13,6 @@ exports.routes = (map) ->
     map.delete '/data/:id/', 'data#delete'
 
     #Request handling
-    map.get '/request/:req_name/', 'request#access'
-
-    map.put 'request/:req_name/', 'request#definition'
+    map.get '/request/:type/:req_name/', 'request#access'
+    map.put '/request/:type/:req_name/', 'request#definition'
+    map.delete '/request/:type/:req_name/', 'request#remove'

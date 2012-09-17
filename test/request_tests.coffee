@@ -58,14 +58,14 @@ describe "Request handling tests", ->
                     return
                 @viewAll = {map:map.toString()}
 
-                client.put 'request/every_docs/', @viewAll, \
+                client.put 'request/all/every_docs/', @viewAll, \
                         (error, response, body) =>
                     response.statusCode.should.equal 200
                     done()
             
             it "Then the design document should exist and contain the view", \
                     (done) ->
-                db.get '_design/cozy-request', (err, res) ->
+                db.get '_design/all', (err, res) ->
                     should.not.exist err
                     should.exist res
                     res.views.should.have.property 'every_docs', @viewAll
@@ -80,14 +80,14 @@ describe "Request handling tests", ->
                     return
                 @viewEven = {map:map.toString()}
 
-                client.put 'request/even_num/', @viewEven, \
+                client.put 'request/all/even_num/', @viewEven, \
                         (error, response, body) =>
                     response.statusCode.should.equal 200
                     done()
 
             it "Then the design document should exist and contain the views", \
                     (done) ->
-                db.get '_design/cozy-request', (err, res) ->
+                db.get '_design/all', (err, res) ->
                     should.not.exist err
                     should.exist res
                     res.views.should.have.property 'every_docs', @viewAll
@@ -99,7 +99,7 @@ describe "Request handling tests", ->
             before cleanRequest
 
             it "When I send a request to access view dont-exist", (done) ->
-                client.get "request/dont-exist", (error, response, body) =>
+                client.get "request/all/dont-exist", (error, response, body) =>
                     @response = response
                     done()
 
@@ -110,7 +110,7 @@ describe "Request handling tests", ->
             before cleanRequest
 
             it "When I send a request to access view every_docs", (done) ->
-                client.get "request/every_docs/", (error, response, body) =>
+                client.get "request/all/every_docs/", (error, response, body) =>
                     response.statusCode.should.equal 200
                     @body = body
                     done()
@@ -122,7 +122,7 @@ describe "Request handling tests", ->
             before cleanRequest
 
             it "When I send a request to access view every_docs", (done) ->
-                client.get "request/even_num/", (error, response, body) =>
+                client.get "request/all/even_num/", (error, response, body) =>
                     response.statusCode.should.equal 200
                     @body = body
                     done()
@@ -140,14 +140,14 @@ describe "Request handling tests", ->
                     return
                 @viewEven = {map:map.toString()}
 
-                client.put 'request/even_num/', @viewEven, \
+                client.put 'request/all/even_num/', @viewEven, \
                         (error, response, body) =>
                     response.statusCode.should.equal 200
                     done()
 
             it "Then the design document should exist and contain the views", \
                     (done) ->
-                db.get '_design/cozy-request', (err, res) ->
+                db.get '_design/all', (err, res) ->
                     should.not.exist err
                     should.exist res
                     res.views.should.have.property 'every_docs', @viewAll
@@ -155,7 +155,7 @@ describe "Request handling tests", ->
                     done()
 
             it "And I should retrieve the good values", (done) ->
-                client.get "request/even_num/", (error, response, body) =>
+                client.get "request/all/even_num/", (error, response, body) =>
                     response.statusCode.should.equal 200
                     @body = body
                     @body.should.have.length 50
@@ -165,11 +165,12 @@ describe "Request handling tests", ->
         before cleanRequest
 
         it "When I send a request to delete view even_num", (done) ->
-            client.del "request/even_num/", (error, response, body) =>
-                    response.statusCode.should.equal 204
+            client.del "request/all/even_num/", (error, response, body) =>
+                response.statusCode.should.equal 204
+                done()
 
         it "And I send a request to access view even_num", (done) ->
-            client.get "request/even_num", (error, response, body) =>
+            client.get "request/all/even_num/", (error, response, body) =>
                 @response = response
                 done()
 
