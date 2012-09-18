@@ -1,12 +1,6 @@
 load 'application'
 
-cradle = require "cradle"
-fs = require "fs"
-
-connection = new cradle.Connection
-    cache: true,
-    raw: false
-db = connection.database("cozy")
+db = require('../../helpers/db_connect_helper').db_connect()
 
 # GET /data/exist/:id
 action 'exist', ->

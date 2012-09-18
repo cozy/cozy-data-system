@@ -8,12 +8,7 @@ request = require "request"
 
 Client = require("request-json").JsonClient
 
-# connection to DB for "hand work"
-cradle = require 'cradle'
-connection = new cradle.Connection
-    cache: true,
-    raw: false
-db = connection.database('cozy')
+db = require('../helpers/db_connect_helper').db_connect()
 
 
 describe "Attachments", ->

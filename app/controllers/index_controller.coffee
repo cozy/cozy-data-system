@@ -1,14 +1,8 @@
 load 'application'
 
-cradle = require "cradle"
-
-connection = new cradle.Connection
-    cache: true,
-    raw: false
-db = connection.database("cozy")
-
 Client = require("request-json").JsonClient
 client = new Client("http://localhost:5000/")
+db = require('../../helpers/db_connect_helper').db_connect()
 
 # POST /data/index/:id
 # Index given fields of document matching id.
