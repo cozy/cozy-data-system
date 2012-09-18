@@ -24,6 +24,6 @@ exports.routes = (map) ->
     map.delete '/data/:id/attachments/:name', 'attachment#removeAttachment'
 
     #Request handling
-    map.get '/request/:type/:req_name/', 'request#access'
+    map.post '/request/:type/:req_name/', 'request#results'
     map.put '/request/:type/:req_name/', 'request#definition'
     map.delete '/request/:type/:req_name/', 'request#remove'

@@ -76,7 +76,7 @@ describe "Request handling tests", ->
 
             it "When I send a request to create view even_num", (done) ->
                 map = (doc) ->
-                    emit doc._id, doc if (doc.num? && (doc.num % 2) is 0)
+                    emit doc.num, doc if (doc.num? && (doc.num % 2) is 0)
                     return
                 @viewEven = {map:map.toString()}
 
@@ -99,7 +99,8 @@ describe "Request handling tests", ->
             before cleanRequest
 
             it "When I send a request to access view dont-exist", (done) ->
-                client.get "request/all/dont-exist", (error, response, body) =>
+                client.post "request/all/dont-exist/", {}, \
+                            (error, response, body) =>
                     @response = response
                     done()
 
@@ -110,7 +111,8 @@ describe "Request handling tests", ->
             before cleanRequest
 
             it "When I send a request to access view every_docs", (done) ->
-                client.get "request/all/every_docs/", (error, response, body) =>
+                client.post "request/all/every_docs/", {},\
+                            (error, response, body) =>
                     response.statusCode.should.equal 200
                     @body = body
                     done()
@@ -122,13 +124,44 @@ describe "Request handling tests", ->
             before cleanRequest
 
             it "When I send a request to access view every_docs", (done) ->
-                client.get "request/all/even_num/", (error, response, body) =>
+                client.post "request/all/even_num/", {}, \
+                            (error, response, body) =>
                     response.statusCode.should.equal 200
                     @body = body
                     done()
 
             it "Then I should have 51 documents returned", ->
                 @body.should.have.length 51
+
+    describe "Access to a view with option", ->
+        describe "Access to a view : even_num, with key param", (done) ->
+            before cleanRequest
+
+            it "When I send a request to get doc with num = 10", (done) ->
+                client.post "request/all/even_num/", key: 10, \
+                            (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = body
+                    done()
+
+            it "Then I should have 1 documents returned", ->
+                @body.should.have.length 1
+
+        describe "Access to a view : even_num, with wrong key param", (done) ->
+            before cleanRequest
+
+            it "When I send a request to get doc with num = 9", (done) ->
+                client.post "request/all/even_num/", key: 9, \
+                            (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = body
+                    done()
+
+            it "Then I should have 0 documents returned", ->
+                @body.should.have.length 0
+
+
+
 
     describe "Update of an existing view", ->
         describe "Redefinition of existing view even_num", ->
@@ -155,7 +188,8 @@ describe "Request handling tests", ->
                     done()
 
             it "And I should retrieve the good values", (done) ->
-                client.get "request/all/even_num/", (error, response, body) =>
+                client.post "request/all/even_num/", {}, \
+                            (error, response, body) =>
                     response.statusCode.should.equal 200
                     @body = body
                     @body.should.have.length 50
@@ -170,7 +204,8 @@ describe "Request handling tests", ->
                 done()
 
         it "And I send a request to access view even_num", (done) ->
-            client.get "request/all/even_num/", (error, response, body) =>
+            client.post "request/all/even_num/", {},  \
+                        (error, response, body) =>
                 @response = response
                 done()
 
