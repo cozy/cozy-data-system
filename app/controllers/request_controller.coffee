@@ -1,8 +1,9 @@
 load 'application'
 
+async = require "async"
 db = require('../../helpers/db_connect_helper').db_connect()
 
-# GET /request/type/:req_name
+# POST /request/type/:req_name
 action 'results', ->
     db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
         if err
@@ -11,6 +12,30 @@ action 'results', ->
             res.forEach (value) ->
                 delete value._rev # CouchDB specific, user don't need it
             send res
+
+# PUT /request/type/:req_name/destroy
+action 'removeResults', ->
+    removeFunc = (res, callback) ->
+        db.remove res.value._id, res.value._rev, callback
+
+    removeAllDocs = (res) ->
+        async.forEachSeries res, removeFunc, (err) ->
+            if err
+                send error: true, msg: err.message, 500
+            else
+                delFunc()
+
+    delFunc = ->
+        body.limit = 30
+        db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
+            if err
+                send 404
+            else
+                if res.length > 0
+                    removeAllDocs(res)
+                else
+                    send 204
+    delFunc()
 
 # PUT /request/:type/:req_name
 action 'definition', ->

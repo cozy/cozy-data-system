@@ -160,8 +160,57 @@ describe "Request handling tests", ->
             it "Then I should have 0 documents returned", ->
                 @body.should.have.length 0
 
+    describe "Deletion of docs through requests", ->
+        
+        describe "Delete a doc from a view : even_num", (done) ->
+            before cleanRequest
+
+            it "When I send a request to delete a doc from even_num", (done) ->
+                client.put "request/all/even_num/destroy/", \
+                            {key: 10}, (err, response, body) ->
+                    response.statusCode.should.equal 204
+                    should.not.exist err
+                    done()
+
+            it "And I send a request to get doc with num = 10", (done) ->
+                client.post "request/all/even_num/", key: 10, \
+                            (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = body
+                    done()
+
+            it "Then I should have 0 documents returned", ->
+                @body.should.have.length 0
+
+            it "And I send a request to grab all docs from even_num", (done) ->
+                client.post "request/all/even_num/", {}, \
+                            (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = body
+                    done()
+
+            it "Then I should have 0 documents returned", ->
+                @body.should.have.length 50
 
 
+        describe "Delete all doc from a view : even_num", (done) ->
+
+            it "When I delete all docs from every_docs", (done) ->
+                client.put "request/all/even_num/destroy/", {}, \
+                            (err, response, body) ->
+                    response.statusCode.should.equal 204
+                    should.not.exist err
+                    done()
+
+            it "And I send a request to grab all docs from even_num", (done) ->
+                client.post "request/all/even_num/", {}, \
+                            (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = body
+                    done()
+
+            it "Then I should have 0 documents returned", ->
+                @body.should.have.length 0
 
     describe "Update of an existing view", ->
         describe "Redefinition of existing view even_num", ->
@@ -194,7 +243,7 @@ describe "Request handling tests", ->
                     @body = body
                     @body.should.have.length 50
                     done()
-                    
+
     describe "Deletion of an existing view", ->
         before cleanRequest
 
@@ -211,5 +260,3 @@ describe "Request handling tests", ->
 
         it "Then error 404 should be returned", ->
             @response.statusCode.should.equal 404
-
-

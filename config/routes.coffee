@@ -25,5 +25,6 @@ exports.routes = (map) ->
 
     #Request handling
     map.post '/request/:type/:req_name/', 'request#results'
+    map.put '/request/:type/:req_name/destroy/', 'request#removeResults'
     map.put '/request/:type/:req_name/', 'request#definition'
     map.delete '/request/:type/:req_name/', 'request#remove'
