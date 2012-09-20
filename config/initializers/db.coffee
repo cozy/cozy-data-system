@@ -1,21 +1,19 @@
-cradle = require "cradle"
-
 # Create cozy database if it does not exist.
-createDb = ->
-    connection = new cradle.Connection
-        cache: true,
-        raw: false
-    db = connection.database("cozy")
+db_create = ->
+    db = require('../../helpers/db_connect_helper').db_connect()
 
     db.exists (err, exists) ->
         if err
-            console.log "error", err
+            console.log "Error:", err
         else if exists
-            console.log "Database Cozy found."
+            console.log "Database #{db.name} on", \
+                    "#{db.connection.host}:#{db.connection.port} found."
         else
-            console.log "Database Cozy does not exist."
+            console.log "Database #{db.name} on", \
+                    "#{db.connection.host}:#{db.connection.port} doesn't exist."
             db.create ->
-                console.log "Database Cozy created."
+                console.log "Database #{db.name} on", \
+                        "#{db.connection.host}:#{db.connection.port} created."
                 return
 
-createDb()
+db_create()

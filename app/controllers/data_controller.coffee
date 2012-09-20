@@ -1,12 +1,6 @@
 load 'application'
 
-cradle = require "cradle"
-
-connection = new cradle.Connection
-    cache: true,
-    raw: false
-db = connection.database("cozy")
-
+db = require('../../helpers/db_connect_helper').db_connect()
 
 # GET /data/exist/:id
 action 'exist', ->
@@ -105,3 +99,4 @@ action 'merge', ->
                     send 200
         else
             send 404
+

@@ -10,20 +10,22 @@
 , "main": "server.coffee"
 , "dependencies":
   {
-    "express":          ">= 2.5.8"
-  , "connect":          ">= 1.8.6"
-  , "railway":          ">= 0.2.11"
-  , "coffee-script":    ">= 1.1.1"
-  , "mime":             ">= 1.2.2"
-  , "qs":               ">= 0.1.0"
-  , "async":            ">= 0"
-  , "request":          ">= 0"
-  , "cradle":           ">= 0"
+    "express":          "= 3.0.0rc3"
+  , "connect":          "= 2.4.3"
+  , "railway":          "= 0.2.17-pre4"
+  , "coffee-script":    "= 1.3.3"
+  , "mime":             "= 1.2.7"
+  , "qs":               "= 0.5.0"
+  , "async":            "= 0.1.22"
+  , "cradle":           "= 0.6.3"
+  , "request-json":     "= 0.2.7"
+  , "form-data":        "= 0.0.4"
   }
 , "devDependencies": 
   { "should":           ">= 0"
-  , "chai":             "*"
+  , "chai":             ">= 0"
   , "mocha":            ">= 0"
+  , "request":          ">= 0"
   }
 , "scripts":
   { "test": "cake tests"
