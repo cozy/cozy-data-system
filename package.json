@@ -1,6 +1,6 @@
 { "name": "cozy-data-system"
 , "version": "0.0.1"
-, "engines": ["node >= 0.6.4"]
+, "engines": ["*"]
 , "description": "Data-layer between cozy applications and persistence systems"
 , "repository":
   {
