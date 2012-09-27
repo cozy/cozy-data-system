@@ -75,7 +75,7 @@ action 'delete', ->
     # this version don't take care of conflict (erase DB with the sent value)
     db.get params.id, (err, doc) ->
         if doc
-            db.remove params.id, (err, res) ->
+            db.remove params.id, doc.rev, (err, res) ->
                 if err
                     # oops unexpected error !
                     console.log "[Delete] err: " + JSON.stringify err
