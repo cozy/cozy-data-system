@@ -5,7 +5,7 @@ setup_credentials = ->
     credentials = {
         host : 'localhost',
         port : '5984',
-        cache : true,
+        cache : false,
         raw: false
         db: 'cozy'
     }
