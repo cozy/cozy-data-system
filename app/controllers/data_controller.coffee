@@ -2,6 +2,10 @@ load 'application'
 
 db = require('../../helpers/db_connect_helper').db_connect()
 
+# Welcome page
+action "index", ->
+    send "Cozy Data System", 200
+
 # GET /data/exist/:id
 action 'exist', ->
     db.head params.id, (err, res, status) ->

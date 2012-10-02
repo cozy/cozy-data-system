@@ -1,4 +1,7 @@
 exports.routes = (map) ->
+
+    map.get '/', 'data#index'
+
     # Data managing
     map.get '/data/exist/:id/', 'data#exist'
     map.get '/data/:id/', 'data#find'
