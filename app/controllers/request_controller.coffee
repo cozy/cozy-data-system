@@ -3,11 +3,15 @@ load 'application'
 async = require "async"
 db = require('../../helpers/db_connect_helper').db_connect()
 
-# POST /request/type/:req_name
+# POST /request/:type/:req_name
 action 'results', ->
     db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
         if err
-            send 404
+            if err.error is "not_found"
+                send 404
+            else
+                console.log err
+                send 500
         else
             res.forEach (value) ->
                 delete value._rev # CouchDB specific, user don't need it

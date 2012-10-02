@@ -4,6 +4,7 @@ Client = require("request-json").JsonClient
 client = new Client("http://localhost:5000/")
 db = require('../../helpers/db_connect_helper').db_connect()
 
+
 # POST /data/index/:id
 # Index given fields of document matching id.
 action 'index', ->
@@ -32,7 +33,9 @@ action 'search', ->
     client.post "search/", data, (err, res, resbody) ->
         if err
             send 500
-        if res.statusCode != 200
+        else if not res?
+            send 500
+        else if res.statusCode != 200
             send resbody, res.statusCode
         else
             db.get resbody.ids, (err, docs) ->
@@ -57,6 +60,7 @@ action 'remove', ->
     db.get params.id, (err, doc) ->
         if doc? then removeIndex(doc) else send 404
 
+
 # DELETE /data/index/clear-all/
 # Remove all index from data system
 action 'removeAll', ->
@@ -65,6 +69,3 @@ action 'removeAll', ->
             send 500
         else
             send resbody, res.statusCode
-                
-
-

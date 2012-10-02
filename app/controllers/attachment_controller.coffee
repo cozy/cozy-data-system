@@ -22,8 +22,10 @@ before 'get doc', ->
 action 'addAttachment', ->
     if req.files["file"]?
         file = req.files["file"]
+        if body.name? then name = body.name else name = file.name
+        
         fileData =
-            name: file.name
+            name: name
             "content-type": file.type
         stream = db.saveAttachment @doc, fileData, (err, res) ->
             if err

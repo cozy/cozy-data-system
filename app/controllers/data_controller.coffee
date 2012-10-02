@@ -1,5 +1,7 @@
 load 'application'
 
+Client = require("request-json").JsonClient
+client = new Client("http://localhost:5000/")
 db = require('../../helpers/db_connect_helper').db_connect()
 
 # Welcome page
@@ -26,6 +28,7 @@ action 'find', ->
 # POST /data
 # POST /data/:id
 action 'create', ->
+    delete body._attachments
     if params.id
         db.get params.id, (err, doc) -> # this GET needed because of cache
             if doc
@@ -50,6 +53,7 @@ action 'update', ->
     # this version don't take care of conflict (erase DB with the sent value)
     db.get params.id, (err, doc) ->
         if doc
+            delete body._attachments
             db.save params.id, body, (err, res) ->
                 if err
                     # oops unexpected error !
@@ -64,6 +68,7 @@ action 'update', ->
 action 'upsert', ->
     # this version don't take care of conflict (erase DB with the sent value)
     db.get params.id, (err, doc) ->
+        delete body._attachments
         db.save params.id, body, (err, res) ->
             if err
                 # oops unexpected error !
@@ -85,7 +90,9 @@ action 'delete', ->
                     console.log "[Delete] err: " + JSON.stringify err
                     send 500
                 else
-                    send 204
+                    # Doc is removed from indexation
+                    client.del "index/#{params.id}/", (err, res, resbody) ->
+                        send 204
         else
             send 404
 
@@ -93,6 +100,7 @@ action 'delete', ->
 action 'merge', ->
     # this version don't take care of conflict (erase DB with the sent value)
     db.get params.id, (err, doc) ->
+        delete body._attachments
         if doc
             db.merge params.id, body, (err, res) ->
                 if err

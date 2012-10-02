@@ -83,4 +83,3 @@ describe "Attachments", ->
 
         it "I got a 404 response", ->
             @response.statusCode.should.equal 404
-
