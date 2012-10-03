@@ -43,7 +43,7 @@ action 'create', ->
         db.save body, (err, res) ->
             if err
                 # oops unexpected error !                
-                console.log "[Create] err: " + JSON.stringify err
+                railway.logger.write "[Create] err: " + JSON.stringify err
                 send 500
             else
                 send {"_id": res.id}, 201
