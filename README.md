@@ -5,25 +5,46 @@ database, to the indexer and to the file system.
 
 ## Setup 
 
-Install CouchDB, NodeJS then clone this repository.
+Install 
+[[CouchDB|https://github.com/mycozycloud/cozy-data-system/wiki/Couchdb-help]]
+(1.2.0), 
+[[NodeJS|https://github.com/mycozycloud/cozy-data-system/wiki/Nodejs-help]] 
+(> 0.8.0) then:
 
-Load submodules
-
+    git clone git://github.com/mycozycloud/cozy-data-system.git
+    cd cozy-data-system
+    
+    # Load submodules
     git submodule init
     git submodule update
 
-Load dependencies
-
+    # Load dependencies
     npm install
 
-Run tests
+Once datasystem is installed, run it with:
+
+    coffee server
+
+## Cozy instance setup
+
+To set it up inside your cozy instance:
+
+    # Get cozy monitor
+    git clone git://github.com/mycozycloud/cozy-setup.git
+    cd cozy-setup
+    npm install
+
+    # Then install data system:
+    coffee monitor install data-system
+    
+## Tests
+
+Run tests with following commmand
 
     NODE_ENV="test" cake tests
 
-Then, run server
-
-    coffee server.coffee
-
+NB: Indexation tests required that 
+[[Cozy Indexer|https://github.com/mycozycloud/cozy-data-indexer]] to be up.
 
 # About Cozy
 
@@ -33,4 +54,4 @@ easily on your server, a single place you control. This means you can manage
 efficiently your data while protecting your privacy without technical skills.
 
 More informations and hosting services on:
-http://www.mycozycloud.com
+http://www.cozycloud.cc
