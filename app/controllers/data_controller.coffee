@@ -1,12 +1,25 @@
 load 'application'
 
+git = require('git-rev')
+
 Client = require("request-json").JsonClient
 client = new Client("http://localhost:5000/")
 db = require('../../helpers/db_connect_helper').db_connect()
 
 # Welcome page
 action "index", ->
-    send "Cozy Data System", 200
+    sendVersion = (commit, branch, tag) ->
+        send """
+        <strong>Cozy Data System</strong><br />
+        revision: #{commit}  <br /> 
+        tag: #{tag} <br /> 
+        branch: #{branch} <br /> 
+        """, 200
+
+    git.long (commit) ->
+        git.branch (branch) ->
+            git.tag (tag) ->
+                 sendVersion(commit, branch, tag)
 
 # GET /data/exist/:id
 action 'exist', ->

@@ -20,6 +20,7 @@
   , "cradle":           "= 0.6.3"
   , "request-json":     "= 0.2.8"
   , "form-data":        "= 0.0.4"
+  , "git-rev":          "= 0.2.0"
   }
 , "devDependencies": 
   { "should":           ">= 0"
