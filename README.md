@@ -6,9 +6,9 @@ database, to the indexer and to the file system.
 ## Setup 
 
 Install 
-[[CouchDB|https://github.com/mycozycloud/cozy-data-system/wiki/Couchdb-help]]
+[CouchDB|https://github.com/mycozycloud/cozy-data-system/wiki/Couchdb-help]
 (1.2.0), 
-[[NodeJS|https://github.com/mycozycloud/cozy-data-system/wiki/Nodejs-help]] 
+[NodeJS|https://github.com/mycozycloud/cozy-data-system/wiki/Nodejs-help] 
 (> 0.8.0) then:
 
     git clone git://github.com/mycozycloud/cozy-data-system.git
@@ -44,7 +44,7 @@ Run tests with following commmand
     NODE_ENV="test" cake tests
 
 NB: Indexation tests required that 
-[[Cozy Indexer|https://github.com/mycozycloud/cozy-data-indexer]] to be up.
+[Cozy Indexer|https://github.com/mycozycloud/cozy-data-indexer] to be up.
 
 # About Cozy
 
