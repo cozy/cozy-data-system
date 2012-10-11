@@ -4,17 +4,32 @@ fs = require "fs"
 
 db = require('../../helpers/db_connect_helper').db_connect()
 
+before 'lock request', ->
+    @lock = "#{params.id}"
+    
+    app.locker.runIfUnlock @lock, =>
+        app.locker.addLock(@lock)
+        next()
+, only: ['addAttachment', 'removeAttachment']
+
+after 'unlock request', ->
+    app.locker.removeLock @lock
+, only: ['addAttachment', 'removeAttachment']
+
 before 'get doc', ->
     db.get params.id, (err, doc) =>
         if err and err.error == "not_found"
+            app.locker.removeLock @lock
             send 404
         else if err
             console.log "[Attachment] err: " + JSON.stringify err
+            app.locker.removeLock @lock
             send 500
         else if doc?
             @doc = doc
             next()
         else
+            app.locker.removeLock @lock
             send 404
 
 
@@ -31,12 +46,13 @@ action 'addAttachment', ->
             if err
                 console.log "[Attachment] err: " + JSON.stringify err
                 send 500
-                delete cached
             else
                 send 201
         fs.createReadStream(file.path).pipe(stream)
 
     else
+        console.log "no doc for attachment"
+        
         send error: true, msg: "No file send", 400
 
 

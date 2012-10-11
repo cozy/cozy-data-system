@@ -37,9 +37,7 @@ describe "Indexation", ->
         client.del "data/index/clear-all/", (err, response) ->
             console.log err if err
             db.destroy ->
-                console.log 'DB destroyed'
                 db.create ->
-                    console.log 'DB recreated'
                     done()
 
 

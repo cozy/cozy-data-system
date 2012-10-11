@@ -4,6 +4,16 @@ Client = require("request-json").JsonClient
 client = new Client("http://localhost:5000/")
 db = require('../../helpers/db_connect_helper').db_connect()
 
+before 'lock request', ->
+    @lock = "#{params.id}"
+    app.locker.runIfUnlock @lock, =>
+        app.locker.addLock(@lock)
+        next()
+, only: ['index', 'remove']
+
+after 'unlock request', ->
+    app.locker.removeLock @lock
+, only: ['index', 'remove']
 
 # POST /data/index/:id
 # Index given fields of document matching id.

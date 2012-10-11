@@ -3,6 +3,17 @@ load 'application'
 async = require "async"
 db = require('../../helpers/db_connect_helper').db_connect()
 
+before 'lock request', ->
+    @lock = "#{params.type}"
+    app.locker.runIfUnlock @lock, =>
+        app.locker.addLock(@lock)
+        next()
+, only: ['definition', 'remove']
+
+after 'unlock request', ->
+    app.locker.removeLock @lock
+, only: ['definition', 'remove']
+
 # POST /request/:type/:req_name
 action 'results', ->
     db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
@@ -10,14 +21,14 @@ action 'results', ->
             if err.error is "not_found"
                 send 404
             else
-                console.log err
+                console.log "[Results] err: " + JSON.stringify err
                 send 500
         else
             res.forEach (value) ->
                 delete value._rev # CouchDB specific, user don't need it
             send res
 
-# PUT /request/type/:req_name/destroy
+# PUT /request/:type/:req_name/destroy
 action 'removeResults', ->
     removeFunc = (res, callback) ->
         db.remove res.value._id, res.value._rev, callback
@@ -41,8 +52,10 @@ action 'removeResults', ->
                     send 204
     delFunc()
 
+
 # PUT /request/:type/:req_name
 action 'definition', ->
+
     # no need to precise language because it's javascript
     db.get "_design/#{params.type}", (err, res) ->
         if err && err.error is 'not_found'

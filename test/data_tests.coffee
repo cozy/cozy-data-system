@@ -24,9 +24,7 @@ describe "Data handling tests", ->
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
         db.destroy ->
-            console.log 'DB destroyed'
             db.create ->
-                console.log 'DB recreated'
                 db.save '321', {"value":"val"}, ->
                     done()
 

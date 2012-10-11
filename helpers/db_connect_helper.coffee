@@ -30,5 +30,6 @@ setup_credentials = ->
 exports.db_connect = ->
     credentials = setup_credentials()
     connection = new cradle.Connection credentials
+    
     db = connection.database credentials.db
     return db

@@ -20,14 +20,22 @@ randomString = (length=32) ->
     string += Math.random().toString(36).substr(2) while string.length < length
     string.substr 0, length
 
+createAuthorRequestFunction = (name) ->
+    (callback) ->
+        map = (doc) ->
+            emit doc._id, doc
+            return
+        view = {map:map.toString()}
+
+        client.put "request/author/#{name}/", view, callback
+
+
 describe "Request handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
         db.destroy ->
-            console.log 'DB destroyed'
             db.create ->
-                console.log 'DB recreated'
                 docs = ({'type':'dumb_doc', 'num':num} for num in [0..100])
                 db.save docs, ->
                     done()
@@ -256,3 +264,29 @@ describe "Request handling tests", ->
 
         it "Then error 404 should be returned", ->
             @response.statusCode.should.equal 404
+
+    describe "Create fastly three requests (concurrency test)", ->
+        before cleanRequest
+        
+        it "When I create fastly three requests", (done) ->
+            async.parallel {
+                one: createAuthorRequestFunction('all')
+                two: createAuthorRequestFunction('byName')
+                three: createAuthorRequestFunction('byAuthor')
+            }, (err, results) ->
+                results.one[0].statusCode.should.eql 200
+                results.two[0].statusCode.should.eql 200
+                results.three[0].statusCode.should.eql 200
+                done()
+
+        it "Then I got three requests in DB", (done) ->
+
+            db.get '_design/author', (err, res) ->
+                should.not.exist err
+                should.exist res
+
+                res.views.should.have.property 'all'
+                res.views.should.have.property 'byName'
+                res.views.should.have.property 'byAuthor'
+
+                done()
