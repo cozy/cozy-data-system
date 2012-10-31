@@ -72,6 +72,7 @@ action 'definition', ->
         else
             views = res.views
             views[params.req_name] = body
+            
             db.merge "_design/#{params.type}", {views:views}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
