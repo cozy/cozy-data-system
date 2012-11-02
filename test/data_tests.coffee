@@ -543,7 +543,7 @@ describe "Data handling tests", ->
 
                 it "When I send a req to merge with doc with id 123", (done) ->
                     data = "new_field":"created_value"
-                    client.put 'data/merge/123/', data \
+                    client.put 'data/merge/123/', data, \
                                 (error, response, body) =>
                         @response = response
                         done()
