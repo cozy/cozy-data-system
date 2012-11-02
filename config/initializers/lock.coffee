@@ -1,8 +1,8 @@
 # Locker needed because of the asynchronous behaviour of nodejs. The same
-# data can be modified by two requests at the same time because node handle 
-# both requests without waiting the database response. So with this lock 
+# data can be modified by two requests at the same time because node handle
+# both requests without waiting the database response. So with this lock
 # this system, it a data is accessed next request wait until data get free
-# before being executed. 
+# before being executed.
 # A lock has time to live of 2s
 class DataLock
     

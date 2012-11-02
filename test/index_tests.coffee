@@ -51,7 +51,7 @@ describe "Indexation", ->
             ], ->
                 done()
             
-        it "When I send a request to search the notes containing dragons", (done) ->
+        it "When I send a request to search the notes with dragons", (done) ->
             client.post "data/search/note", { query: "dragons" }, \
                     (error, response, body) =>
                 @result = body

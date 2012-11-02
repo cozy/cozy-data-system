@@ -40,15 +40,15 @@ action "index", ->
     sendVersion = (commit, branch, tag) ->
         send """
         <strong>Cozy Data System</strong><br />
-        revision: #{commit}  <br /> 
-        tag: #{tag} <br /> 
-        branch: #{branch} <br /> 
+        revision: #{commit}  <br />
+        tag: #{tag} <br />
+        branch: #{branch} <br />
         """, 200
 
     git.long (commit) ->
         git.branch (branch) ->
             git.tag (tag) ->
-                 sendVersion(commit, branch, tag)
+                sendVersion(commit, branch, tag)
 
 # GET /data/exist/:id
 action 'exist', ->
@@ -80,7 +80,7 @@ action 'create', ->
     else
         db.save body, (err, res) ->
             if err
-                # oops unexpected error !                
+                # oops unexpected error !
                 railway.logger.write "[Create] err: " + JSON.stringify err
                 send 500
             else
@@ -101,7 +101,7 @@ action 'update', ->
 # PUT /data/upsert/:id
 action 'upsert', ->
     db.get params.id, (err, doc) ->
-        # this version don't take care of conflict (erase DB with the sent value)
+        # this version dont take care of conflict (erase DB with the sent value)
         delete body._attachments
         db.save params.id, body, (err, res) ->
             if err
