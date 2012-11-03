@@ -6,13 +6,13 @@ db_create = ->
         if err
             console.log "Error:", err
         else if exists
-            console.log "Database #{db.name} on", \
+            railway.logger.write "Database #{db.name} on", \
                     "#{db.connection.host}:#{db.connection.port} found."
         else
-            console.log "Database #{db.name} on", \
+            railway.logger.write "Database #{db.name} on", \
                     "#{db.connection.host}:#{db.connection.port} doesn't exist."
             db.create ->
-                console.log "Database #{db.name} on", \
+                railway.logger.write console.log "Database #{db.name} on", \
                         "#{db.connection.host}:#{db.connection.port} created."
                 return
 
