@@ -1,3 +1,4 @@
+http = require 'http'
 should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
@@ -10,6 +11,8 @@ db = require('../helpers/db_connect_helper').db_connect()
 
 # helpers
 
+dragonNoteId = "0"
+
 # Function for async to create and index notes
 createNoteFunction = (title, content) ->
     (callback) ->
@@ -20,16 +23,31 @@ createNoteFunction = (title, content) ->
 
         client.post "data/", note, (error, response, body) ->
             console.log error if error
+            dragonNoteId = body._id if title is "Note 02"
             client.post "data/index/#{body._id}",
                 fields: ["title", "content"]
                 , callback
+
+
+
+fakeServer = (json, code=200, callback=null) ->
+    http.createServer (req, res) ->
+        body = ""
+        req.on 'data', (chunk) ->
+            body += chunk
+        req.on 'end', ->
+            res.writeHead code, 'Content-Type': 'application/json'
+            if callback?
+                data = JSON.parse body if body? and body.length > 0
+                callback req.url, data
+            res.end(JSON.stringify json)
 
 
 describe "Indexation", ->
 
     # Start application before starting tests.
     before (done) ->
-        app.listen(8888)
+        app.listen 8888
         done()
 
     # Clear DB, create a new one, then init data for tests.
@@ -42,19 +60,29 @@ describe "Indexation", ->
 
 
     describe "indexing and searching", ->
-        it "Given I index four notes", (done) ->
+        it "Given I index four notes", (done) =>
             async.series [
                 createNoteFunction "Note 01", "little stories begin"
                 createNoteFunction "Note 02", "great dragons are coming"
                 createNoteFunction "Note 03", "small hobbits are afraid"
                 createNoteFunction "Note 04", "such as humans"
-            ], ->
+            ], =>
                 done()
             
         it "When I send a request to search the notes with dragons", (done) ->
+            data = ids: [dragonNoteId]
+            indexer = fakeServer data, 200, (url, body) ->
+                if url is '/index/'
+                    should.exist body.fields
+                    should.exist body.doc
+                    should.exist body.doc.docType
+
+            indexer.listen 9102
+
             client.post "data/search/note", { query: "dragons" }, \
                     (error, response, body) =>
                 @result = body
+                indexer.close()
                 done()
 
         it "Then result is the second note I created", ->
@@ -72,4 +100,3 @@ describe "Indexation", ->
 
             it "Then it returns a 404 error", ->
                 @response.statusCode.should.equal 404
-
