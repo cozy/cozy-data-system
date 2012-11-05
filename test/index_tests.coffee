@@ -76,6 +76,9 @@ describe "Indexation", ->
                     should.exist body.fields
                     should.exist body.doc
                     should.exist body.doc.docType
+                if url is '/search'
+                    should.exist body.query
+                    body.query.should.equal "dragons"
 
             indexer.listen 9102
 
