@@ -136,4 +136,4 @@ action 'merge', ->
             console.log "[Merge] err: " + JSON.stringify err
             send 500
         else
-            send 200
+            send success: true, 200
