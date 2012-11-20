@@ -60,9 +60,9 @@ task "xunit", "", ->
     exec command, (err, stdout, stderr) ->
         console.log stdout
 
-task "lint", "", ->
+task "lint", "Run coffeelint on backend files", ->
     process.env.TZ = "Europe/Paris"
     command = "coffeelint "
-    command += "  -f coffeelint.json -r app/ config/ helpers/ test/"
+    command += " -f coffeelint.json -r app/ config/ helpers/ test/"
     exec command, (err, stdout, stderr) ->
         console.log stdout
