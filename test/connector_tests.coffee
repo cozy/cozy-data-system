@@ -19,8 +19,8 @@ describe 'Connectors - Bank', ->
             { label: 'livret A', balance: '2000' }
         ]
         indexer = fakeServer data, 200, (url, body) ->
+            
             if url is '/connectors/bank/bnp/'
-                should.exist body.fields
                 should.exist body.login
                 should.exist body.password
 
@@ -33,7 +33,7 @@ describe 'Connectors - Bank', ->
             data =
                 login: 'me'
                 password: 'secret'
-            client.post 'connectors/bank/bnp', data, (err, res, body) =>
+            client.post 'connectors/bank/bnp/', data, (err, res, body) =>
                 @res = res
                 @body = body
                 done()
