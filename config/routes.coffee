@@ -21,6 +21,9 @@ exports.routes = (map) ->
     map.delete '/data/index/clear-all/', 'index#removeAll'
     map.delete '/data/index/:id', 'index#remove'
 
+    # Browser connectors
+    map.post '/connectors/bank/:name', 'connector#bank'
+
     # File management
     map.post '/data/:id/attachments/', 'attachment#addAttachment'
     map.get '/data/:id/attachments/:name', 'attachment#getAttachment'

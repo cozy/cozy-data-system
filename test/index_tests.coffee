@@ -1,8 +1,8 @@
-http = require 'http'
 should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
 app = require('../server')
+fakeServer = require('./helpers').fakeServer
 
 client = new Client("http://localhost:8888/")
 
@@ -27,21 +27,6 @@ createNoteFunction = (title, content) ->
             client.post "data/index/#{body._id}",
                 fields: ["title", "content"]
                 , callback
-
-
-
-fakeServer = (json, code=200, callback=null) ->
-    http.createServer (req, res) ->
-        body = ""
-        req.on 'data', (chunk) ->
-            body += chunk
-        req.on 'end', ->
-            res.writeHead code, 'Content-Type': 'application/json'
-            if callback?
-                data = JSON.parse body if body? and body.length > 0
-                callback req.url, data
-            res.end(JSON.stringify json)
-
 
 describe "Indexation", ->
 
