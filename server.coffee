@@ -1,6 +1,6 @@
 #!/usr/bin/env coffee
 
-app = module.exports = require('railway').createServer()
+app = module.exports = require('compound').createServer()
 
 if not module.parent
     port = process.env.PORT or 9101
