@@ -35,5 +35,9 @@ class DataLock
                 callback()
         handleCallback()
 
-# Set locker as a global variable
-app.locker = new DataLock()
+
+module.exports = (compound) ->
+    app = compound.app
+
+    # Set locker as a global variable
+    app.locker = new DataLock()
