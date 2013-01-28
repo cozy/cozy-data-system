@@ -1,6 +1,6 @@
 should = require('chai').Should()
 async = require 'async'
-app = require '../server'
+instantiateApp = require('..')
 fs = require 'fs'
 
 FormData = require 'form-data'
@@ -9,6 +9,7 @@ request = require "request"
 Client = require("request-json").JsonClient
 
 db = require('../helpers/db_connect_helper').db_connect()
+app = instantiateApp()
 
 
 describe "Attachments", ->
@@ -17,7 +18,7 @@ describe "Attachments", ->
     before (done) ->
         db.destroy ->
             db.create ->
-                db.save '321', {"value":"val"}, ->
+                db.save '321', value: "val", ->
                     done()
 
     # Start application before starting tests.

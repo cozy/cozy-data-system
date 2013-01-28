@@ -1,7 +1,7 @@
 should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
-app = require('../server')
+instantiateApp = require('..')
 
 client = new Client("http://localhost:8888/")
 
@@ -42,6 +42,7 @@ describe "Request handling tests", ->
 
     # Start application before starting tests.
     before (done) ->
+        app = instantiateApp()
         app.listen(8888)
         done()
 
