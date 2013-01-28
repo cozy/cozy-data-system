@@ -7,7 +7,8 @@ if process.env.NODE_ENV is "test"
 else
     client = new Client("http://localhost:9102/")
 
-db = require('../../helpers/db_connect_helper').db_connect()
+client = new Client("http://localhost:9102/")
+db = require('./helpers/db_connect_helper').db_connect()
 
 before 'lock request', ->
     @lock = "#{params.id}"

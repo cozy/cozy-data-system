@@ -1,7 +1,7 @@
 load 'application'
 
 async = require "async"
-db = require('../../helpers/db_connect_helper').db_connect()
+db = require('./helpers/db_connect_helper').db_connect()
 
 before 'lock request', ->
     @lock = "#{params.type}"
