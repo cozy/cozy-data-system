@@ -1,12 +1,10 @@
 should = require('chai').Should()
-async = require 'async'
-instantiateApp = require('..')
 fs = require 'fs'
 
 FormData = require 'form-data'
-request = require "request"
-
 Client = require("request-json").JsonClient
+
+instantiateApp = require('..')
 
 db = require('../helpers/db_connect_helper').db_connect()
 app = instantiateApp()
