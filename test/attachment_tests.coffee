@@ -1,7 +1,6 @@
 should = require('chai').Should()
 fs = require 'fs'
 
-FormData = require 'form-data'
 Client = require("request-json").JsonClient
 
 instantiateApp = require('..')
