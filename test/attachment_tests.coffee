@@ -3,12 +3,12 @@ fs = require 'fs'
 
 Client = require("request-json").JsonClient
 
-instantiateApp = require('..')
-
 db = require('../helpers/db_connect_helper').db_connect()
+instantiateApp = require '..'
 app = instantiateApp()
 
 
+app.listen 8888
 describe "Attachments", ->
 
     # Clear DB, create a new one, then init data for tests.
@@ -20,8 +20,7 @@ describe "Attachments", ->
 
     # Start application before starting tests.
     before (done) ->
-        @client = new Client("http://localhost:8888/")
-        app.listen(8888)
+        @client = new Client "http://localhost:8888/"
         done()
 
     

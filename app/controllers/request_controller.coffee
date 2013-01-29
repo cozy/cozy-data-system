@@ -5,13 +5,19 @@ db = require('./helpers/db_connect_helper').db_connect()
 
 before 'lock request', ->
     @lock = "#{params.type}"
-    app.locker.runIfUnlock @lock, =>
-        app.locker.addLock(@lock)
+    console.log @lock
+    console.log compound.app.locker.locks
+    
+    compound.app.locker.runIfUnlock @lock, =>
+        compound.app.locker.addLock @lock
+        
         next()
 , only: ['definition', 'remove']
 
 after 'unlock request', ->
-    app.locker.removeLock @lock
+    console.log "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    compound.app.locker.removeLock @lock
+    next()
 , only: ['definition', 'remove']
 
 # POST /request/:type/:req_name

@@ -1,12 +1,13 @@
 should = require('chai').Should()
 async = require('async')
-Client = require('request-json').JsonClient
-app = require('../server')
 fakeServer = require('./helpers').fakeServer
+Client = require('request-json').JsonClient
 
 client = new Client("http://localhost:8888/")
-
 db = require('../helpers/db_connect_helper').db_connect()
+
+instantiateApp = require '..'
+app = instantiateApp()
 
 
 # helpers
@@ -32,8 +33,8 @@ describe "Indexation", ->
 
     # Start application before starting tests.
     before (done) ->
-        app.listen 8888
-        done()
+        @server = app.listen 8888, "127.0.0.1", ->
+            done()
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
@@ -42,7 +43,6 @@ describe "Indexation", ->
             db.destroy ->
                 db.create ->
                     done()
-
 
     describe "indexing and searching", ->
         it "Given I index four notes", (done) =>
@@ -86,5 +86,5 @@ describe "Indexation", ->
                 @response = response
                 done()
 
-            it "Then it returns a 404 error", ->
-                @response.statusCode.should.equal 404
+        it "Then it returns a 404 error", ->
+            @response.statusCode.should.equal 404

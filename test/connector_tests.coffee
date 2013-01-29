@@ -1,10 +1,11 @@
 should = require('chai').Should()
-async = require('async')
-Client = require('request-json').JsonClient
-app = require('../server')
 fakeServer = require('./helpers').fakeServer
 
+Client = require('request-json').JsonClient
 client = new Client 'http://localhost:8888/'
+
+instantiateApp = require '..'
+app = instantiateApp()
 
 describe 'Connectors - Bank', ->
     

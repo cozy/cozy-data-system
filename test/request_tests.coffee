@@ -1,12 +1,14 @@
 should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
-instantiateApp = require('..')
 
 client = new Client("http://localhost:8888/")
 
 # connection to DB for "hand work"
 db = require('../helpers/db_connect_helper').db_connect()
+
+instantiateApp = require('..')
+app = instantiateApp()
 
 # helpers
 
@@ -42,15 +44,8 @@ describe "Request handling tests", ->
 
     # Start application before starting tests.
     before (done) ->
-        app = instantiateApp()
         app.listen(8888)
         done()
-
-    # Stop application after finishing tests.
-    after (done) ->
-        app.close()
-        done()
-
 
 
     describe "View creation", ->
