@@ -20,7 +20,7 @@ class DataLock
             setTimeout =>
                 if @isLock lock
                     delete @locks[lock]
-            , 1000
+            , 2000
 
     # Remove given lock
     removeLock: (lock) ->
