@@ -24,7 +24,7 @@ describe 'Connectors - Bank', ->
                 should.exist body.login
                 should.exist body.password
 
-        indexer.listen 9102
+        indexer.listen 9092
 
     describe 'Bank account data retrieval', ->
 

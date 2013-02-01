@@ -1,6 +1,10 @@
 load 'application'
 
 Client = require("request-json").JsonClient
+if process.env.NODE_ENV is "test"
+    client = new Client("http://localhost:9092/")
+else
+    client = new Client("http://localhost:9102/")
 client = new Client("http://localhost:9102/")
 
 # POST /connectors/bank/:name

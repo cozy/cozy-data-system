@@ -65,7 +65,7 @@ describe "Indexation", ->
                     should.exist body.query
                     body.query.should.equal "dragons"
 
-            indexer.listen 9102
+            indexer.listen 9092
 
             client.post "data/search/note", { query: "dragons" }, \
                     (error, response, body) =>
