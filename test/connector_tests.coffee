@@ -24,10 +24,13 @@ describe 'Connectors - Bank', ->
                 should.exist body.login
                 should.exist body.password
 
-        indexer.listen 9092
+        @indexerServer = indexer.listen 9092
 
+    after ->
+        @indexerServer.close()
+
+        
     describe 'Bank account data retrieval', ->
-
 
         it 'When I send a request for my bank account data', (done) ->
             data =
