@@ -58,7 +58,12 @@ action 'search', ->
                     send 500
                 else
                     results = []
-                    results.push doc.doc for doc in docs
+                    for doc in docs
+                        if doc.doc?
+                            resDoc = doc.doc
+                            resDoc.id = doc.id
+                            results.push resDoc
+                    
                     send rows: results, 200
 
 
