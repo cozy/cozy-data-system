@@ -4,6 +4,6 @@ module.exports = (compound) ->
     app.configure 'development', ->
         app.enable 'log actions'
         app.enable 'env info'
-        app.enable 'watch'
+        app.disable 'watch'
         app.use express.errorHandler
             dumpExceptions: true, showStack: true
