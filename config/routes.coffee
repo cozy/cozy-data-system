@@ -34,3 +34,7 @@ exports.routes = (map) ->
     map.put '/request/:type/:req_name/destroy/', 'request#removeResults'
     map.put '/request/:type/:req_name/', 'request#definition'
     map.delete '/request/:type/:req_name/', 'request#remove'
+
+    #Account management
+    map.post '/accounts/password/', 'account#initializeMasterKey'
+    map.delete '/accounts/', 'account#deleteMasterKey'

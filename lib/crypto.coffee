@@ -4,17 +4,22 @@ class Crypto
 
 
     constructor: ->
-        @masterKey = ""
+        @masterKey = null
 
     genHash: (key) ->
-        crypto.createHash('sha1').update(key).digest("hex")
+        crypto.createHash('sha256').update(key).digest("binary")
 
     applySalt: (key, salt) ->
         key + salt
 
     genHashWithSalt: (key, salt) ->
-    	newKey = applySalt(key, salt)
-    	genHash(newKey)
+    	newKey = key + salt
+    	crypto.createHash('sha256').update(newKey).digest("binary")
+
+    genSalt: (length) ->
+            string = ""
+            string += Math.random().toString(36).substr(2) while string.length < length
+            string.substr 0, length
 
     encrypt: (key, data) ->
         cipher = crypto.createCipher("aes256", key)

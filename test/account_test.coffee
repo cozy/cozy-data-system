@@ -1,4 +1,4 @@
-hould = require('chai').Should()
+should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
 app = require('../server')
@@ -40,48 +40,58 @@ describe "Account handling tests", ->
         done()
 
 
+    describe "Initialize database with the object User : ", ->
+        it "When I send the request", (done) -> 
+            client.post 'data/102/', {"email":"user@CozyCloud.CC","timezone":"Europe/Paris", \
+                    "password":"pwd_user",  "docType":"User"}, (error, response, body) =>
+                done()
 
-    describe "Master key handling tests", ->
+
+
+    describe "Master key handling tests : ", ->
         describe "master key initialization", ->
             before cleanRequest
 
-        it "When I send a request to check initialization of the master key", \
+        it "When I send a request to initialize of the master key", \
                 (done) ->
             @randomValue = randomString()
-            client.post '/accounts/password/', {"value":@randomValue}, \
-                        (error, response, body) =>
+            client.post 'accounts/password/', {"pwd":@randomValue}, (error, response, body) =>
                 @response = response
                 done()
 
-        it "Then HTTP status 201 should be returned", ->
-                @response.statusCode.should.equal(201)
-
         it "Then the object 'User' have an initialized salt", (done) ->
-            map = (doc) ->
-                emit doc.salt, doc if doc.docType == 'User'
-                return
-            @salt = ""
-            @salt.length.should.equal(24) #masterKey.length - @randomValue.length
+            client.get 'data/102/', (error, response, body) =>
+                body.should.have.property('salt')
+                @salt = body.salt
+                should.not.equal(@salt, undefined)
+                @salt.length.should.equal(24)  # masterKey.length - @randomValue.length
 
-        it "Then master key should be initialized", (done) ->
-            masterKey = app.crypto.genHashWithSalt(@randomValue, @salt)
-            app.crypto.masterKey.should.equal(masterKey)
+        it "Then master key should be initialized", ->
+            @masterKey = app.crypto.genHashWithSalt(@randomValue, @salt)
+            @masterKey.length.should.equal(32)
+            should.not.equal(app.crypto.masterKey, null)
+            app.crypto.masterKey.should.equal(@masterKey)
+
+        it "Then HTTP status 200 should be returned", ->
+            @response.statusCode.should.equal 200
 
 
         describe "master key deleting", ->
             before cleanRequest
 
         it "When I send a request to delete the master key", (done) ->
-            client.delete '/accounts/', (error, response, body) =>
-            done()
+            client.del "accounts/", (error, response, body) => 
+                @response = response
+                done()
+ 
+        it "Then master key should be null", ->
+            should.equal(app.crypto.masterKey, null)
 
         it "Then HTTP status 204 should be returned", ->
-        	@response.statusCOde.should.equal(204)
+            @response.statusCode.should.equal(204)
 
-        it "Then master key should be undefined", ->
-            app.crypto.masterKey.should.equal("") # 'should.equal undefined' n'existe pas
 
-    describe "Operation of cryptography", ->
+    describe "Operation of cryptography : ", ->
         describe "When I encrypt a random value", ->
 
         it "Then encrypted data should not be equal to random value", ->
