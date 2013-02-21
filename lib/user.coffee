@@ -1,15 +1,15 @@
 db = require('../helpers/db_connect_helper').db_connect()
 
-class User
 
-    
-    initUserAllView: (callback) =>
+module.exports = class User
+
+    initAllView: (callback) ->
         db.get "_design/users", (err, res) =>
-            if err && err.error is 'not_found'
+            if err and err.error is 'not_found'
                 map = (doc) ->
-                    emit doc._id, doc if (doc.docType == "User")
+                    emit doc._id, doc if doc.docType is "User"
                 design_doc = {}
-                design_doc['all'] = {map:map.toString()}
+                design_doc.all = map: map.toString()
 
                 db.save "_design/users", design_doc, (err, res) =>
                     if err
@@ -20,18 +20,16 @@ class User
                 callback null
 
 
-    getUser: (callback) =>
+    getUser: (callback) ->
         @initUserAllView (err) ->
-            if err  
+            if err
                 callback err
-            else 
+            else
                 db.view 'users/all', (err, res) =>
-                    if err && err.error is "not_found"
-                        callback err
-           	        else if err
+                    if err
                         callback err
                     else
-                        callback null, res[0].value
-
-
-app.user = new User()
+                        if res.length > 0
+                            callback null, res[0].value
+                        else
+                            callback null, new Error("No user found")

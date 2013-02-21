@@ -1,13 +1,13 @@
 should = require('chai').Should()
 async = require('async')
-crypto = require('../lib/crypto.coffee')
+Crypto = require('../lib/crypto.coffee')
 Client = require('request-json').JsonClient
 
 app = require('../server')
 user = require('../lib/user.coffee')
 
-
 client = new Client("http://localhost:8888/")
+crypto = new Crypto()
 db = require('../helpers/db_connect_helper').db_connect()
 
 
@@ -34,14 +34,14 @@ describe "Data handling tests", ->
 
     # Init user object
     before (done) ->
-            data =
-                email: "user@CozyCloud.CC"
-                timezone: "Europe/Paris"
-                password: "pwd_user"
-                docType: "User"
+        data =
+            email: "user@CozyCloud.CC"
+            timezone: "Europe/Paris"
+            password: "pwd_user"
+            docType: "User"
 
-            client.post 'data/102/', data, (error, response, body) =>
-                done()
+        client.post 'data/102/', data, (error, response, body) =>
+            done()
 
     # Start application before starting tests.
     before (done) ->
