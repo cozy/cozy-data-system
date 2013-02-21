@@ -37,12 +37,12 @@ randomString = (length=32) ->
 # POST /accounts/password/
 action 'initializeMasterKey', =>
     delete body._attachments
-    app.user.getUser (err) ->
+    app.user.getUser (err, res) ->
         if err
             console.log "[Merge] err: " + JSON.stringify err
             send 500
         else
-            user = app.user.user
+            user = res
             if user.salt? && user.slaveKey?
                 app.crypto.masterKey = app.crypto.genHashWithSalt body.pwd, user.salt
                 app.crypto.slaveKey = user.slaveKey
