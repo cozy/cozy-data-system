@@ -9,7 +9,7 @@ module.exports = class User
                 map = (doc) ->
                     emit doc._id, doc if doc.docType is "User"
                 design_doc = {}
-                design_doc.all = map: map.toString()
+                design_doc.all= map: map.toString()
 
                 db.save "_design/users", design_doc, (err, res) =>
                     if err
@@ -21,7 +21,7 @@ module.exports = class User
 
 
     getUser: (callback) ->
-        @initUserAllView (err) ->
+        @initAllView (err) ->
             if err
                 callback err
             else

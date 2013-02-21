@@ -1,14 +1,16 @@
 load 'application'
 
 Client = require("request-json").JsonClient
-db = require('../../helpers/db_connect_helper').db_connect()
-crypto = require '../../lib/crypto'
-user = require '../../lib/user'
+
+Crypto = require '../../lib/crypto'
+User = require '../../lib/user'
 randomString = require('../../lib/random').randomString
 
-crypto = new Crypto()
-client = new Client("http://localhost:9102/")
 
+client = new Client("http://localhost:9102/")
+crypto = new Crypto()
+user = new User()
+db = require('../../helpers/db_connect_helper').db_connect()
 
 before 'get doc', ->
     db.get params.id, (err, doc) =>
@@ -27,15 +29,15 @@ before 'get doc', ->
 
 # POST /accounts/password/
 action 'initializeMasterKey', =>
-    app.user.getUser (err, user) ->
+    user.getUser (err, user) ->
         if err
             console.log "[Merge] err: #{err}"
             send 500
         else
-            app.crypto = {} if app.crypto?
+            app.crypto = {} if !(app.crypto?)
             if user.salt? and user.slaveKey?
                 app.crypto.masterKey =
-                    app.crypto.genHashWithSalt body.pwd, user.salt
+                    crypto.genHashWithSalt body.pwd, user.salt
                 app.crypto.slaveKey = user.slaveKey
                 send 200
             else
@@ -48,7 +50,7 @@ action 'initializeMasterKey', =>
                 data = salt: salt, slaveKey: encryptedSlaveKey
                 db.merge user._id, data, (err, res) =>
                     if err
-                        console.log "[Merge] err: " + JSON.stringify err
+                        console.log "[Merge] err: #{err}"
                         send 500
                     else
                         send 200
@@ -100,7 +102,7 @@ action 'findAccount', ->
     if @doc.pwd?
         encryptedPwd = @doc.pwd
         slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-        @doc.pwd = app.crypto.decrypt slaveKey, encryptedPwd
+        @doc.pwd = crypto.decrypt slaveKey, encryptedPwd
         send @doc
     else
         send 500
