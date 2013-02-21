@@ -1,14 +1,15 @@
 should = require('chai').Should()
 async = require('async')
+crypto = require('../lib/crypto.coffee')
 Client = require('request-json').JsonClient
+
 app = require('../server')
 user = require('../lib/user.coffee')
-crypto = require('../lib/crypto.coffee')
+
 
 client = new Client("http://localhost:8888/")
-
-# connection to DB for "hand work"
 db = require('../helpers/db_connect_helper').db_connect()
+
 
 # helpers
 
@@ -21,12 +22,25 @@ randomString = (length=32) ->
     string += Math.random().toString(36).substr(2) while string.length < length
     string.substr 0, length
 
+
 describe "Data handling tests", ->
+
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
         db.destroy ->
             db.create ->
+                done()
+
+    # Init user object
+    before (done) ->
+            data =
+                email: "user@CozyCloud.CC"
+                timezone: "Europe/Paris"
+                password: "pwd_user"
+                docType: "User"
+
+            client.post 'data/102/', data, (error, response, body) =>
                 done()
 
     # Start application before starting tests.
@@ -40,26 +54,18 @@ describe "Data handling tests", ->
         done()
 
 
-
-    describe "Initialize database with the object User : ", ->
-        it "When I send the request", (done) -> 
-            client.post 'data/102/', {email: "user@CozyCloud.CC", \
-                    timezone: "Europe/Paris", password: "pwd_user", \
-                    docType: "User"}, (error, response, body) =>
-                done()
-
     describe "Master key handling tests : ", ->
         describe "Initialization of the master key", ->
             before cleanRequest
 
             it "When I send a request to initialize the master key", (done) ->
                 @randomValue = randomString 8
-                client.post 'accounts/password/', {pwd: @randomValue}, \
-                            (error, response, body) =>
-                    @response = response
+                data = pwd: @randomValue
+                client.post 'accounts/password/', data, (err, res, body) =>
+                    @response = res
                     done()
 
-            it "When I send a request to check the salt", (done)->
+            it "And I send a request to check the salt", (done)->
                 client.get 'data/102/', (error, response, body) =>
                     @body = body
                     done()
@@ -70,13 +76,13 @@ describe "Data handling tests", ->
                 should.not.equal @salt, undefined
                 @salt.length.should.equal 24
 
-            it "Then master key should be initialized", ->
+            it "And master key should be initialized", ->
                 @masterKey = app.crypto.genHashWithSalt(@randomValue, @salt)
                 @masterKey.length.should.equal 32
                 should.not.equal app.crypto.masterKey, null
                 app.crypto.masterKey.should.equal @masterKey
 
-            it "Then HTTP status 200 should be returned", ->
+            it "And HTTP status 200 should be returned", ->
                 @response.statusCode.should.equal 200
 
 
@@ -84,22 +90,23 @@ describe "Data handling tests", ->
             before cleanRequest
 
             it "When I send a request to delete the master key", (done) ->
-                client.del "accounts/", (error, response, body) => 
+                client.del "accounts/", (error, response, body) =>
                     @response = response
                     done()
  
             it "Then master key should be null", ->
                 should.equal app.crypto.masterKey, null
 
-            it "Then HTTP status 204 should be returned", ->
-                @response.statusCode.should.equal 204 
+            it "And HTTP status 204 should be returned", ->
+                @response.statusCode.should.equal 204
+
 
         describe "Initialize the master key in a second connection", ->
             before cleanRequest
 
             it "When I send a request to initialize of the master key", \
                     (done) ->
-                client.post 'accounts/password/', {pwd: @randomValue}, \
+                client.post 'accounts/password/', pwd: @randomValue, \
                         (error, response, body) =>
                     @response = response
                     done()
@@ -145,7 +152,6 @@ describe "Data handling tests", ->
                 @salt.length.should.not.equal @salt
 
 
-
     describe "Slave key handling tests : ", ->
         describe "Initialization of the slave key", ->
             before cleanRequest
@@ -162,7 +168,6 @@ describe "Data handling tests", ->
 
             it "Then slave key should be encrypted", ->
                 @slaveKey.should.not.be.equal app.crypto.slaveKey
-
 
 
     describe "Create", ->
