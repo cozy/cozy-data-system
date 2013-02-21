@@ -53,7 +53,7 @@ describe "Data handling tests", ->
             before cleanRequest
 
             it "When I send a request to initialize the master key", (done) ->
-                @randomValue = randomString(8)
+                @randomValue = randomString 8
                 client.post 'accounts/password/', {pwd: @randomValue}, \
                             (error, response, body) =>
                     @response = response
@@ -177,6 +177,7 @@ describe "Data handling tests", ->
                             pwd : "password", service : "cozyCloud"} , \
                             (error, response, body) =>
                     @body = body
+                    @response = response
                     done()
 
             it "Then the id of the new account should be returned", ->
@@ -196,17 +197,22 @@ describe "Data handling tests", ->
                     @pwd.should.not.be.equal "password"
                     done()
 
+            it "Then HTTP status 201 should be returned", ->
+                @response.statusCode.should.equal 201
+
         describe "Creation of a new account with a specific id", ->
             before cleanRequest
             after ->
                 delete @_id
                 delete @pwd
 
-            it "When I send a request to post an account with the id 456", (done) ->
-                client.post 'account/456/', {docType : "Account", login : "log",\
-                            pwd : "password", service : "cozyCloud"} , \
+            it "When I send a request to post an account with the id 456", \
+                    (done) ->
+                client.post 'account/456/', {docType : "Account", login : "log" \
+                            , pwd : "password", service : "cozyCloud"} , \
                             (error, response, body) =>
                     @body = body
+                    @response = response
                     done()
 
             it "Then the id 456 should be returned", ->
@@ -227,6 +233,22 @@ describe "Data handling tests", ->
                     @pwd.should.not.be.equal "password"
                     done()
 
+            it "Then HTTP status 201 should be returned", ->
+                @response.statusCode.should.equal 201
+
+        describe "Creation of an account without password", ->
+            before cleanRequest
+
+            it "When I send a request to post the account", (done) ->
+                client.post 'account/', {docType : "Account", login : "log" \
+                            , service : "cozyCloud"} , \
+                            (error, response, body) =>
+                    @response = response
+                    done()
+
+            it "Then error 409 should be returned", ->
+                @response.statusCode.should.equal 409
+
         
     describe "Get", ->
         describe "Get an account that does not exist in database", ->
@@ -238,7 +260,7 @@ describe "Data handling tests", ->
                     done()
 
             it "Then error 404 should be returned", ->
-                @response.statusCode.should.equal(404)
+                @response.statusCode.should.equal 404
 
         describe "Get an account that exist in database", ->
             before cleanRequest
@@ -255,11 +277,20 @@ describe "Data handling tests", ->
             it "When I send a request to get an account", (done) ->
                 client.get "account/#{@_id}/", (error, response, body) =>
                     @body = body
+                    @response = response
                     done()
 
-            it "Then the account should have a prperty 'pwd'", ->
+            it "Then the account should have a porperty 'pwd'", ->
                 @body.should.have.property 'pwd'
                 @pwd = @body.pwd
 
             it "Then the password should be decrypted", ->
                 @pwd.should.be.equal "password"
+
+            it "Then the correct account should be returned", ->
+                @body.should.deep. equal {_id : "#{@_id}", \
+                        docType : 'Account', login : 'log', \ 
+                        pwd : 'password', service : 'cozyCloud'}
+
+            it "Then HTT status 200 should be returned", ->
+                @response.statusCode.should.equal 200

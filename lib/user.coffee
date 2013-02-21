@@ -1,6 +1,4 @@
 db = require('../helpers/db_connect_helper').db_connect()
-async = require('async')
-
 
 class User
 
@@ -20,6 +18,7 @@ class User
                         callback null
             else
                 callback null
+
 
     getUser: (callback) =>
         @initUserAllView (err) ->

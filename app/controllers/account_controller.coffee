@@ -5,7 +5,6 @@ client = new Client("http://localhost:9102/")
 db = require('../../helpers/db_connect_helper').db_connect()
 crypto = require('../../lib/crypto.coffee')
 user = require('../../lib/user.coffee')
-async = require('async')
 
 
 #Helpers
@@ -44,7 +43,8 @@ action 'initializeMasterKey', =>
         else
             user = res
             if user.salt? && user.slaveKey?
-                app.crypto.masterKey = app.crypto.genHashWithSalt body.pwd, user.salt
+                app.crypto.masterKey = 
+                        app.crypto.genHashWithSalt body.pwd, user.salt
                 app.crypto.slaveKey = user.slaveKey
                 send 200
             else 
@@ -54,7 +54,8 @@ action 'initializeMasterKey', =>
                 encryptedSlaveKey = app.crypto.encrypt masterKey, slaveKey
                 app.crypto.masterKey = masterKey
                 app.crypto.slaveKey  = encryptedSlaveKey
-                db.merge user._id, {salt: salt, slaveKey: encryptedSlaveKey}, (err, res) =>
+                db.merge user._id, {salt: salt, slaveKey: encryptedSlaveKey}, \
+                            (err, res) =>
                     if err
                         console.log "[Merge] err: " + JSON.stringify err
                         send 500
