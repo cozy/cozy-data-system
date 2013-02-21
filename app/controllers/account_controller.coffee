@@ -28,7 +28,7 @@ before 'get doc', ->
 
 
 # POST /accounts/password/
-action 'initializeMasterKey', =>
+action 'initializeKeys', =>
     user.getUser (err, user) ->
         if err
             console.log "[Merge] err: #{err}"
@@ -57,7 +57,7 @@ action 'initializeMasterKey', =>
 
 
 #DELETE /accounts/
-action 'deleteMasterKey', ->
+action 'deleteKeys', ->
     app.crypto.masterKey = null
     app.crypto.slaveKey = null
     send 204
@@ -92,10 +92,6 @@ action 'createAccount', ->
         send 409
 
 
-#PUT /account/:id
-
-#PUT /account/merge/:id
-
 #GET /account/:id
 action 'findAccount', ->
     delete @doc._rev # CouchDB specific, user don't need it
@@ -107,11 +103,23 @@ action 'findAccount', ->
     else
         send 500
 
-#GET /account/exist/:id
+
+
+#PUT /account/merge/:id
+
+
+#PUT /account/:id
+
 
 #DELETE /account/:id
 
 ###
+
+
+#PUT /account/merge/:id
+
+#GET /account/exist/:id
+
 
 #POST /account/:id
 

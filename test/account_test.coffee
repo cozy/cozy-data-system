@@ -190,8 +190,8 @@ describe "Data handling tests", ->
             it "And the password in DB should be encrypted", (done)->
                 client.get "data/#{@_id}/", (err, res, body) =>
                     body.should.have.property 'pwd'
-                    @pwd = body.pwd
-                    @pwd.should.not.be.equal "password"
+                    encryptedPwd = crypto.encrypt @slaveKey, "password"
+                    body.pwd.should.equal encryptedPwd
                     done()
 
             it "And HTTP status 201 should be returned", ->
@@ -206,9 +206,9 @@ describe "Data handling tests", ->
             it "When I send a request to post an account with the id 456", \
                     (done) ->
                 data =
-                    login : "log"
-                    pwd : "password"
-                    service : "cozyCloud"
+                    login: "log"
+                    pwd: "password"
+                    service: "cozyCloud"
                 client.post 'account/456/', data , (err, res, body) =>
                     @body = body
                     @res = res
@@ -219,7 +219,7 @@ describe "Data handling tests", ->
                 @_id = @body._id
                 @_id.should.be.equal "456"
 
-            it "And the account with the is 456 should exist in Database",\
+            it "And the account with the id 456 should exist in Database",\
                         (done) ->
                 client.get "data/exist/456/", (err, res, body) =>
                     body.exist.should.be.true
@@ -228,8 +228,8 @@ describe "Data handling tests", ->
             it "And the password in DB should be encrypted", (done)->
                 client.get "data/456/", (err, res, body) =>
                     body.should.have.property 'pwd'
-                    @pwd = body.pwd
-                    @pwd.should.not.be.equal "password"
+                    encryptedPwd = crypto.encrypt @slaveKey, "password"
+                    body.pwd.should.equal encryptedPwd
                     done()
 
             it "And HTTP status 201 should be returned", ->
@@ -240,8 +240,8 @@ describe "Data handling tests", ->
 
             it "When I send a request to post the account", (done) ->
                 data =
-                    login : "log"
-                    service : "cozyCloud"
+                    login: "log"
+                    service: "cozyCloud"
                 client.post 'account/', data , (err, res, body) =>
                     @res = res
                     done()
@@ -269,9 +269,9 @@ describe "Data handling tests", ->
 
             it "When I send a request to post an account", (done) ->
                 data =
-                    login : "log"
-                    pwd : "password"
-                    service : "cozyCloud"
+                    login: "log"
+                    pwd: "password"
+                    service: "cozyCloud"
                 client.post 'account/', data, (err, res, body) =>
                     @_id = body._id
                     done()
@@ -291,12 +291,160 @@ describe "Data handling tests", ->
 
             it "And the correct account should be returned", ->
                 data =
-                    _id : "#{@_id}"
-                    login : "log"
-                    pwd : "password"
-                    service : "cozyCloud"
-                    docType : "Account"
+                    _id: "#{@_id}"
+                    login: "log"
+                    pwd: "password"
+                    service: "cozyCloud"
+                    docType: "Account"
                 @body.should.deep. equal data
 
             it "And HTT status 200 should be returned", ->
                 @res.statusCode.should.equal 200
+
+    describe "Merge", ->
+        describe "Try to merge an account that doesn't exist", ->
+            before cleanRequest
+
+            it "When I send a request to merge", (done) ->
+                data = login: "newLog"
+                client.put 'account/merge/345/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then error 404 should be returned", ->
+                @res.statusCode.should.equal 404
+
+        describe "Merge a classic field of an account that does exist", ->
+            before cleanRequest
+
+            it "When I send a request to merge", (done) ->
+                data = login: "newLog"
+                client.put 'account/merge/456/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then the account exists in the database", (done) ->
+                client.get 'account/456', (err, res, body) =>
+                    @body = body
+                    res.statusCode.should.equal 200
+                    done()
+
+            it "And the old account must have been replaced", ->
+                @body.should.have.property login
+                @body.login.should.equal "newLog"
+
+            it "And HTTP status 200 should be returned", ->
+                @res.statusCode.should.equal 200
+
+        describe "Merge the password of an account that does exist", ->
+            before cleanRequest
+
+            it "When I send a request to merge", (done) ->
+                data = pwd: "Pwd"
+                client.put 'account/merge/456/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then the account exists in the database", (done) ->
+                client.get 'account/456/', (err, res, body) =>
+                    @body = body
+                    res.statusCode.should.equal 200
+                    done()
+
+            it "And the old account must have been replaced", ->
+                @body.should.have.property pwd
+                @body.pwd.should.equal "newPwd"
+
+            it "And the new password should be encrypted", (done) ->
+                client.get 'data/456/', (err, res, body) =>
+                    encryptedPwd = crypto.encrypt @slaveKey, "newPwd"
+                    body.pwd.should.equal encryptedPwd
+
+            it "And HTTP status 200 should be returned", ->
+                @res.statusCode.should.equal 200
+
+
+    describe "Update", ->
+        describe "Try to update an account that doesn't exist", ->
+            before cleanRequest
+
+            it "When I send a request to update", (done) ->
+                data =
+                    login: "newLog"
+                    pwd: "newPassword"
+                    service: "cozyCloud"
+                client.put 'account/345/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then error 404 should be returned", ->
+                @res.statusCode.should.equal 404
+
+        describe "Update an account that does exist", ->
+            before cleanRequest
+
+            it "When I send a request to update", (done) ->
+                data =
+                    login: "newLog"
+                    pwd: "newPassword"
+                    service: "cozyCloud"
+                client.put 'account/456/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then the account exists in the database", (done) ->
+                client.get 'account/456/', (err, res, body) =>
+                    @body = body
+                    res.statusCode.should.equal 200
+                    done()
+
+            it "And the old account must have been replaced", ->
+                data =
+                    _id: 456
+                    login: "newLog"
+                    pwd: "newPassword"
+                    service: "cozyCloud"
+                    docType: "Account"
+                @body.should.equal data
+
+            it "And the new password should be encrypted", ->
+                client.get 'data/456/', (err, res, body) =>
+                    encryptedPwd = crypto.encrypt @slaveKey, "newPwd"
+                    body.pwd.should.equal encryptedPwd
+
+            it "And HTTP status 200 should be returned", ->
+                @res.statusCode.should.equal 200
+
+
+    describe "Delete an account", ->
+        describe "Try to delete an account that doesn't exist", ->
+            before cleanRequest
+
+            it "When I send a request to delete", (done) ->
+                client.del 'account/345/', (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then error 404 should be returned", ->
+                @res.statusCode.should.equal 404
+
+        describe "Delete an account that exist", ->
+            before cleanRequest
+
+            it "When I send a request to delete", (done) ->
+                client.del 'accout/456/', (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then the account should not exist in the database", (done) ->
+                client.get 'account/456/', (err, res, body) =>
+                    res.statusCode.should.equal 404
+                    done()
+
+            it "And the document should not exist in the database", (done) ->
+                client.get 'data/456/', (err, res, body) =>
+                    res.statusCode.should.equal 404
+                    done()
+
+            it "And HTTP status 204 should be returned", ->
+                @res.statusCode.should.equal 204
