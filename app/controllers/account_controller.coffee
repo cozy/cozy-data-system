@@ -24,7 +24,7 @@ before 'get doc', ->
             next()
         else
             send 404
-, only: ['findAccount']
+, only: ['findAccount', 'updateAccount']
 
 
 # POST /accounts/password/
@@ -67,9 +67,9 @@ action 'deleteKeys', ->
 #POST /account/
 action 'createAccount', ->
     if body.pwd
-        @slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-        @newPwd = crypto.encrypt @slaveKey, body.pwd
-        body.pwd = @newPwd
+        slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+        newPwd = crypto.encrypt slaveKey, body.pwd
+        body.pwd = newPwd
         body.docType = "Account"
         if params.id
             db.get params.id, (err, doc) -> # this GET needed because of cache
@@ -104,24 +104,33 @@ action 'findAccount', ->
         send 500
 
 
+#PUT /account/:id
+action 'updateAccount', ->
+    if body.pwd
+        slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+        newPwd = crypto.encrypt slaveKey, body.pwd
+        body.pwd = newPwd
+        body.docType = "Account"
+        db.save params.id, body, (err, res) ->
+            if err
+                # oops unexpected error !
+                console.log "[Update] err: " + JSON.stringify err
+                send 500
+            else
+                send 200
+    else
+        send 500
+
 
 #PUT /account/merge/:id
-
-
-#PUT /account/:id
 
 
 #DELETE /account/:id
 
+
+
+
 ###
-
-
-#PUT /account/merge/:id
-
 #GET /account/exist/:id
-
-
-#POST /account/:id
-
 #GET /account/upsert/:id
 

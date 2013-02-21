@@ -301,6 +301,59 @@ describe "Data handling tests", ->
             it "And HTT status 200 should be returned", ->
                 @res.statusCode.should.equal 200
 
+
+    describe "Update", ->
+        describe "Try to update an account that doesn't exist", ->
+            before cleanRequest
+
+            it "When I send a request to update", (done) ->
+                data =
+                    login: "newLog"
+                    pwd: "newPassword"
+                    service: "cozyCloud"
+                client.put 'account/345/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then error 404 should be returned", ->
+                @res.statusCode.should.equal 404
+
+        describe "Update an account that does exist", ->
+            before cleanRequest
+
+            it "When I send a request to update", (done) ->
+                data =
+                    login: "newLog"
+                    pwd: "newPassword"
+                    service: "cozyCloud"
+                client.put 'account/456/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then the account exists in the database", (done) ->
+                client.get 'account/456/', (err, res, body) =>
+                    @body = body
+                    res.statusCode.should.equal 200
+                    done()
+
+            it "And the old account must have been replaced", ->
+                data =
+                    _id: "456"
+                    login: "newLog"
+                    pwd: "newPassword"
+                    service: "cozyCloud"
+                    docType: "Account"
+                @body.should.deep.equal data
+
+            it "And the new password should be encrypted", ->
+                client.get 'data/456/', (err, res, body) =>
+                    encryptedPwd = crypto.encrypt @slaveKey, "newPwd"
+                    body.pwd.should.equal encryptedPwd
+
+            it "And HTTP status 200 should be returned", ->
+                @res.statusCode.should.equal 200
+
+
     describe "Merge", ->
         describe "Try to merge an account that doesn't exist", ->
             before cleanRequest
@@ -356,58 +409,6 @@ describe "Data handling tests", ->
                 @body.pwd.should.equal "newPwd"
 
             it "And the new password should be encrypted", (done) ->
-                client.get 'data/456/', (err, res, body) =>
-                    encryptedPwd = crypto.encrypt @slaveKey, "newPwd"
-                    body.pwd.should.equal encryptedPwd
-
-            it "And HTTP status 200 should be returned", ->
-                @res.statusCode.should.equal 200
-
-
-    describe "Update", ->
-        describe "Try to update an account that doesn't exist", ->
-            before cleanRequest
-
-            it "When I send a request to update", (done) ->
-                data =
-                    login: "newLog"
-                    pwd: "newPassword"
-                    service: "cozyCloud"
-                client.put 'account/345/', data, (err, res, body) =>
-                    @res = res
-                    done()
-
-            it "Then error 404 should be returned", ->
-                @res.statusCode.should.equal 404
-
-        describe "Update an account that does exist", ->
-            before cleanRequest
-
-            it "When I send a request to update", (done) ->
-                data =
-                    login: "newLog"
-                    pwd: "newPassword"
-                    service: "cozyCloud"
-                client.put 'account/456/', data, (err, res, body) =>
-                    @res = res
-                    done()
-
-            it "Then the account exists in the database", (done) ->
-                client.get 'account/456/', (err, res, body) =>
-                    @body = body
-                    res.statusCode.should.equal 200
-                    done()
-
-            it "And the old account must have been replaced", ->
-                data =
-                    _id: 456
-                    login: "newLog"
-                    pwd: "newPassword"
-                    service: "cozyCloud"
-                    docType: "Account"
-                @body.should.equal data
-
-            it "And the new password should be encrypted", ->
                 client.get 'data/456/', (err, res, body) =>
                     encryptedPwd = crypto.encrypt @slaveKey, "newPwd"
                     body.pwd.should.equal encryptedPwd
