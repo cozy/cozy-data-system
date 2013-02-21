@@ -5,16 +5,17 @@ class Crypto
 
     constructor: ->
         @masterKey = null
+        @slaveKey = null
 
     genHash: (key) ->
-        crypto.createHash('sha256').update(key).digest("binary")
+        crypto.createHash('sha256').update(key).digest('binary')
 
     applySalt: (key, salt) ->
         key + salt
 
     genHashWithSalt: (key, salt) ->
     	newKey = key + salt
-    	crypto.createHash('sha256').update(newKey).digest("binary")
+    	crypto.createHash('sha256').update(newKey).digest('binary')
 
     genSalt: (length) ->
         string = ""
@@ -23,15 +24,15 @@ class Crypto
         string.substr 0, length
 
     encrypt: (key, data) ->
-        cipher = crypto.createCipher("aes256", key)
-        crypted = cipher.update(data, 'binary', 'binary')
-        crypted += cipher.final 'binary'
+        cipher = crypto.createCipher('aes-256-cbc', key.toString())
+        crypted = cipher.update(data.toString(), 'binary', 'base64')
+        crypted += cipher.final 'base64'
         crypted
 
     decrypt: (key, data) ->
-        decipher = crypto.createDecipher("aes256", key)
-        decrypted = decipher.update(data, 'binary', 'binary')
-        decrypted += decipher.final 'binary'
+        decipher = crypto.createDecipher('aes-256-cbc', key.toString())
+        decrypted = decipher.update(data.toString(), 'base64', 'utf8')
+        decrypted += decipher.final 'utf8'
         decrypted
 
 

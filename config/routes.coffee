@@ -38,3 +38,7 @@ exports.routes = (map) ->
     #Account management
     map.post '/accounts/password/', 'account#initializeMasterKey'
     map.delete '/accounts/', 'account#deleteMasterKey'
+
+    map.post '/account/', 'account#createAccount'
+    map.post '/account/:id/', 'account#createAccount'
+    map.get '/account/:id/', 'account#findAccount'
