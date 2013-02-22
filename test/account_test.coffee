@@ -345,10 +345,11 @@ describe "Data handling tests", ->
                     docType: "Account"
                 @body.should.deep.equal data
 
-            it "And the new password should be encrypted", ->
+            it "And the new password should be encrypted", (done) ->
                 client.get 'data/456/', (err, res, body) =>
-                    encryptedPwd = crypto.encrypt @slaveKey, "newPwd"
+                    encryptedPwd = crypto.encrypt @slaveKey, "newPassword"
                     body.pwd.should.equal encryptedPwd
+                    done()
 
             it "And HTTP status 200 should be returned", ->
                 @res.statusCode.should.equal 200
@@ -362,6 +363,7 @@ describe "Data handling tests", ->
                 data = login: "newLog"
                 client.put 'account/merge/345/', data, (err, res, body) =>
                     @res = res
+                    console.log(res.statusCode)
                     done()
 
             it "Then error 404 should be returned", ->
@@ -377,13 +379,13 @@ describe "Data handling tests", ->
                     done()
 
             it "Then the account exists in the database", (done) ->
-                client.get 'account/456', (err, res, body) =>
+                client.get 'account/456/', (err, res, body) =>
                     @body = body
                     res.statusCode.should.equal 200
                     done()
 
             it "And the old account must have been replaced", ->
-                @body.should.have.property login
+                @body.should.have.property 'login'
                 @body.login.should.equal "newLog"
 
             it "And HTTP status 200 should be returned", ->
@@ -393,7 +395,7 @@ describe "Data handling tests", ->
             before cleanRequest
 
             it "When I send a request to merge", (done) ->
-                data = pwd: "Pwd"
+                data = pwd: "newPwd"
                 client.put 'account/merge/456/', data, (err, res, body) =>
                     @res = res
                     done()
@@ -405,13 +407,14 @@ describe "Data handling tests", ->
                     done()
 
             it "And the old account must have been replaced", ->
-                @body.should.have.property pwd
+                @body.should.have.property 'pwd'
                 @body.pwd.should.equal "newPwd"
 
             it "And the new password should be encrypted", (done) ->
                 client.get 'data/456/', (err, res, body) =>
                     encryptedPwd = crypto.encrypt @slaveKey, "newPwd"
                     body.pwd.should.equal encryptedPwd
+                    done()
 
             it "And HTTP status 200 should be returned", ->
                 @res.statusCode.should.equal 200
@@ -433,7 +436,7 @@ describe "Data handling tests", ->
             before cleanRequest
 
             it "When I send a request to delete", (done) ->
-                client.del 'accout/456/', (err, res, body) =>
+                client.del 'account/456/', (err, res, body) =>
                     @res = res
                     done()
 

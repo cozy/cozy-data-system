@@ -24,8 +24,15 @@ before 'get doc', ->
             next()
         else
             send 404
-, only: ['findAccount', 'updateAccount']
+, only: ['findAccount', 'updateAccount', 'mergeAccount', 'deleteAccount']
 
+# helpers
+encryptPassword = (body, callback)->
+    slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+    newPwd = crypto.encrypt slaveKey, body.pwd
+    body.pwd = newPwd
+    body.docType = "Account"
+    callback body
 
 # POST /accounts/password/
 action 'initializeKeys', =>
@@ -67,27 +74,24 @@ action 'deleteKeys', ->
 #POST /account/
 action 'createAccount', ->
     if body.pwd
-        slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-        newPwd = crypto.encrypt slaveKey, body.pwd
-        body.pwd = newPwd
-        body.docType = "Account"
-        if params.id
-            db.get params.id, (err, doc) -> # this GET needed because of cache
-                if doc
-                    send 409
-                else
-                    db.save params.id, body, (err, res) ->
-                        if err
-                            send 409
-                        else
-                            send _id: res.id, 201
-        else
-            db.save body, (err, res) ->
-                if err
-                    railway.logger.write "[Create] err: #{err}"
-                    send 500
-                else
-                    send _id: res.id, 201
+        encryptPassword body, (newBody) ->
+            if params.id
+                db.get params.id, (err, doc) ->
+                    if doc
+                        send 409
+                    else
+                        db.save params.id, newBody, (err, res) ->
+                            if err
+                                send 409
+                            else
+                                send _id: res.id, 201
+            else
+                db.save newBody, (err, res) ->
+                    if err
+                        railway.logger.write "[Create] err: #{err}"
+                        send 500
+                    else
+                        send _id: res.id, 201
     else
         send 409
 
@@ -107,26 +111,51 @@ action 'findAccount', ->
 #PUT /account/:id
 action 'updateAccount', ->
     if body.pwd
-        slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-        newPwd = crypto.encrypt slaveKey, body.pwd
-        body.pwd = newPwd
-        body.docType = "Account"
-        db.save params.id, body, (err, res) ->
-            if err
-                # oops unexpected error !
-                console.log "[Update] err: " + JSON.stringify err
-                send 500
-            else
-                send 200
+        encryptPassword body, (newBody) ->
+            db.save params.id, newBody, (err, res) ->
+                if err
+                    # oops unexpected error !
+                    console.log "[Update] err: " + JSON.stringify err
+                    send 500
+                else
+                    send 200
     else
         send 500
 
 
 #PUT /account/merge/:id
+action 'mergeAccount', ->
+    if body.pwd
+        encryptPassword body, (newBody) ->
+            db.merge params.id, newBody, (err, res) ->
+                if err
+                    # oops unexpected error !
+                    console.log "[Merge] err: " + JSON.stringify err
+                    send 500
+                else
+                    send success: true, 200
+    else
+        db.merge params.id, body, (err, res) ->
+            if err
+                # oops unexpected error !
+                console.log "[Merge] err: " + JSON.stringify err
+                send 500
+            else
+                send success: true, 200
 
 
 #DELETE /account/:id
-
+action 'deleteAccount', ->
+    # this version don't take care of conflict (erase DB with the sent value)
+    db.remove params.id, @doc.rev, (err, res) ->
+        if err
+            # oops unexpected error !
+            console.log "[Delete] err: " + JSON.stringify err
+            send 500
+        else
+            # Doc is removed from indexation
+            client.del "index/#{params.id}/", (err, res, resbody) ->
+                send 204
 
 
 
