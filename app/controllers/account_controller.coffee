@@ -27,12 +27,15 @@ before 'get doc', ->
 , only: ['findAccount', 'updateAccount', 'mergeAccount', 'deleteAccount']
 
 # helpers
-encryptPassword = (body, callback)->
-    slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-    newPwd = crypto.encrypt slaveKey, body.pwd
-    body.pwd = newPwd
-    body.docType = "Account"
-    callback body
+encryptPassword = (callback)->
+    if @body.pwd
+        slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+        newPwd = crypto.encrypt slaveKey, @body.pwd
+        @body.pwd = newPwd
+        @body.docType = "Account"
+        callback true
+    else
+        callback false
 
 # POST /accounts/password/
 action 'initializeKeys', =>
@@ -73,8 +76,10 @@ action 'deleteKeys', ->
 #POST /account/:id
 #POST /account/
 action 'createAccount', ->
-    if body.pwd
-        encryptPassword body, (newBody) ->
+    @body = body
+    encryptPassword (pwdExist) ->
+        if pwdExist
+            newBody = @body
             if params.id
                 db.get params.id, (err, doc) ->
                     if doc
@@ -86,14 +91,14 @@ action 'createAccount', ->
                             else
                                 send _id: res.id, 201
             else
-                db.save newBody, (err, res) ->
+                db.save @body, (err, res) ->
                     if err
                         railway.logger.write "[Create] err: #{err}"
                         send 500
                     else
                         send _id: res.id, 201
-    else
-        send 409
+        else
+            send 409
 
 
 #GET /account/:id
@@ -110,32 +115,25 @@ action 'findAccount', ->
 
 #PUT /account/:id
 action 'updateAccount', ->
-    if body.pwd
-        encryptPassword body, (newBody) ->
-            db.save params.id, newBody, (err, res) ->
+    @body = body
+    encryptPassword (pwdExist) ->
+        if pwdExist
+            db.save params.id, @body, (err, res) ->
                 if err
                     # oops unexpected error !
                     console.log "[Update] err: " + JSON.stringify err
                     send 500
                 else
                     send 200
-    else
-        send 500
+        else
+            send 500
 
 
 #PUT /account/merge/:id
 action 'mergeAccount', ->
-    if body.pwd
-        encryptPassword body, (newBody) ->
-            db.merge params.id, newBody, (err, res) ->
-                if err
-                    # oops unexpected error !
-                    console.log "[Merge] err: " + JSON.stringify err
-                    send 500
-                else
-                    send success: true, 200
-    else
-        db.merge params.id, body, (err, res) ->
+    @body = body
+    encryptPassword (pwdExist) ->
+        db.merge params.id, @body, (err, res) ->
             if err
                 # oops unexpected error !
                 console.log "[Merge] err: " + JSON.stringify err

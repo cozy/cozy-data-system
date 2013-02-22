@@ -16,7 +16,8 @@ module.exports = class Crypto
     applySalt: (data, salt) ->
         data + salt
 
-    # Generate a hash with a salt with the algorithm sha256, the key 'key' and the salt 'salt'
+    # Generate a hash with a salt with the algorithm sha256, the key 'key'
+    # and the salt 'salt'
     genHashWithSalt: (key, salt) ->
     	newKey = key + salt
     	crypto.createHash('sha256').update(newKey).digest('binary')
