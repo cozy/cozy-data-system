@@ -165,7 +165,7 @@ describe "Data handling tests", ->
 
             it "When I send a request to modify the cozy password", (done) ->
                 @newPwd = randomString 8
-                data = newPwd: @newPwd
+                data = pwd: @newPwd
                 client.put 'accounts/password/', data, (err, res, body) =>
                     @res = res
                     done()

@@ -12,6 +12,7 @@ crypto = new Crypto()
 user = new User()
 db = require('../../helpers/db_connect_helper').db_connect()
 
+
 before 'get doc', ->
     db.get params.id, (err, doc) =>
         if err and err.error is "not_found"
@@ -36,6 +37,7 @@ encryptPassword = (callback)->
         callback true
     else
         callback false
+
 
 # POST /accounts/password/
 action 'initializeKeys', =>
@@ -68,7 +70,7 @@ action 'initializeKeys', =>
 
 #PUT /accounts/password/
 action 'updateKeys', ->
-    if body.newPwd?
+    if body.pwd?
         user.getUser (err, user) ->
             if err
                 console.log "[Merge] err: #{err}"
@@ -77,7 +79,7 @@ action 'updateKeys', ->
                 slaveKey =
                     crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
                 app.crypto.masterKey =
-                    crypto.genHashWithSalt body.newPwd, user.salt
+                    crypto.genHashWithSalt body.pwd, user.salt
                 app.crypto.slaveKey =
                     crypto.encrypt app.crypto.masterKey, slaveKey
                 data = slaveKey: app.crypto.slaveKey
@@ -155,7 +157,7 @@ action 'updateAccount', ->
             db.save params.id, @body, (err, res) ->
                 if err
                     # oops unexpected error !
-                    console.log "[Update] err: " + JSON.stringify err
+                    console.log "[Update] err: #{err}"
                     send 500
                 else
                     send 200
@@ -170,7 +172,7 @@ action 'mergeAccount', ->
         db.merge params.id, @body, (err, res) ->
             if err
                 # oops unexpected error !
-                console.log "[Merge] err: " + JSON.stringify err
+                console.log "[Merge] err: #{err}"
                 send 500
             else
                 send success: true, 200
@@ -186,7 +188,7 @@ action 'upsertAccount', ->
                 db.save params.id, body, (err, res) ->
                     if err
                         # oops unexpected error !
-                        console.log "[Upsert] err: " + JSON.stringify err
+                        console.log "[Upsert] err: #{err}"
                         send 500
                     else if doc
                         send 200
@@ -202,8 +204,7 @@ action 'deleteAccount', ->
     db.remove params.id, @doc.rev, (err, res) ->
         if err
             # oops unexpected error !
-            console.log "[Delete] err: " + JSON.stringify err
-            send 500
+            console.log "[Delete] err: #{err}"
         else
             # Doc is removed from indexation
             client.del "index/#{params.id}/", (err, res, resbody) ->
