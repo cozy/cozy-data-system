@@ -113,6 +113,15 @@ action 'findAccount', ->
         send 500
 
 
+#GET /account/exist/:id
+action 'existAccount', ->
+    db.head params.id, (err, res, status) ->
+        if status is 200
+            send {"exist": true}
+        else if status is 404
+            send {"exist": false}
+
+
 #PUT /account/:id
 action 'updateAccount', ->
     @body = body

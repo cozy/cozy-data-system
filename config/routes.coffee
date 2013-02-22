@@ -42,6 +42,7 @@ exports.routes = (map) ->
     map.post '/account/', 'account#createAccount'
     map.post '/account/:id/', 'account#createAccount'
     map.get '/account/:id/', 'account#findAccount'
+    map.get '/account/exist/:id/', 'account#existAccount'
     map.put '/account/:id/', 'account#updateAccount'
     map.put '/account/merge/:id/', 'account#mergeAccount'
     map.delete '/account/:id/', 'account#deleteAccount'

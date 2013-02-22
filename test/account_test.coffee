@@ -420,6 +420,42 @@ describe "Data handling tests", ->
                 @res.statusCode.should.equal 200
 
 
+    describe "Existence", ->
+        describe "Existence of an account that doesn't exist", ->
+            before cleanRequest
+
+            it "When I send a request to check the existence of the account", \
+             (done) ->
+                client.get 'account/exist/123/', (err, res, body) =>
+                    @res = res
+                    @body = body
+                    done()
+
+            it "Then {exist: false} should be returned", ->
+                should.exist @body.exist
+                @body.exist.should.not.be.ok
+
+            it "And HTTP status 200 should be returned", ->
+                @res.statusCode.should.equal 200
+
+
+        describe "Existence of an account that exists", ->
+            before cleanRequest
+
+            it "When I send a request to check the existence of the account", \
+                    (done) ->
+                client.get 'account/exist/456/', (err, res, body) =>
+                    @res = res
+                    @body = body
+                    done()
+
+            it "Then {exist: true} should be returned", ->
+                should.exist @body.exist
+                @body.exist.should.be.ok
+
+            it "And HTTP status 200 should be returned", ->
+                @res.statusCode.should.equal 200
+
     describe "Delete an account", ->
         describe "Try to delete an account that doesn't exist", ->
             before cleanRequest
@@ -452,41 +488,5 @@ describe "Data handling tests", ->
 
             it "And HTTP status 204 should be returned", ->
                 @res.statusCode.should.equal 204
-
-
-    describe "Existence", ->
-        describe "Existence of an account that doesn't exist", ->
-            before cleanRequest
-
-            it "When I send a request to check the existence of the account", \
-             (done) ->
-                client.put 'account/exist/456/', (err, res, body) =>
-                    @res = res
-                    @body = body
-                    done()
-
-            it "Then {exist: false} should be returned", ->
-                should.exist @body.exist
-                @body.exist.should.not.be.ok
-
-            it "And HTTP status 200 should be returned", ->
-                @res.statusCode.should.equal 200
-
-        describe "Existence of an account that exists", ->
-            before cleanRequest
-
-            it "When I send a request to check the existence of the account", \
-                    (done) ->
-                client.put 'account/exist/456/', (err, res, body) =>
-                    @res = res
-                    @body = body
-                    done()
-
-            it "Then {exist: true} should be returned", ->
-                should.exist @body.exist
-                @body.exist.should.be.ok
-
-            it "And HTTP status 200 should be returned", ->
-                @res.statusCode.should.equal 200
 
 
