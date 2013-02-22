@@ -83,8 +83,8 @@ describe "Data handling tests", ->
 
             it "When I send a request to initialize the keys and the salt", \
                     (done) ->
-                @randomValue = randomString 8
-                data = pwd: @randomValue
+                @cozyPwd = randomString 8
+                data = pwd: @cozyPwd
                 client.post 'accounts/password/', data, (err, res, body) =>
                     @res = res
                     done()
@@ -101,7 +101,7 @@ describe "Data handling tests", ->
                 @salt.length.should.equal 24
 
             it "And master key should be initialized", ->
-                @masterKey = crypto.genHashWithSalt(@randomValue, @salt)
+                @masterKey = crypto.genHashWithSalt(@cozyPwd, @salt)
                 @masterKey.length.should.equal 32
                 should.not.equal app.crypto.masterKey, null
                 app.crypto.masterKey.should.equal @masterKey
@@ -134,12 +134,12 @@ describe "Data handling tests", ->
             it "And HTTP status 204 should be returned", ->
                 @res.statusCode.should.equal 204
 
-        describe "Initialize the keys in a second connection", ->
+        describe "Initialize keys in a second connection", ->
             before cleanRequest
 
             it "When I send a request to initialize of the master key", \
                     (done) ->
-                data = pwd: @randomValue
+                data = pwd: @cozyPwd
                 client.post 'accounts/password/', data, (err, res, body) =>
                     @res = res
                     done()
@@ -154,6 +154,39 @@ describe "Data handling tests", ->
                 app.crypto.masterKey.should.equal @masterKey
 
             it "And slave key should be initialized", ->
+                app.crypto.slaveKey.should.equal @encryptedSlaveKey
+
+            it "And HTTP status 200 should be returned", ->
+                @res.statusCode.should.equal 200
+
+
+        describe "Modification of the cozy password", ->
+            before cleanRequest
+
+            it "When I send a request to modify the cozy password", (done) ->
+                @newPwd = randomString 8
+                data = newPwd: @newPwd
+                client.put 'accounts/password/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "And I send a request to have the salt", (done)->
+                client.get 'data/102/', (err, res, body) =>
+                    body.should.have.property 'salt'
+                    @salt = body.salt
+                    done()
+
+            it "Then the master key should be modified", ->
+                app.crypto.masterKey.should.not.equal @masterKey
+                @masterKey = crypto.genHashWithSalt @newPwd, @salt
+                app.crypto.masterKey.should.equal @masterKey
+
+            it "And the slave key should not be modify", ->
+                @newSlaveKey = crypto.decrypt @masterKey, app.crypto.slaveKey
+                @newSlaveKey.should.be.equal @slaveKey
+
+            it "And the slave key should be encrypt with the new master key", ->
+                @encryptedSlaveKey = crypto.encrypt @masterKey, @slaveKey
                 app.crypto.slaveKey.should.equal @encryptedSlaveKey
 
             it "And HTTP status 200 should be returned", ->
@@ -354,6 +387,114 @@ describe "Data handling tests", ->
             it "And HTTP status 200 should be returned", ->
                 @res.statusCode.should.equal 200
 
+        describe "Update an account without password", ->
+            cleanRequest
+
+            it "When I send a request to update", (done) ->
+                data =
+                    login: "log"
+                    service: "cozy"
+                client.put 'account/456/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then the old account doesn't must have been replaced", ->
+                data =
+                    _id: "456"
+                    login: "newLog"
+                    pwd: "newPassword"
+                    service: "cozyCloud"
+                    docType: "Account"
+                @body.should.deep.equal data
+
+            it "And error 500 should be returned", ->
+                @res.statusCode.should.equal 500
+
+
+    describe "Upsert", ->
+        describe "Upsert an account that doesn't exist", ->
+            before cleanRequest
+
+            it "When I send a request to upsert an account", (done) ->
+                data =
+                    login: "login"
+                    pwd: "password"
+                    service: "cozyCloud"
+                client.put 'account/upsert/741/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then the HTTP status 201 should be returned", ->
+                @res.statusCode.should.equal 201
+
+            it "And the account should be in the database", (done) ->
+                client.get 'account/741/', (err, res, body) =>
+                    res.statusCode.should.equal 200
+                    @body = body
+                    done()
+
+            it "And the account must have been replaced", ->
+                data =
+                    _id: "741"
+                    login: "login"
+                    pwd: "password"
+                    service: "cozyCloud"
+                    docType: "Account"
+                @body.should.deep.equal data
+
+        describe "Upsert an account that exist", ->
+            before cleanRequest
+
+            it "When I send a request to upsert an account", (done) ->
+                data =
+                    login: "login"
+                    pwd: "password"
+                    service: "cozyCloud"
+                client.put 'account/upsert/456/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "Then the HTTP status 200 should be returned", ->
+                @res.statusCode.should.equal 200
+
+            it "And the account should be in the database", (done) ->
+                client.get 'account/456/', (err, res, body) =>
+                    res.statusCode.should.equal 200
+                    @body = body
+                    done()
+
+            it "And the account must have been replaced", ->
+                data =
+                    _id: "456"
+                    login: "login"
+                    pwd: "password"
+                    service: "cozyCloud"
+                    docType: "Account"
+                @body.should.deep.equal data
+
+        describe "Upsert an account without password", ->
+            cleanRequest
+
+            it "When I send a request to upsert an account", (done) ->
+                data =
+                    login: "log"
+                    service: "cozy"
+                client.put 'account/upsert/456/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "And the old account doesn't must have been replaced", ->
+                data =
+                    _id: "456"
+                    login: "login"
+                    pwd: "password"
+                    service: "cozyCloud"
+                    docType: "Account"
+                @body.should.deep.equal data
+
+            it "And the error 500 should be returned", ->
+                @res.statusCode.should.equal 500
+
 
     describe "Merge", ->
         describe "Try to merge an account that doesn't exist", ->
@@ -363,7 +504,6 @@ describe "Data handling tests", ->
                 data = login: "newLog"
                 client.put 'account/merge/345/', data, (err, res, body) =>
                     @res = res
-                    console.log(res.statusCode)
                     done()
 
             it "Then error 404 should be returned", ->
@@ -488,5 +628,3 @@ describe "Data handling tests", ->
 
             it "And HTTP status 204 should be returned", ->
                 @res.statusCode.should.equal 204
-
-

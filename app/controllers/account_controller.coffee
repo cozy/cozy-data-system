@@ -66,6 +66,31 @@ action 'initializeKeys', =>
                         send 200
 
 
+#PUT /accounts/password/
+action 'updateKeys', ->
+    if body.newPwd?
+        user.getUser (err, user) ->
+            if err
+                console.log "[Merge] err: #{err}"
+                send 500
+            else
+                slaveKey =
+                    crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+                app.crypto.masterKey =
+                    crypto.genHashWithSalt body.newPwd, user.salt
+                app.crypto.slaveKey =
+                    crypto.encrypt app.crypto.masterKey, slaveKey
+                data = slaveKey: app.crypto.slaveKey
+                db.merge user._id, data, (err, res) =>
+                    if err
+                        console.log "[Merge] err: #{err}"
+                        send 500
+                    else
+                        send 200
+    else
+        send 500
+
+
 #DELETE /accounts/
 action 'deleteKeys', ->
     app.crypto.masterKey = null
@@ -151,6 +176,26 @@ action 'mergeAccount', ->
                 send success: true, 200
 
 
+
+#PUT /account/upsert/:id
+action 'upsertAccount', ->
+    @body = body
+    encryptPassword (pwdExist) ->
+        if pwdExist
+            db.get params.id, (err, doc) ->
+                db.save params.id, body, (err, res) ->
+                    if err
+                        # oops unexpected error !
+                        console.log "[Upsert] err: " + JSON.stringify err
+                        send 500
+                    else if doc
+                        send 200
+                    else
+                        send {"_id": res.id}, 201
+        else
+            send 500
+
+
 #DELETE /account/:id
 action 'deleteAccount', ->
     # this version don't take care of conflict (erase DB with the sent value)
@@ -163,10 +208,3 @@ action 'deleteAccount', ->
             # Doc is removed from indexation
             client.del "index/#{params.id}/", (err, res, resbody) ->
                 send 204
-
-
-
-###
-#GET /account/exist/:id
-#GET /account/upsert/:id
-

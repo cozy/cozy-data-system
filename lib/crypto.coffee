@@ -8,19 +8,18 @@ module.exports = class Crypto
         @masterKey = null
         @slaveKey = null
 
-    # Generate a hash with the algorithm sha256 and the key 'key'
-    genHash: (key) ->
-        crypto.createHash('sha256').update(key).digest('binary')
+    # Generate a hash of data with the algorithm sha256
+    genHash: (data) ->
+        crypto.createHash('sha256').update(data).digest('binary')
 
     # Apply a salt to the data 'data'
     applySalt: (data, salt) ->
         data + salt
 
-    # Generate a hash with a salt with the algorithm sha256, the key 'key'
-    # and the salt 'salt'
-    genHashWithSalt: (key, salt) ->
-    	newKey = key + salt
-    	crypto.createHash('sha256').update(newKey).digest('binary')
+    # Generate a hash of data with a salt with the algorithm sha256
+    genHashWithSalt: (data, salt) ->
+    	newData = data + salt
+    	crypto.createHash('sha256').update(newData).digest('binary')
 
     # Generate a salt with a length of 'length'
     genSalt: (length) ->

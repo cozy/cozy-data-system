@@ -38,6 +38,7 @@ exports.routes = (map) ->
     #Account management
     map.post '/accounts/password/', 'account#initializeKeys'
     map.delete '/accounts/', 'account#deleteKeys'
+    map.put '/accounts/password/', 'account#updateKeys'
 
     map.post '/account/', 'account#createAccount'
     map.post '/account/:id/', 'account#createAccount'
@@ -45,4 +46,5 @@ exports.routes = (map) ->
     map.get '/account/exist/:id/', 'account#existAccount'
     map.put '/account/:id/', 'account#updateAccount'
     map.put '/account/merge/:id/', 'account#mergeAccount'
+    map.put '/account/upsert/:id/', 'account#upsertAccount'
     map.delete '/account/:id/', 'account#deleteAccount'
