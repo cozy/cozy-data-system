@@ -41,7 +41,6 @@ action 'removeResults', ->
                 delFunc()
 
     delFunc = ->
-        body.limit = 30
         db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
             if err
                 send 404
