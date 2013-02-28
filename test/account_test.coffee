@@ -43,8 +43,6 @@ describe "Data handling tests", ->
         app.close()
         done()
 
-    before
-
     describe "Operation of cryptography : ", ->
         describe "Encryption", ->
             before cleanRequest
@@ -57,6 +55,7 @@ describe "Data handling tests", ->
 
             it "Then encrypted data should not be equal to random value", ->
                 @crypted.should.not.equal @randomValue
+                encrypted = crypto.encrypt @key, @randomValue
 
             it "And decrypted data should be equal to random value", ->
                 @decrypted = crypto.decrypt @key, @crypted
@@ -83,7 +82,7 @@ describe "Data handling tests", ->
 
             it "When I send a request to initialize the keys and the salt", \
                     (done) ->
-                @cozyPwd = randomString 8
+                @cozyPwd = "password"
                 data = pwd: @cozyPwd
                 client.post 'accounts/password/', data, (err, res, body) =>
                     @res = res
@@ -102,7 +101,6 @@ describe "Data handling tests", ->
 
             it "And master key should be initialized", ->
                 @masterKey = crypto.genHashWithSalt(@cozyPwd, @salt)
-                @masterKey.length.should.equal 32
                 should.not.equal app.crypto.masterKey, null
                 app.crypto.masterKey.should.equal @masterKey
 
@@ -164,7 +162,7 @@ describe "Data handling tests", ->
             before cleanRequest
 
             it "When I send a request to modify the cozy password", (done) ->
-                @newPwd = randomString 8
+                @newPwd = randomString 10
                 data = pwd: @newPwd
                 client.put 'accounts/password/', data, (err, res, body) =>
                     @res = res
@@ -174,6 +172,7 @@ describe "Data handling tests", ->
                 client.get 'data/102/', (err, res, body) =>
                     body.should.have.property 'salt'
                     @salt = body.salt
+                    @salt.length.should.be.equal 22
                     done()
 
             it "Then the master key should be modified", ->
@@ -184,10 +183,6 @@ describe "Data handling tests", ->
             it "And the slave key should not be modify", ->
                 @newSlaveKey = crypto.decrypt @masterKey, app.crypto.slaveKey
                 @newSlaveKey.should.be.equal @slaveKey
-
-            it "And the slave key should be encrypt with the new master key", ->
-                @encryptedSlaveKey = crypto.encrypt @masterKey, @slaveKey
-                app.crypto.slaveKey.should.equal @encryptedSlaveKey
 
             it "And HTTP status 200 should be returned", ->
                 @res.statusCode.should.equal 200
@@ -207,6 +202,7 @@ describe "Data handling tests", ->
                     service : "cozyCloud"
                 client.post 'account/', data, (err, res, body) =>
                     @body = body
+                    console.log(body)
                     @res = res
                     done()
 
@@ -223,50 +219,12 @@ describe "Data handling tests", ->
             it "And the password in DB should be encrypted", (done)->
                 client.get "data/#{@_id}/", (err, res, body) =>
                     body.should.have.property 'pwd'
-                    encryptedPwd = crypto.encrypt @slaveKey, "password"
-                    body.pwd.should.equal encryptedPwd
+                    body.pwd.should.not.equal "password"
                     done()
 
             it "And HTTP status 201 should be returned", ->
                 @res.statusCode.should.equal 201
 
-        describe "Creation of a new account with a specific id", ->
-            before cleanRequest
-            after ->
-                delete @_id
-                delete @pwd
-
-            it "When I send a request to post an account with the id 456", \
-                    (done) ->
-                data =
-                    login: "log"
-                    pwd: "password"
-                    service: "cozyCloud"
-                client.post 'account/456/', data , (err, res, body) =>
-                    @body = body
-                    @res = res
-                    done()
-
-            it "Then the id 456 should be returned", ->
-                @body.should.have.property '_id'
-                @_id = @body._id
-                @_id.should.be.equal "456"
-
-            it "And the account with the id 456 should exist in Database",\
-                        (done) ->
-                client.get "data/exist/456/", (err, res, body) =>
-                    body.exist.should.be.true
-                    done()
-
-            it "And the password in DB should be encrypted", (done)->
-                client.get "data/456/", (err, res, body) =>
-                    body.should.have.property 'pwd'
-                    encryptedPwd = crypto.encrypt @slaveKey, "password"
-                    body.pwd.should.equal encryptedPwd
-                    done()
-
-            it "And HTTP status 201 should be returned", ->
-                @res.statusCode.should.equal 201
 
         describe "Creation of an account without password", ->
             before cleanRequest
@@ -279,8 +237,8 @@ describe "Data handling tests", ->
                     @res = res
                     done()
 
-            it "Then error 409 should be returned", ->
-                @res.statusCode.should.equal 409
+            it "Then error 401 should be returned", ->
+                @res.statusCode.should.equal 401
 
 
     describe "Get", ->
@@ -299,6 +257,7 @@ describe "Data handling tests", ->
             before cleanRequest
             after ->
                 delete @pwd
+                delete @_id
 
             it "When I send a request to post an account", (done) ->
                 data =
@@ -336,6 +295,7 @@ describe "Data handling tests", ->
 
 
     describe "Update", ->
+
         describe "Try to update an account that doesn't exist", ->
             before cleanRequest
 
@@ -354,24 +314,34 @@ describe "Data handling tests", ->
         describe "Update an account that does exist", ->
             before cleanRequest
 
-            it "When I send a request to update", (done) ->
+            it "When I send a request to post an account", (done) ->
+                data =
+                    login: "log"
+                    pwd: "password"
+                    service: "cozyCloud"
+                client.post 'account/', data, (err, res, body) =>
+                    @_id = body._id
+                    done()
+
+            it "And I send a request to update", (done) ->
                 data =
                     login: "newLog"
                     pwd: "newPassword"
                     service: "cozyCloud"
-                client.put 'account/456/', data, (err, res, body) =>
+                client.put "account/#{@_id}/", data, (err, res, body) =>
                     @res = res
                     done()
 
             it "Then the account exists in the database", (done) ->
-                client.get 'account/456/', (err, res, body) =>
+                client.get "account/#{@_id}/", (err, res, body) =>
                     @body = body
+                    console.log(res.statusCode)
                     res.statusCode.should.equal 200
                     done()
 
             it "And the old account must have been replaced", ->
                 data =
-                    _id: "456"
+                    _id: "#{@_id}"
                     login: "newLog"
                     pwd: "newPassword"
                     service: "cozyCloud"
@@ -379,9 +349,8 @@ describe "Data handling tests", ->
                 @body.should.deep.equal data
 
             it "And the new password should be encrypted", (done) ->
-                client.get 'data/456/', (err, res, body) =>
-                    encryptedPwd = crypto.encrypt @slaveKey, "newPassword"
-                    body.pwd.should.equal encryptedPwd
+                client.get "data/#{@_id}/", (err, res, body) =>
+                    body.pwd.should.not.equal "newPassword"
                     done()
 
             it "And HTTP status 200 should be returned", ->
@@ -394,21 +363,21 @@ describe "Data handling tests", ->
                 data =
                     login: "log"
                     service: "cozy"
-                client.put 'account/456/', data, (err, res, body) =>
+                client.put "account/#{@_id}/", data, (err, res, body) =>
                     @res = res
                     done()
 
             it "Then the old account doesn't must have been replaced", ->
                 data =
-                    _id: "456"
+                    _id: "#{@_id}"
                     login: "newLog"
                     pwd: "newPassword"
                     service: "cozyCloud"
                     docType: "Account"
                 @body.should.deep.equal data
 
-            it "And error 500 should be returned", ->
-                @res.statusCode.should.equal 500
+            it "And error 401 should be returned", ->
+                @res.statusCode.should.equal 401
 
 
     describe "Upsert", ->
@@ -454,8 +423,8 @@ describe "Data handling tests", ->
                     @res = res
                     done()
 
-            it "Then the HTTP status 200 should be returned", ->
-                @res.statusCode.should.equal 200
+            it "Then the HTTP status 201 should be returned", ->
+                @res.statusCode.should.equal 201
 
             it "And the account should be in the database", (done) ->
                 client.get 'account/456/', (err, res, body) =>
@@ -552,8 +521,7 @@ describe "Data handling tests", ->
 
             it "And the new password should be encrypted", (done) ->
                 client.get 'data/456/', (err, res, body) =>
-                    encryptedPwd = crypto.encrypt @slaveKey, "newPwd"
-                    body.pwd.should.equal encryptedPwd
+                    body.pwd.should.not.equal "newPwd"
                     done()
 
             it "And HTTP status 200 should be returned", ->

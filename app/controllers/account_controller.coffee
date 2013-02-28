@@ -46,7 +46,7 @@ action 'initializeKeys', =>
             console.log "[Merge] err: #{err}"
             send 500
         else
-            app.crypto = {} if !(app.crypto?)
+            app.crypto = {} if not app.crypto?
             if user.salt? and user.slaveKey?
                 app.crypto.masterKey =
                     crypto.genHashWithSalt body.pwd, user.salt
@@ -78,11 +78,12 @@ action 'updateKeys', ->
             else
                 slaveKey =
                     crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+                salt = crypto.genSalt(32 - body.pwd.length)
                 app.crypto.masterKey =
-                    crypto.genHashWithSalt body.pwd, user.salt
+                    crypto.genHashWithSalt body.pwd, salt
                 app.crypto.slaveKey =
                     crypto.encrypt app.crypto.masterKey, slaveKey
-                data = slaveKey: app.crypto.slaveKey
+                data = slaveKey: app.crypto.slaveKey, salt: salt
                 db.merge user._id, data, (err, res) =>
                     if err
                         console.log "[Merge] err: #{err}"
@@ -100,32 +101,20 @@ action 'deleteKeys', ->
     send 204
 
 
-#POST /account/:id
 #POST /account/
 action 'createAccount', ->
     @body = body
+    body.docType = "Account"
     encryptPassword (pwdExist) ->
         if pwdExist
-            newBody = @body
-            if params.id
-                db.get params.id, (err, doc) ->
-                    if doc
-                        send 409
-                    else
-                        db.save params.id, newBody, (err, res) ->
-                            if err
-                                send 409
-                            else
-                                send _id: res.id, 201
-            else
-                db.save @body, (err, res) ->
-                    if err
-                        railway.logger.write "[Create] err: #{err}"
-                        send 500
-                    else
-                        send _id: res.id, 201
+            db.save @body, (err, res) ->
+                if err
+                    railway.logger.write "[Create] err: #{err}"
+                    send 500
+                else
+                    send _id: res._id, 201
         else
-            send 409
+            send 401
 
 
 #GET /account/:id
@@ -162,7 +151,7 @@ action 'updateAccount', ->
                 else
                     send 200
         else
-            send 500
+            send 401
 
 
 #PUT /account/merge/:id
@@ -175,8 +164,7 @@ action 'mergeAccount', ->
                 console.log "[Merge] err: #{err}"
                 send 500
             else
-                send success: true, 200
-
+                send 200
 
 
 #PUT /account/upsert/:id
