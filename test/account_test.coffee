@@ -202,7 +202,6 @@ describe "Data handling tests", ->
                     service : "cozyCloud"
                 client.post 'account/', data, (err, res, body) =>
                     @body = body
-                    console.log(body)
                     @res = res
                     done()
 
@@ -335,7 +334,6 @@ describe "Data handling tests", ->
             it "Then the account exists in the database", (done) ->
                 client.get "account/#{@_id}/", (err, res, body) =>
                     @body = body
-                    console.log(res.statusCode)
                     res.statusCode.should.equal 200
                     done()
 
