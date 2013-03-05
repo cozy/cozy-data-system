@@ -29,10 +29,12 @@ before 'get doc', ->
 
 # helpers
 encryptPassword = (callback)->
-    if @body.pwd
+    if @body.password
+        console.log app.crypto.masterKey
+        console.log app.crypto.slaveKey
         slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-        newPwd = crypto.encrypt slaveKey, @body.pwd
-        @body.pwd = newPwd
+        newPwd = crypto.encrypt slaveKey, @body.password
+        @body.password = newPwd
         @body.docType = "Account"
         callback true
     else
@@ -49,12 +51,12 @@ action 'initializeKeys', =>
             app.crypto = {} if not app.crypto?
             if user.salt? and user.slaveKey?
                 app.crypto.masterKey =
-                    crypto.genHashWithSalt body.pwd, user.salt
+                    crypto.genHashWithSalt body.password, user.salt
                 app.crypto.slaveKey = user.slaveKey
                 send 200
             else
-                salt = crypto.genSalt(32 - body.pwd.length)
-                masterKey = crypto.genHashWithSalt body.pwd, salt
+                salt = crypto.genSalt(32 - body.password.length)
+                masterKey = crypto.genHashWithSalt body.password, salt
                 slaveKey = randomString()
                 encryptedSlaveKey = crypto.encrypt masterKey, slaveKey
                 app.crypto.masterKey = masterKey
@@ -70,7 +72,7 @@ action 'initializeKeys', =>
 
 #PUT /accounts/password/
 action 'updateKeys', ->
-    if body.pwd?
+    if body.password?
         user.getUser (err, user) ->
             if err
                 console.log "[Merge] err: #{err}"
@@ -78,9 +80,9 @@ action 'updateKeys', ->
             else
                 slaveKey =
                     crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-                salt = crypto.genSalt(32 - body.pwd.length)
+                salt = crypto.genSalt(32 - body.password.length)
                 app.crypto.masterKey =
-                    crypto.genHashWithSalt body.pwd, salt
+                    crypto.genHashWithSalt body.password, salt
                 app.crypto.slaveKey =
                     crypto.encrypt app.crypto.masterKey, slaveKey
                 data = slaveKey: app.crypto.slaveKey, salt: salt
@@ -120,10 +122,10 @@ action 'createAccount', ->
 #GET /account/:id
 action 'findAccount', ->
     delete @doc._rev # CouchDB specific, user don't need it
-    if @doc.pwd?
-        encryptedPwd = @doc.pwd
+    if @doc.password?
+        encryptedPwd = @doc.password
         slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-        @doc.pwd = crypto.decrypt slaveKey, encryptedPwd
+        @doc.password = crypto.decrypt slaveKey, encryptedPwd
         send @doc
     else
         send 500
