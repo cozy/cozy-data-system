@@ -14,7 +14,7 @@ exports.routes = (map) ->
     map.put '/data/:id/', 'data#update'
 
     map.delete '/data/:id/', 'data#delete'
-    
+
     # Indexation
     map.post '/data/index/:id', 'index#index'
     map.post '/data/search/:type', 'index#search'
@@ -34,3 +34,17 @@ exports.routes = (map) ->
     map.put '/request/:type/:req_name/destroy/', 'request#removeResults'
     map.put '/request/:type/:req_name/', 'request#definition'
     map.delete '/request/:type/:req_name/', 'request#remove'
+
+    #Account management
+    map.post '/accounts/password/', 'account#initializeKeys'
+    map.delete '/accounts/', 'account#deleteKeys'
+    map.put '/accounts/password/', 'account#updateKeys'
+
+    map.post '/account/', 'account#createAccount'
+    map.post '/account/:id/', 'account#createAccount'
+    map.get '/account/:id/', 'account#findAccount'
+    map.get '/account/exist/:id/', 'account#existAccount'
+    map.put '/account/:id/', 'account#updateAccount'
+    map.put '/account/merge/:id/', 'account#mergeAccount'
+    map.put '/account/upsert/:id/', 'account#upsertAccount'
+    map.delete '/account/:id/', 'account#deleteAccount'
