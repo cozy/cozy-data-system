@@ -30,8 +30,6 @@ before 'get doc', ->
 # helpers
 encryptPassword = (callback)->
     if @body.password
-        console.log app.crypto.masterKey
-        console.log app.crypto.slaveKey
         slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
         newPwd = crypto.encrypt slaveKey, @body.password
         @body.password = newPwd
