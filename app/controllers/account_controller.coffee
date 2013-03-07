@@ -119,6 +119,7 @@ action 'deleteKeys', ->
 action 'createAccount', ->
     @body = body
     body.docType = "Account"
+    body.toString = toString "Account"
     encryptPassword (pwdExist, err) ->
         if err
             console.log "[createAccount] err: #{err}"
@@ -141,6 +142,7 @@ action 'findAccount', ->
     if @doc.password?
         encryptedPwd = @doc.password
         slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+        @doc.toString = toString
         @doc.password = crypto.decrypt slaveKey, encryptedPwd
         send @doc
     else
