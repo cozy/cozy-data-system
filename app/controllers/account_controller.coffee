@@ -140,9 +140,14 @@ action 'findAccount', ->
     delete @doc._rev # CouchDB specific, user don't need it
     if @doc.password?
         encryptedPwd = @doc.password
-        slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-        @doc.password = crypto.decrypt slaveKey, encryptedPwd
-        send @doc
+        if app.crypto? and app.crypto.masterKey? and app.crypto.slaveKey?
+            slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+            @doc.password = crypto.decrypt slaveKey, encryptedPwd
+            send @doc
+        else
+            console.log "[updateKeys] err: masterKey and slaveKey don't\
+                exist"
+            send 500
     else
         send 500
 

@@ -1,5 +1,5 @@
-fs     = require 'fs'
 {exec} = require 'child_process'
+fs     = require 'fs'
 
 option '-f', '--file [FILE*]' , 'test file to run'
 option '', '--dir [DIR*]', 'directory where to grab test files'
