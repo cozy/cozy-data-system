@@ -30,11 +30,14 @@ before 'get doc', ->
 # helpers
 encryptPassword = (callback)->
     if @body.password
-        slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-        newPwd = crypto.encrypt slaveKey, @body.password
-        @body.password = newPwd
-        @body.docType = "Account"
-        callback true
+        if app.crypto? and app.crypto.masterKey and app.crypto.slaveKey
+            slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+            newPwd = crypto.encrypt slaveKey, @body.password
+            @body.password = newPwd
+            @body.docType = "Account"
+            callback true
+        else
+            callback false, new Error("master key and slave key don't exist")
     else
         callback false
 
@@ -43,7 +46,7 @@ encryptPassword = (callback)->
 action 'initializeKeys', =>
     user.getUser (err, user) ->
         if err
-            console.log "[Merge] err: #{err}"
+            console.log "[initializeKeys] err: #{err}"
             send 500
         else
             app.crypto = {} if not app.crypto?
@@ -62,7 +65,7 @@ action 'initializeKeys', =>
                 data = salt: salt, slaveKey: encryptedSlaveKey
                 db.merge user._id, data, (err, res) =>
                     if err
-                        console.log "[Merge] err: #{err}"
+                        console.log "[initializeKeys] err: #{err}"
                         send 500
                     else
                         send 200
@@ -73,48 +76,63 @@ action 'updateKeys', ->
     if body.password?
         user.getUser (err, user) ->
             if err
-                console.log "[Merge] err: #{err}"
+                console.log "[updateKeys] err: #{err}"
                 send 500
             else
-                slaveKey =
-                    crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-                salt = crypto.genSalt(32 - body.password.length)
-                app.crypto.masterKey =
-                    crypto.genHashWithSalt body.password, salt
-                app.crypto.slaveKey =
-                    crypto.encrypt app.crypto.masterKey, slaveKey
-                data = slaveKey: app.crypto.slaveKey, salt: salt
-                db.merge user._id, data, (err, res) =>
-                    if err
-                        console.log "[Merge] err: #{err}"
-                        send 500
-                    else
-                        send 200
+                if app.crypto? and app.crypto.masterKey? and
+                        app.crypto.slaveKey?
+                    slaveKey =
+                        crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+                    salt = crypto.genSalt(32 - body.password.length)
+                    app.crypto.masterKey =
+                        crypto.genHashWithSalt body.password, salt
+                    app.crypto.slaveKey =
+                        crypto.encrypt app.crypto.masterKey, slaveKey
+                    data = slaveKey: app.crypto.slaveKey, salt: salt
+                    db.merge user._id, data, (err, res) =>
+                        if err
+                            console.log "[updateKeys] err: #{err}"
+                            send 500
+                        else
+                            send 200
+                else
+                    console.log "[updateKeys] err: masterKey and slaveKey don't\
+                        exist"
+                    send 500
     else
         send 500
 
 
 #DELETE /accounts/
 action 'deleteKeys', ->
-    app.crypto.masterKey = null
-    app.crypto.slaveKey = null
-    send 204
+    if app.crypto? and app.crypto.masterKey and app.crypto.slaveKey
+        app.crypto.masterKey = null
+        app.crypto.slaveKey = null
+        send 204
+    else
+        console.log "[updateKeys] err: masterKey and slaveKey don't exist"
+        send 500
+
 
 
 #POST /account/
 action 'createAccount', ->
     @body = body
     body.docType = "Account"
-    encryptPassword (pwdExist) ->
-        if pwdExist
-            db.save @body, (err, res) ->
-                if err
-                    railway.logger.write "[Create] err: #{err}"
-                    send 500
-                else
-                    send _id: res._id, 201
+    encryptPassword (pwdExist, err) ->
+        if err
+            console.log "[createAccount] err: #{err}"
+            send 500
         else
-            send 401
+            if pwdExist
+                db.save @body, (err, res) ->
+                    if err
+                        railway.logger.write "[Create] err: #{err}"
+                        send 500
+                    else
+                        send _id: res._id, 201
+            else
+                send 401
 
 
 #GET /account/:id
@@ -141,37 +159,45 @@ action 'existAccount', ->
 #PUT /account/:id
 action 'updateAccount', ->
     @body = body
-    encryptPassword (pwdExist) ->
-        if pwdExist
-            db.save params.id, @body, (err, res) ->
-                if err
-                    # oops unexpected error !
-                    console.log "[Update] err: #{err}"
-                    send 500
-                else
-                    send 200
+    encryptPassword (pwdExist, err) ->
+        if err
+            console.log "[updateAccount] err: #{err}"
+            send 500
         else
-            send 401
+            if pwdExist
+                db.save params.id, @body, (err, res) ->
+                    if err
+                        # oops unexpected error !
+                        console.log "[Update] err: #{err}"
+                        send 500
+                    else
+                        send 200
+            else
+                send 401
 
 
 #PUT /account/merge/:id
 action 'mergeAccount', ->
     @body = body
-    encryptPassword (pwdExist) ->
-        db.merge params.id, @body, (err, res) ->
-            if err
-                # oops unexpected error !
-                console.log "[Merge] err: #{err}"
-                send 500
-            else
-                send 200
+    encryptPassword (pwdExist, err) ->
+        if err
+            console.log "[mergeAccount] err: #{err}"
+            send 500
+        else
+            db.merge params.id, @body, (err, res) ->
+                if err
+                    # oops unexpected error !
+                    console.log "[Merge] err: #{err}"
+                    send 500
+                else
+                    send 200
 
 
 #PUT /account/upsert/:id
 action 'upsertAccount', ->
     @body = body
-    encryptPassword (pwdExist) ->
-        if pwdExist
+    encryptPassword (pwdExist, err) ->
+        if pwdExist and not err
             db.get params.id, (err, doc) ->
                 db.save params.id, body, (err, res) ->
                     if err
@@ -192,7 +218,7 @@ action 'deleteAccount', ->
     db.remove params.id, @doc.rev, (err, res) ->
         if err
             # oops unexpected error !
-            console.log "[Delete] err: #{err}"
+            console.log "[DeleteAccount] err: #{err}"
         else
             # Doc is removed from indexation
             client.del "index/#{params.id}/", (err, res, resbody) ->
