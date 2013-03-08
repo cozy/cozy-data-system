@@ -25,10 +25,11 @@ describe "Data handling tests", ->
     before (done) ->
         db.destroy ->
             db.create ->
+                password = crypto.cryptPassword "password"
                 data =
                     email: "user@CozyCloud.CC"
                     timezone: "Europe/Paris"
-                    password: "pwd_user"
+                    password: password.hash
                     docType: "User"
                 db.save '102', data, (err, res, body) =>
                     done()

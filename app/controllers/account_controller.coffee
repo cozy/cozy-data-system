@@ -2,11 +2,13 @@ load 'application'
 
 Client = require("request-json").JsonClient
 
+Account = require '../../lib/account'
 Crypto = require '../../lib/crypto'
 User = require '../../lib/user'
 randomString = require('../../lib/random').randomString
 
 
+account = new Account()
 client = new Client("http://localhost:9102/")
 crypto = new Crypto()
 user = new User()
@@ -54,11 +56,18 @@ action 'initializeKeys', =>
             send 500
         else
             app.crypto = {} if not app.crypto?
+            ###password = crypto.cryptPassword body.password
+            password2 = crypto.cryptPassword body.password###
             if user.salt? and user.slaveKey?
+                #if user.password is password.hash
                 app.crypto.masterKey =
                     crypto.genHashWithSalt body.password, user.salt
                 app.crypto.slaveKey = user.slaveKey
                 send 200
+                if app.crypto.masterKey.length isnt 32
+                    console.log "[initializeKeys] err: password to initialize
+                        keys is different than user password"
+                    send 500
             else
                 salt = crypto.genSalt(32 - body.password.length)
                 masterKey = crypto.genHashWithSalt body.password, salt
@@ -229,3 +238,33 @@ action 'deleteAccount', ->
             # Doc is removed from indexation
             client.del "index/#{params.id}/", (err, res, resbody) ->
                 send 204
+
+
+#DELETE /account/all
+action 'deleteAllAccounts', ->
+
+    deleteAccounts = (accounts) =>
+        if accounts.length > 0
+            account = accounts.pop()
+            id = account.value.id
+            db.remove id, account.value.rev, (err, res) =>
+                if err
+                    callback err
+                else
+                    # Doc is removed from indexation
+                    client.del "index/#{id}/", (err, res, resbody) =>
+                        if err
+                            callback err
+                        else
+                            deleteAccounts accounts, callback
+        else
+            callback()
+
+    Account.getAccounts (err, accounts) ->
+        if err
+            send 500
+        else
+            deleteAccounts accounts, (err) =>
+                if err
+                    send 500
+

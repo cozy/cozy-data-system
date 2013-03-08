@@ -1,4 +1,5 @@
 crypto = require("crypto")
+bcrypt = require("bcrypt")
 
 
 module.exports = class Crypto
@@ -43,3 +44,9 @@ module.exports = class Crypto
         decrypted = decipher.update data.toString(), 'base64', 'utf8'
         decrypted += decipher.final 'utf8'
         decrypted
+
+    # Crypt given password with bcrypt algorithm.
+    cryptPassword: (password) ->
+        salt = bcrypt.genSaltSync 10
+        hash = bcrypt.hashSync password, salt
+        { hash: hash, salt: salt }
