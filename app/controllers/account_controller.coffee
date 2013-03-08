@@ -27,6 +27,7 @@ before 'get doc', ->
             send 404
 , only: ['findAccount', 'updateAccount', 'mergeAccount', 'deleteAccount']
 
+
 # helpers
 encryptPassword = (callback)->
     if @body.password
@@ -40,6 +41,9 @@ encryptPassword = (callback)->
             callback false, new Error("master key and slave key don't exist")
     else
         callback false
+
+toString = ->
+    "[Account for model: #{@id}]"
 
 
 # POST /accounts/password/
@@ -119,7 +123,7 @@ action 'deleteKeys', ->
 action 'createAccount', ->
     @body = body
     body.docType = "Account"
-    body.toString = toString "Account"
+    body.toString = @toString "Account"
     encryptPassword (pwdExist, err) ->
         if err
             console.log "[createAccount] err: #{err}"
@@ -128,8 +132,8 @@ action 'createAccount', ->
             if pwdExist
                 db.save @body, (err, res) ->
                     if err
-                        railway.logger.write "[Create] err: #{err}"
-                        send 500
+                        railway.logger.write "[createAccount] err: #{err}"
+                        send 50
                     else
                         send _id: res._id, 201
             else
