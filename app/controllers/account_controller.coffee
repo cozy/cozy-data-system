@@ -205,7 +205,7 @@ action 'createAccount', ->
                 db.save @body, (err, res) ->
                     if err
                         railway.logger.write "[createAccount] err: #{err}"
-                        send 50
+                        send 500
                     else
                         send _id: res._id, 201
             else

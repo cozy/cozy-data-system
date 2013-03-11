@@ -1,5 +1,4 @@
 crypto = require("crypto")
-bcrypt = require("bcrypt")
 
 
 module.exports = class Crypto
