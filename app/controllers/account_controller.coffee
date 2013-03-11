@@ -34,10 +34,10 @@ before 'get doc with witness', ->
                             @doc = doc
                             next()
                         else
-                            console.log "[Get doc] err: data is corrupted"
+                            console.log "[Get doc] err: data are corrupted"
                             send 402
                     catch err
-                        console.log "[Get doc] err: data is corrupted"
+                        console.log "[Get doc] err: data are corrupted"
                         send 402
                 else
                     witness = crypto.encrypt slaveKey, correctWitness
