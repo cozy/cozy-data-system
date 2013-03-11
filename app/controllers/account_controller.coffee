@@ -41,6 +41,9 @@ encryptPassword = (callback)->
     else
         callback false
 
+toString = ->
+    "[Account for model: #{@id}]"
+
 
 # POST /accounts/password/
 action 'initializeKeys', =>
@@ -119,6 +122,7 @@ action 'deleteKeys', ->
 action 'createAccount', ->
     @body = body
     body.docType = "Account"
+    body.toString = toString
     encryptPassword (pwdExist, err) ->
         if err
             console.log "[createAccount] err: #{err}"
@@ -142,7 +146,8 @@ action 'findAccount', ->
         encryptedPwd = @doc.password
         if app.crypto? and app.crypto.masterKey? and app.crypto.slaveKey?
             try
-                slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+                slaveKey = crypto.decrypt(
+                    app.crypto.masterKey, app.crypto.slaveKey)
                 @doc.password = crypto.decrypt slaveKey, encryptedPwd
                 send @doc
             catch TypeError
