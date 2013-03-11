@@ -141,9 +141,13 @@ action 'findAccount', ->
     if @doc.password?
         encryptedPwd = @doc.password
         if app.crypto? and app.crypto.masterKey? and app.crypto.slaveKey?
-            slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
-            @doc.password = crypto.decrypt slaveKey, encryptedPwd
-            send @doc
+            try
+                slaveKey = crypto.decrypt app.crypto.masterKey, app.crypto.slaveKey
+                @doc.password = crypto.decrypt slaveKey, encryptedPwd
+                send @doc
+            catch TypeError
+                console.log "recorded password for user and set password dont't  match"
+                send 500
         else
             console.log "[updateKeys] err: masterKey and slaveKey don't\
                 exist"
