@@ -57,6 +57,7 @@ action 'definition', ->
 
     # no need to precise language because it's javascript
     db.get "_design/#{params.type}", (err, res) ->
+
         if err && err.error is 'not_found'
             design_doc = {}
             design_doc[params.req_name] = body
@@ -66,12 +67,13 @@ action 'definition', ->
                     send 500
                 else
                     send 200
+
         else if err
             send 500
+
         else
             views = res.views
             views[params.req_name] = body
-            
             db.merge "_design/#{params.type}", {views:views}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err

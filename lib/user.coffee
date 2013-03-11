@@ -4,16 +4,23 @@ db = require('../helpers/db_connect_helper').db_connect()
 module.exports = class User
 
     initAllView: (callback) ->
-        db.get "_design/users/all", (err, res) =>
+        db.get "_design/user", (err, res) =>
+            map = (doc) ->
+                emit doc._id, doc if doc.docType is "User"
+
+            design_doc =
+                all:
+                    map: map.toString()
+
             if err and err.error is 'not_found'
-                
-                map = (doc) ->
-                    emit doc._id, doc if doc.docType is "User"
+                db.save "_design/user", design_doc, (err, res) =>
+                    if err
+                        callback err
+                    else
+                        callback null
 
-                design_doc = {}
-                design_doc.all = map: map.toString()
-
-                db.save "_design/users/all", design_doc, (err, res) =>
+            else if not res.all?
+                db.merge "_design/user", design_doc, (err, res) =>
                     if err
                         callback err
                     else
@@ -21,13 +28,12 @@ module.exports = class User
             else
                 callback null
 
-
     getUser: (callback) ->
         @initAllView (err) ->
             if err
                 callback err
             else
-                db.view 'users/all', (err, res) =>
+                db.view 'user/all', (err, res) =>
                     if err
                         callback err
                     else
