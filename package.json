@@ -20,6 +20,7 @@
   , "request-json":     "= 0.2.9"
   , "form-data":        "= 0.0.4"
   , "git-rev":          "= 0.2.0"
+  , "redis":            "= 0.8.2"
   }
 , "devDependencies": 
   { "should":           ">= 1.2.0"
@@ -28,7 +29,8 @@
   , "request":          ">= 0"
   }
 , "scripts":
-  { "test": "cake tests"
+  { 
+    "test": "cake tests"
   , "start": "./node_modules/coffee-script/bin/coffee server.coffee"
   }
 }

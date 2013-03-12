@@ -118,12 +118,16 @@ action 'upsert', ->
 # DELETE /data/:id
 action 'delete', ->
     # this version don't take care of conflict (erase DB with the sent value)
-    db.remove params.id, @doc.rev, (err, res) ->
+    db.remove params.id, @doc.rev, (err, res) =>
         if err
             # oops unexpected error !
             console.log "[Delete] err: " + JSON.stringify err
             send 500
         else
+            # Event is emited
+            doctype = @doc.docType?.toLowerCase()
+            doctype ?= 'null'
+            app.feed.publish "#{doctype}.delete", @doc.id
             # Doc is removed from indexation
             client.del "index/#{params.id}/", (err, res, resbody) ->
                 send 204
