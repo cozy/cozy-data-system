@@ -1,7 +1,7 @@
 crypto = require("crypto")
 
 
-module.exports = class Crypto
+module.exports = class CryptoTools
 
 
     constructor: ->

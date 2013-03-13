@@ -3,14 +3,14 @@ load 'application'
 Client = require("request-json").JsonClient
 
 Account = require '../../lib/account'
-Crypt = require '../../lib/crypt'
+CryptoTools = require '../../lib/crypto_tools'
 User = require '../../lib/user'
 randomString = require('../../lib/random').randomString
 
 
 accountManager = new Account()
 client = new Client("http://localhost:9102/")
-crypt = new Crypt()
+cryptoTools = new CryptoTools()
 user = new User()
 db = require('../../helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
@@ -25,11 +25,11 @@ before 'get doc with witness', ->
             send 500
         else if doc?
             if app.crypto? and app.crypto.masterKey and app.crypto.slaveKey
-                slaveKey = crypt.decrypt app.crypto.masterKey,
+                slaveKey = cryptoTools.decrypt app.crypto.masterKey,
                     app.crypto.slaveKey
                 if doc.witness?
                     try
-                        witness = crypt.decrypt slaveKey, doc.witness
+                        witness = cryptoTools.decrypt slaveKey, doc.witness
                         if witness is correctWitness
                             @doc = doc
                             next()
@@ -40,7 +40,7 @@ before 'get doc with witness', ->
                         console.log "[Get doc] err: data are corrupted"
                         send 402
                 else
-                    witness = crypt.encrypt slaveKey, correctWitness
+                    witness = cryptoTools.encrypt slaveKey, correctWitness
                     db.merge params.id, witness: witness, (err, res) =>
                         if err
                             # oops unexpected error !
@@ -75,11 +75,11 @@ before 'get doc', ->
 encryptPassword = (callback)->
     if @body.password
         if app.crypto? and app.crypto.masterKey and app.crypto.slaveKey
-            slaveKey = crypt.decrypt app.crypto.masterKey, app.crypto.slaveKey
-            newPwd = crypt.encrypt slaveKey, @body.password
+            slaveKey = cryptoTools.decrypt app.crypto.masterKey, app.crypto.slaveKey
+            newPwd = cryptoTools.encrypt slaveKey, @body.password
             @body.password = newPwd
             @body.docType = "Account"
-            witness = crypt.encrypt slaveKey, correctWitness
+            witness = cryptoTools.encrypt slaveKey, correctWitness
             @body.witness = witness
             callback true
         else
@@ -102,7 +102,7 @@ action 'initializeKeys', =>
             app.crypto = {} if not app.crypto?
             if user.salt? and user.slaveKey?
                 app.crypto.masterKey =
-                    crypt.genHashWithSalt body.password, user.salt
+                    cryptoTools.genHashWithSalt body.password, user.salt
                 app.crypto.slaveKey = user.slaveKey
                 send 200
                 if app.crypto.masterKey.length isnt 32
@@ -110,10 +110,10 @@ action 'initializeKeys', =>
                         keys is different than user password"
                     send 500
             else
-                salt = crypt.genSalt(32 - body.password.length)
-                masterKey = crypt.genHashWithSalt body.password, salt
+                salt = cryptoTools.genSalt(32 - body.password.length)
+                masterKey = cryptoTools.genHashWithSalt body.password, salt
                 slaveKey = randomString()
-                encryptedSlaveKey = crypt.encrypt masterKey, slaveKey
+                encryptedSlaveKey = cryptoTools.encrypt masterKey, slaveKey
                 app.crypto.masterKey = masterKey
                 app.crypto.slaveKey  = encryptedSlaveKey
                 data = salt: salt, slaveKey: encryptedSlaveKey
@@ -140,13 +140,13 @@ action 'updateKeys', ->
                             initialize keys is different than user password"
                         send 500
                     else
-                        slaveKey = crypt.decrypt app.crypto.masterKey,
+                        slaveKey = cryptoTools.decrypt app.crypto.masterKey,
                                 app.crypto.slaveKey
-                        salt = crypt.genSalt(32 - body.password.length)
+                        salt = cryptoTools.genSalt(32 - body.password.length)
                         app.crypto.masterKey =
-                            crypt.genHashWithSalt body.password, salt
+                            cryptoTools.genHashWithSalt body.password, salt
                         app.crypto.slaveKey =
-                            crypt.encrypt app.crypto.masterKey, slaveKey
+                            cryptoTools.encrypt app.crypto.masterKey, slaveKey
                         data = slaveKey: app.crypto.slaveKey, salt: salt
                         db.merge user._id, data, (err, res) =>
                             if err
@@ -217,8 +217,8 @@ action 'findAccount', ->
     delete @doc._rev # CouchDB specific, user don't need it
     if @doc.password?
         encryptedPwd = @doc.password
-        slaveKey = crypt.decrypt app.crypto.masterKey, app.crypto.slaveKey
-        @doc.password = crypt.decrypt slaveKey, encryptedPwd
+        slaveKey = cryptoTools.decrypt app.crypto.masterKey, app.crypto.slaveKey
+        @doc.password = cryptoTools.decrypt slaveKey, encryptedPwd
         @doc.toString = toString
         send @doc
     else
