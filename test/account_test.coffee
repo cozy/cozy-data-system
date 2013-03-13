@@ -28,7 +28,7 @@ describe "Data handling tests", ->
                 data =
                     email: "user@CozyCloud.CC"
                     timezone: "Europe/Paris"
-                    password: "pwd_user"
+                    password: "password"
                     docType: "User"
                 db.save '102', data, (err, res, body) =>
                     done()
@@ -158,7 +158,7 @@ describe "Data handling tests", ->
                 @res.statusCode.should.equal 200
 
 
-        describe "Modification of the cozy password", ->
+        describe "Update cozy password", ->
             before cleanRequest
 
             it "When I send a request to modify the cozy password", (done) ->
@@ -281,13 +281,11 @@ describe "Data handling tests", ->
                 @password.should.be.equal "password"
 
             it "And the correct account should be returned", ->
-                data =
-                    _id: "#{@_id}"
-                    login: "log"
-                    password: "password"
-                    service: "cozyCloud"
-                    docType: "Account"
-                @body.should.deep. equal data
+                @body._id.should.be.equal "#{@_id}"
+                @body.login.should.be.equal "log"
+                @body.service.should.be.equal "cozyCloud"
+                @body.docType.should.be.equal "Account"
+                @body.should.have.property 'witness'
 
             it "And HTT status 200 should be returned", ->
                 @res.statusCode.should.equal 200
@@ -338,13 +336,12 @@ describe "Data handling tests", ->
                     done()
 
             it "And the old account must have been replaced", ->
-                data =
-                    _id: "#{@_id}"
-                    login: "newLog"
-                    password: "newPassword"
-                    service: "cozyCloud"
-                    docType: "Account"
-                @body.should.deep.equal data
+                @body._id.should.be.equal "#{@_id}"
+                @body.login.should.be.equal "newLog"
+                @body.password.should.be.equal "newPassword"
+                @body.service.should.be.equal "cozyCloud"
+                @body.docType.should.be.equal "Account"
+                @body.should.have.property 'witness'
 
             it "And the new password should be encrypted", (done) ->
                 client.get "data/#{@_id}/", (err, res, body) =>
@@ -366,13 +363,11 @@ describe "Data handling tests", ->
                     done()
 
             it "Then the old account doesn't must have been replaced", ->
-                data =
-                    _id: "#{@_id}"
-                    login: "newLog"
-                    password: "newPassword"
-                    service: "cozyCloud"
-                    docType: "Account"
-                @body.should.deep.equal data
+                @body._id.should.be.equal "#{@_id}"
+                @body.login.should.be.equal "newLog"
+                @body.service.should.be.equal "cozyCloud"
+                @body.docType.should.be.equal "Account"
+                @body.should.have.property 'witness'
 
             it "And error 401 should be returned", ->
                 @res.statusCode.should.equal 401
@@ -401,13 +396,12 @@ describe "Data handling tests", ->
                     done()
 
             it "And the account must have been replaced", ->
-                data =
-                    _id: "741"
-                    login: "login"
-                    password: "password"
-                    service: "cozyCloud"
-                    docType: "Account"
-                @body.should.deep.equal data
+                @body._id.should.be.equal "741"
+                @body.login.should.be.equal "login"
+                @body.password.should.be.equal "password"
+                @body.service.should.be.equal "cozyCloud"
+                @body.docType.should.be.equal "Account"
+                @body.should.have.property 'witness'
 
         describe "Upsert an account that exist", ->
             before cleanRequest
@@ -431,13 +425,12 @@ describe "Data handling tests", ->
                     done()
 
             it "And the account must have been replaced", ->
-                data =
-                    _id: "456"
-                    login: "login"
-                    password: "password"
-                    service: "cozyCloud"
-                    docType: "Account"
-                @body.should.deep.equal data
+                @body._id.should.be.equal "456"
+                @body.login.should.be.equal "login"
+                @body.password.should.be.equal "password"
+                @body.service.should.be.equal "cozyCloud"
+                @body.docType.should.be.equal "Account"
+                @body.should.have.property 'witness'
 
         describe "Upsert an account without password", ->
             cleanRequest
@@ -451,13 +444,12 @@ describe "Data handling tests", ->
                     done()
 
             it "And the old account doesn't must have been replaced", ->
-                data =
-                    _id: "456"
-                    login: "login"
-                    password: "password"
-                    service: "cozyCloud"
-                    docType: "Account"
-                @body.should.deep.equal data
+                @body._id.should.be.equal "456"
+                @body.login.should.be.equal "login"
+                @body.password.should.be.equal "password"
+                @body.service.should.be.equal "cozyCloud"
+                @body.docType.should.be.equal "Account"
+                @body.should.have.property 'witness'
 
             it "And the error 500 should be returned", ->
                 @res.statusCode.should.equal 500
@@ -594,3 +586,55 @@ describe "Data handling tests", ->
 
             it "And HTTP status 204 should be returned", ->
                 @res.statusCode.should.equal 204
+
+
+    describe "Delete all accounts", ->
+        before cleanRequest
+
+        it "When I send a request to create an account", (done) ->
+            data =
+                login: "log"
+                password: "password"
+                service: "cozyCloud"
+            client.post 'account/', data, (err, res, body) =>
+                @_id = body._id
+                done()
+
+        it "And I send a request to delete all accounts", (done) ->
+            client.del 'account/all/', (err, res, body) =>
+                @res = res
+                @err = err
+                done()
+
+        it "Then no error should be returned", ->
+            should.not.exist @err
+
+        it "And the account doesn't exist in the database", (done) ->
+            client.get "account/exist/#{@_id}/", (err, res, body) =>
+                should.exist body.exist
+                body.exist.should.not.be.ok
+                done()
+
+    describe "Reset password", ->
+        before cleanRequest
+
+        it "When I send a request to create an account", (done) ->
+            data =
+                login: "log"
+                password: "password"
+                service: "cozyCloud"
+            client.post 'account/', data, (err, res, body) =>
+                @_id = body._id
+                done()
+
+        it "And I send a request to reset the password", (done) ->
+            client.del "accounts/reset/", (err, res, body) =>
+                @res = res
+                @err = err
+                done()
+
+        it "Then no error should be returned", ->
+            should.not.exist @err
+
+        it "And app.crypto should be null", ->
+            should.equal app.crypto, null
