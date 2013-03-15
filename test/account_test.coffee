@@ -3,7 +3,7 @@ async = require('async')
 Client = require('request-json').JsonClient
 
 app = require '../server'
-Crypto = require '../lib/crypto'
+Crypto = require '../lib/crypto_tools'
 User = require '../lib/user'
 randomString = require('../lib/random.coffee').randomString
 

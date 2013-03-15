@@ -1,6 +1,6 @@
 #if process.NODE_ENV isnt "production"
 
-    #Crypto = require '../../lib/crypto'
+    #Crypto = require '../../lib/crypto_tools'
     #User = require '../../lib/user'
 
     #randomString = require('../../lib/random').randomString

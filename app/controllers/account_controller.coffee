@@ -302,9 +302,7 @@ action 'deleteAccount', ->
             console.log "[DeleteAccount] err: #{err}"
             send 500
         else
-            # Doc is removed from indexation
-            client.del "index/#{params.id}/", (err, res, resbody) ->
-                send 204
+            send 204
 
 
 #DELETE /account/all
@@ -318,12 +316,7 @@ action 'deleteAllAccounts', ->
                 if err
                     callback err
                 else
-                    # Doc is removed from indexation
-                    client.del "index/#{id}/", (err, res, resbody) =>
-                        if err
-                            callback err
-                        else
-                            deleteAccounts accounts, callback
+                    deleteAccounts accounts, callback
         else
             callback()
 
