@@ -30,7 +30,10 @@ describe 'Connectors - Bank', ->
     after ->
         @indexerServer.close()
 
+    after ->
+        app.compound.server.close()
         
+
     describe 'Bank account data retrieval', ->
 
         it 'When I send a request for my bank account data', (done) ->

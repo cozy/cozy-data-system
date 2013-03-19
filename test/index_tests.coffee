@@ -32,9 +32,8 @@ createNoteFunction = (title, content) ->
 describe "Indexation", ->
 
     # Start application before starting tests.
-    before (done) ->
-        @server = app.listen 8888, "127.0.0.1", ->
-            done()
+    before ->
+        app.listen 8888
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
@@ -43,6 +42,10 @@ describe "Indexation", ->
             db.destroy ->
                 db.create ->
                     done()
+
+    after ->
+        app.compound.server.close()
+        
 
     describe "indexing and searching", ->
         it "Given I index four notes", (done) =>

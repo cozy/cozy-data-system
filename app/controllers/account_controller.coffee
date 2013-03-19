@@ -2,17 +2,17 @@ load 'application'
 
 Client = require("request-json").JsonClient
 
-Account = require '../../lib/account'
-CryptoTools = require '../../lib/crypto_tools'
-User = require '../../lib/user'
-randomString = require('../../lib/random').randomString
+Account = require './lib/account'
+CryptoTools = require './lib/crypto_tools'
+User = require './lib/user'
+randomString = require('./lib/random').randomString
 
 
 accountManager = new Account()
 client = new Client("http://localhost:9102/")
 cryptoTools = new CryptoTools()
 user = new User()
-db = require('../../helpers/db_connect_helper').db_connect()
+db = require('./helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
 
 
@@ -43,7 +43,6 @@ before 'get doc with witness', ->
                     witness = cryptoTools.encrypt slaveKey, correctWitness
                     db.merge params.id, witness: witness, (err, res) =>
                         if err
-                            # oops unexpected error !
                             console.log "[Merge] err: #{err}"
                             send 500
                         else
@@ -91,13 +90,10 @@ toString = ->
     "[Account for model: #{@id}]"
 
 
-toString = ->
-    "[Account for model: #{@id}]"
-
-
 #POST /accounts/password/
 action 'initializeKeys', =>
     user.getUser (err, user) ->
+        
         if err
             console.log "[initializeKeys] err: #{err}"
             send 500
@@ -232,9 +228,9 @@ action 'findAccount', ->
 action 'existAccount', ->
     db.head params.id, (err, res, status) ->
         if status is 200
-            send {"exist": true}
+            send exist: true
         else if status is 404
-            send {"exist": false}
+            send exist: false
 
 
 #PUT /account/:id

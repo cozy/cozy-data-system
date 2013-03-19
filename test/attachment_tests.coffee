@@ -8,11 +8,11 @@ instantiateApp = require '..'
 app = instantiateApp()
 
 
-app.listen 8888
 describe "Attachments", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
+        app.listen 8888
         db.destroy ->
             db.create ->
                 db.save '321', value: "val", ->
@@ -23,6 +23,8 @@ describe "Attachments", ->
         @client = new Client "http://localhost:8888/"
         done()
 
+    after ->
+        app.compound.server.close()
     
     describe "Add an attachment", ->
         
