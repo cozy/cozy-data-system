@@ -1,10 +1,11 @@
 should = require('chai').Should()
-async = require('async')
-Client = require('request-json').JsonClient
-app = require('../server')
 fakeServer = require('./helpers').fakeServer
 
+Client = require('request-json').JsonClient
 client = new Client 'http://localhost:8888/'
+
+instantiateApp = require '..'
+app = instantiateApp()
 
 describe 'Connectors - Bank', ->
     
@@ -29,7 +30,10 @@ describe 'Connectors - Bank', ->
     after ->
         @indexerServer.close()
 
+    after ->
+        app.compound.server.close()
         
+
     describe 'Bank account data retrieval', ->
 
         it 'When I send a request for my bank account data', (done) ->

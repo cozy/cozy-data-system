@@ -1,10 +1,11 @@
 load 'application'
 
 git = require('git-rev')
-
 Client = require("request-json").JsonClient
-client = new Client("http://localhost:9102/")
-db = require('../../helpers/db_connect_helper').db_connect()
+
+client = new Client "http://localhost:9102/"
+db = require('./helpers/db_connect_helper').db_connect()
+
 
 before 'lock request', ->
     @lock = "#{params.id}"
@@ -16,6 +17,7 @@ before 'lock request', ->
 after 'unlock request', ->
     app.locker.removeLock @lock
 , only: ['update', 'upsert', 'delete', 'merge']
+
 
 before 'get doc', ->
     db.get params.id, (err, doc) =>

@@ -1,12 +1,14 @@
 should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
-app = require('../server')
+instantiateApp = require('..')
+app = instantiateApp()
 
 client = new Client("http://localhost:8888/")
-
-# connection to DB for "hand work"
 db = require('../helpers/db_connect_helper').db_connect()
+instantiateApp = require '..'
+app = instantiateApp()
+
 
 # helpers
 
@@ -23,22 +25,15 @@ describe "Data handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
+        app.listen 8888
         db.destroy ->
             db.create ->
                 db.save '321', {"value":"val"}, ->
                     done()
 
-    # Start application before starting tests.
-    before (done) ->
-        app.listen(8888)
-        done()
-
-    # Stop application after finishing tests.
-    after (done) ->
-        app.close()
-        done()
-
-
+    after ->
+        app.compound.server.close()
+        
 
     describe "Existence", ->
         describe "Check Existence of a doc that does not exist in database", ->

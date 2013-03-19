@@ -1,3 +1,4 @@
+module.exports = (compound) ->
 #if process.NODE_ENV isnt "production"
 
     #Crypto = require '../../lib/crypto_tools'

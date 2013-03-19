@@ -1,17 +1,18 @@
 load 'application'
 
 async = require "async"
-db = require('../../helpers/db_connect_helper').db_connect()
+db = require('./helpers/db_connect_helper').db_connect()
 
 before 'lock request', ->
     @lock = "#{params.type}"
-    app.locker.runIfUnlock @lock, =>
-        app.locker.addLock(@lock)
+    compound.app.locker.runIfUnlock @lock, =>
+        compound.app.locker.addLock @lock
+        
         next()
 , only: ['definition', 'remove']
 
 after 'unlock request', ->
-    app.locker.removeLock @lock
+    compound.app.locker.removeLock @lock
 , only: ['definition', 'remove']
 
 # POST /request/:type/:req_name

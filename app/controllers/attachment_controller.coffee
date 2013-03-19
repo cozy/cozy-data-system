@@ -1,8 +1,7 @@
 load 'application'
 
 fs = require "fs"
-
-db = require('../../helpers/db_connect_helper').db_connect()
+db = require('./helpers/db_connect_helper').db_connect()
 
 before 'lock request', ->
     @lock = "#{params.id}"
@@ -67,7 +66,7 @@ action 'getAttachment', ->
             send 500
         else
             send 200
-    .pipe(response)
+    .pipe(res)
 
 
 # DELETE /data/:id/attachments/:name
@@ -82,4 +81,3 @@ action 'removeAttachment', ->
             send 500
         else
             send 204
-
