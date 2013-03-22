@@ -1,8 +1,0 @@
-
-[33mMon Jun 04 2012 01:04:18 GMT+0200 (CEST)[39m [1m1[22m
-[1mGET[22m [90m/[39m controller: [32mtemplates[39m action: [34mindex[39m
-Send to client: 403
-
-[33mMon Jun 04 2012 01:04:23 GMT+0200 (CEST)[39m [1m2[22m
-[1mGET[22m [90m/[39m controller: [32mtemplates[39m action: [34mindex[39m
-Rendering [90mtemplates/index[39m using layout [90mtemplates_layout[39m
