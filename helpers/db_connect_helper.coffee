@@ -1,6 +1,13 @@
 cradle = require 'cradle'
+fs = require 'fs'
+S = require 'string'
 
-setup_credentials = ->
+initLogCouchdb = ->
+    data = fs.readFileSync '/usr/local/couchDB/log.txt'
+    lines = S(data.toString('utf8')).lines()
+    return lines
+
+setup_credentials =  ->
     #default credentials
     credentials = {
         host : 'localhost',
@@ -10,6 +17,7 @@ setup_credentials = ->
         db: 'cozy'
     }
 
+    logCouchdb = initLogCouchdb()
 
     # credentials retrieved by environment variable
     if process.env.VCAP_SERVICES?
@@ -19,9 +27,9 @@ setup_credentials = ->
         credentials.host = couch.host ? '127.0.0.1'
         credentials.port = couch.port ? '5984'
         credentials.db = couch.name ? 'cozy'
-        if couch.username? and couch.password?
+        if logCouchdb[0]? and logCouchdb[1]?
             credentials.auth = \
-                    {username: couch.username, password: couch.password}
+                    {username: logCouchdb[0], password: logCouchdb[1]}
 
     return credentials
 
@@ -30,6 +38,6 @@ setup_credentials = ->
 exports.db_connect = ->
     credentials = setup_credentials()
     connection = new cradle.Connection credentials
-    
+
     db = connection.database credentials.db
     return db
