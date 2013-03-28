@@ -1,4 +1,4 @@
-#module.exports = (compound) ->
+module.exports = (compound) ->
     #app = compound.app
     #if process.NODE_ENV isnt "production"
 
