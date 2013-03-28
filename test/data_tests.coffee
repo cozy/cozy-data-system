@@ -1,13 +1,10 @@
 should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
-instantiateApp = require('..')
-app = instantiateApp()
+helpers = require('./helpers')
 
 client = new Client("http://localhost:8888/")
 db = require('../helpers/db_connect_helper').db_connect()
-instantiateApp = require '..'
-app = instantiateApp()
 
 
 # helpers
@@ -25,14 +22,14 @@ describe "Data handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
-        app.listen 8888
         db.destroy ->
             db.create ->
                 db.save '321', {"value":"val"}, ->
                     done()
 
-    after ->
-        app.compound.server.close()
+    before helpers.instantiateApp
+
+    after helpers.closeApp
         
 
     describe "Existence", ->

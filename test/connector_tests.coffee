@@ -1,18 +1,14 @@
 should = require('chai').Should()
 fakeServer = require('./helpers').fakeServer
+helpers = require('./helpers')
 
 Client = require('request-json').JsonClient
 client = new Client 'http://localhost:8888/'
 
-instantiateApp = require '..'
-app = instantiateApp()
-
 describe 'Connectors - Bank', ->
     
     # Start application before starting tests.
-    before (done) ->
-        app.listen 8888
-        done()
+    before helpers.instantiateApp
 
     before ->
         data = [
@@ -30,8 +26,7 @@ describe 'Connectors - Bank', ->
     after ->
         @indexerServer.close()
 
-    after ->
-        app.compound.server.close()
+    after helpers.closeApp
         
 
     describe 'Bank account data retrieval', ->

@@ -2,12 +2,11 @@ should = require('chai').Should()
 async = require('async')
 fakeServer = require('./helpers').fakeServer
 Client = require('request-json').JsonClient
+helpers = require('./helpers')
 
 client = new Client("http://localhost:8888/")
 db = require('../helpers/db_connect_helper').db_connect()
 
-instantiateApp = require '..'
-app = instantiateApp()
 
 
 # helpers
@@ -31,20 +30,18 @@ createNoteFunction = (title, content) ->
 
 describe "Indexation", ->
 
-    # Start application before starting tests.
-    before ->
-        app.listen 8888
-
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
-        client.del "data/index/clear-all/", (err, response) ->
+        indexer = new Client("http://localhost:9102/")
+        indexer.del "clear-all/", (err, response) ->
             console.log err if err
             db.destroy ->
                 db.create ->
                     done()
 
-    after ->
-        app.compound.server.close()
+    before helpers.instantiateApp
+
+    after helpers.closeApp
         
 
     describe "indexing and searching", ->

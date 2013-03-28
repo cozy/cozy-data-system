@@ -1,5 +1,6 @@
 should = require('chai').Should()
 Client = require('request-json').JsonClient
+helpers = require('./helpers')
 
 Crypto = require '../lib/crypto_tools'
 User = require '../lib/user'
@@ -10,8 +11,6 @@ client = new Client "http://localhost:8888/"
 crypto = new Crypto()
 user = new User()
 
-instantiateApp = require '..'
-app = instantiateApp()
 
 # helpers
 cleanRequest = ->
@@ -23,7 +22,6 @@ describe "Data handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
-        app.listen 8888
         db.destroy ->
             db.create ->
                 data =
@@ -34,8 +32,9 @@ describe "Data handling tests", ->
                 db.save '102', data, (err, res, body) ->
                     done()
 
-    after ->
-        app.compound.server.close()
+    before helpers.instantiateApp
+
+    after  helpers.closeApp
 
     describe "Operation of cryptography : ", ->
         describe "Encryption", ->
@@ -93,8 +92,8 @@ describe "Data handling tests", ->
 
             it "And master key should be initialized", ->
                 @masterKey = crypto.genHashWithSalt @cozyPwd, @salt
-                should.not.equal app.crypto.masterKey, null
-                app.crypto.masterKey.should.equal @masterKey
+                should.not.equal @app.crypto.masterKey, null
+                @app.crypto.masterKey.should.equal @masterKey
 
             it "And object 'User' should have a slave key", ->
                 @body.should.have.property 'slaveKey'
@@ -105,7 +104,7 @@ describe "Data handling tests", ->
                 @slaveKey.length.should.be.equal 32
 
             it "And slave key should be encrypted", ->
-                @slaveKey.should.not.be.equal app.crypto.slaveKey
+                @slaveKey.should.not.be.equal @app.crypto.slaveKey
 
             it "And HTTP status 200 should be returned", ->
                 @res.statusCode.should.equal 200
