@@ -7,10 +7,10 @@ module.exports = class Feed
     feed:undefined
     redisClient:undefined
 
-    constructor: (app) ->
+    constructor: (@app) ->
         @startPublishingToRedis()
 
-        app.compound.server.on 'close', =>
+        @app.compound.server.on 'close', =>
             @stopListening()
             @redisClient.end() if @redisClient?
 
@@ -21,7 +21,7 @@ module.exports = class Feed
         @feed = db.changes since:'now'
         @feed.on 'change', @_onChange
         @feed.on 'error', (err) =>
-            compound.logger.write "error occured with feed : #{err.stack}"
+            @app.compound.logger.write "error occured with feed : #{err.stack}"
             @stopListening()
 
         @db = db
@@ -40,12 +40,12 @@ module.exports = class Feed
     startPublishingToRedis: () ->
         redis = require('redis')
         @redisClient = redis.createClient REDIS_PORT, REDIS_HOST,
-            max_attempts : 1
-        @redisClient.on "error", (err) ->
-            compound.logger.write "Failled to connect to redis : #{err.stack}"
-            compound.logger.write "Everything else should work as expected"
-        @redisClient.on "connect", ->
-            compound.logger.write "Begins publishing changes to redis"
+            max_attempts: 1
+        @redisClient.on "error", (err) =>
+            @app.compound.logger.write "Failled to connect to redis : #{err.stack}"
+            @app.compound.logger.write "Everything else should work as expected"
+        @redisClient.on "connect", =>
+            @app.compound.logger.write "Begins publishing changes to redis"
 
     publish: (event, id) => @_publish(event, id)
 
@@ -65,7 +65,7 @@ module.exports = class Feed
             else 'update'
 
             @db.get change.id, (err, doc) =>
-                compound.logger.write err if err?
+                @app.compound.logger.write err if err?
                 doctype = doc?.docType?.toLowerCase()
                 doctype ?= 'null'
                 @_publish "#{doctype}.#{operation}", doc._id
