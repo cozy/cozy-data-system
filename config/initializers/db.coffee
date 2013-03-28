@@ -6,7 +6,7 @@ module.exports = (compound) ->
 
     app.feed = new Feed(app)
 
-    db_ensure = ->      
+    db_ensure = ->
         db.exists (err, exists) ->
             if err
                 compound.logger.write "Error:", err
@@ -29,11 +29,11 @@ module.exports = (compound) ->
                 compound.logger.write console.log "Database #{db.name} on", \
                     "#{db.connection.host}:#{db.connection.port} created."
             feed_start()
-                
+
     feed_start = ->
         app.feed.startListening(db)
         app.emit 'db ready'
-        # this event is used in test to wait for db initialization 
+        # this event is used in test to wait for db initialization
         # with compound 1.1.5-21+, we should make this initializer async
 
     db_ensure()
