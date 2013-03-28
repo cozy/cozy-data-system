@@ -1,14 +1,13 @@
 should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
+helpers = require('./helpers')
 
 client = new Client("http://localhost:8888/")
 
 # connection to DB for "hand work"
 db = require('../helpers/db_connect_helper').db_connect()
 
-instantiateApp = require('..')
-app = instantiateApp()
 
 # helpers
 
@@ -34,10 +33,6 @@ createAuthorRequestFunction = (name) ->
 
 describe "Request handling tests", ->
 
-    # Start application before starting tests.
-    before ->
-        app.listen 8888
-
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
         db.destroy ->
@@ -46,8 +41,10 @@ describe "Request handling tests", ->
                 db.save docs, ->
                     done()
 
-    after ->
-        app.compound.server.close()
+    # Start application before starting tests.
+    before helpers.instantiateApp
+
+    after helpers.closeApp
 
     describe "View creation", ->
         describe "Creation of the first view + design document creation", ->
