@@ -24,15 +24,16 @@ setup_credentials =  ->
 
     # credentials retrieved by environment variable
     if process.env.VCAP_SERVICES?
+        console.log("blabla")
         env = JSON.parse process.env.VCAP_SERVICES
         couch = env['couchdb-1.2'][0]['credentials']
         credentials.hostname = couch.hostname ? 'localhost'
         credentials.host = couch.host ? '127.0.0.1'
         credentials.port = couch.port ? '5984'
         credentials.db = couch.name ? 'cozy'
-        if logCouchdb[0]? and logCouchdb[1]?
-            credentials.auth = \
-                    {username: logCouchdb[0], password: logCouchdb[1]}
+        credentials.auth = {}
+        credentials.username = couch.username ? logCouchdb[0]
+        credentials.password = couch.password ? logCouchdb[1]
 
     return credentials
 
