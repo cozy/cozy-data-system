@@ -9,15 +9,18 @@ initLogCouchdb = ->
 
 setup_credentials =  ->
     #default credentials
+
+    logCouchdb = initLogCouchdb()
     credentials = {
         host : 'localhost',
         port : '5984',
         cache : false,
         raw: false
         db: 'cozy'
+        auth:
+            username: logCouchdb[0]
+            password: logCouchdb[1]
     }
-
-    logCouchdb = initLogCouchdb()
 
     # credentials retrieved by environment variable
     if process.env.VCAP_SERVICES?
