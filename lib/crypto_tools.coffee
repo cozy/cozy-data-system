@@ -18,8 +18,8 @@ module.exports = class CryptoTools
 
     # Generate a hash of data with a salt with the algorithm sha256
     genHashWithSalt: (data, salt) ->
-     newData = data + salt
-     crypto.createHash('sha256').update(newData).digest('binary')
+        newData = data + salt
+        crypto.createHash('sha256').update(newData).digest('binary')
 
     # Generate a salt with a length of 'length'
     genSalt: (length) ->

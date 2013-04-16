@@ -39,9 +39,12 @@ setup_credentials =  ->
 
 #console.log JSON.stringify setup_credentials(), null, 4
 
-exports.db_connect = ->
-    credentials = setup_credentials()
-    connection = new cradle.Connection credentials
+db = null #singleton connection
 
-    db = connection.database credentials.db
+exports.db_connect = ->
+    if not db?
+        credentials = setup_credentials()
+        connection = new cradle.Connection credentials
+        db = connection.database credentials.db
+
     return db
