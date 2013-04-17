@@ -3,7 +3,7 @@ fs = require 'fs'
 S = require 'string'
 
 initLogCouchdb = ->
-    data = fs.readFileSync '/usr/local/couchDB/log.txt'
+    data = fs.readFileSync '/etc/cozy/couchdb.login'
     lines = S(data.toString('utf8')).lines()
     return lines
 
