@@ -23,37 +23,38 @@ module.exports = (compound) ->
             else if exists
                 compound.logger.write "Database #{db.name} on", \
                     "#{db.connection.host}:#{db.connection.port} found."
+                feed_start()
             else
                 db_create()
 
     db_create = ->
         compound.logger.write "Database #{db.name} on", \
                 "#{db.connection.host}:#{db.connection.port} doesn't exist."
+        logCouchdb = initLogCouchdb()
         db.create (err) ->
             if err
                 compound.logger.write console.log "Error on ", \
                     "database creation : #{err}"
             else
-                logCouchdb = initLogCouchdb()
                 command = 'curl -X PUT http://127.0.0.1:5984/_config/admins/'+
-                    logCouchdb[0] + '-d \'\"' + logCouchdb[1] + '\"\''
+                    logCouchdb[0] + ' -d \'\"' + logCouchdb[1] + '\"\''
                 exec command, (err,res, body) ->
                     if err
                         compound.logger.write console.log "Error on ", \
                             "database creation : #{err}"
-                    else
-                    command = 'curl -X PUT http://127.0.0.1:5984/cozy/_security 
-                        -u ' + logCouchdb[0] + ":" + logCouchdb[1] + ' -d \'{\"
-                        admins\":{\"names\":[\"' + logCouchdb[0] + '\"], \"roles
-                        \":[]},\"readers\":{\"names\":[\"' + logCouchdb[0] + 
-                        '\"],\"roles\":[]}}\''
-                    exec command, (err,res, body) ->
-                        if err
-                            compound.logger.write console.log "Error on ", \
-                                "database creation : #{err}"
-                        else
-                            compound.logger.write console.log "Database #{db.name} on", \
-                                "#{db.connection.host}:#{db.connection.port} created."
+                    else    
+                        command = 'curl -X PUT http://127.0.0.1:5984/cozy/_security 
+                            -u ' + logCouchdb[0] + ":" + logCouchdb[1] + ' -d \'{\"
+                            admins\":{\"names\":[\"' + logCouchdb[0] + '\"], \"roles
+                            \":[]},\"readers\":{\"names\":[\"' + logCouchdb[0] + 
+                            '\"],\"roles\":[]}}\''
+                        exec command, (err,res, body) ->
+                            if err
+                                compound.logger.write console.log "Error on ", \
+                                    "database creation : #{err}"
+                            else
+                                compound.logger.write console.log "Database #{db.name} on", \
+                                    "#{db.connection.host}:#{db.connection.port} created."
                 feed_start()
 
     feed_start = ->
