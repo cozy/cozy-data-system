@@ -1,7 +1,7 @@
 exec = require('child_process').exec
 fs = require 'fs'
 S = require 'string'
-Client = require("../../../request-json/main").JsonClient
+Client = require("request-json").JsonClient
 couchUrl = "http://localhost:5984/"
 couchClient = new Client couchUrl
 
