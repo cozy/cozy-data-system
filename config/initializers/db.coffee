@@ -1,7 +1,7 @@
 exec = require('child_process').exec
 fs = require 'fs'
 S = require 'string'
-Client = require("request-json").JsonClient
+Client = require("../../../request-json/main").JsonClient
 couchUrl = "http://localhost:5984/"
 couchClient = new Client couchUrl
 
@@ -47,10 +47,8 @@ module.exports = (compound) ->
                     "readers":
                         "names":[logCouchdb[0]]
                         "roles":[]
-                command =  "curl -X PUT http://127.0.0.1:5984/cozy/_security " +
-                    "-u #{logCouchdb[0]}:#{logCouchdb[1]} " + 
-                    "-d \'#{JSON.stringify(data)}\'"
-                exec command, (err,res, body) ->
+                couchClient.setBasicAuth(logCouchdb[0],logCouchdb[1])
+                couchClient.put 'cozy/_security', data, (err, res, body)->
                     if err
                         compound.logger.write console.log "Error on " +
                             "database creation : #{err}"
