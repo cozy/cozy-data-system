@@ -1,4 +1,3 @@
-exec = require('child_process').exec
 fs = require 'fs'
 S = require 'string'
 Client = require("request-json").JsonClient
