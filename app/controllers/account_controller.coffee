@@ -94,7 +94,7 @@ toString = ->
 #POST /accounts/password/
 action 'initializeKeys', =>
     user.getUser (err, user) ->
-        
+
         if err
             console.log "[initializeKeys] err: #{err}"
             send 500
@@ -104,7 +104,7 @@ action 'initializeKeys', =>
                 app.crypto.masterKey =
                     cryptoTools.genHashWithSalt body.password, user.salt
                 app.crypto.slaveKey = user.slaveKey
-                send 200
+                send success: true
                 if app.crypto.masterKey.length isnt 32
                     console.log "[initializeKeys] err: password to initialize
                         keys is different than user password"
@@ -122,7 +122,7 @@ action 'initializeKeys', =>
                         console.log "[initializeKeys] err: #{err}"
                         send 500
                     else
-                        send 200
+                        send success: true
 
 
 #PUT /accounts/password/
@@ -153,7 +153,7 @@ action 'updateKeys', ->
                                 console.log "[updateKeys] err: #{err}"
                                 send 500
                             else
-                                send 200
+                                send success: true
                 else
                     console.log "[updateKeys] err: masterKey and slaveKey don't\
                         exist"
@@ -247,7 +247,7 @@ action 'updateAccount', ->
                         console.log "[updateAccount] err: #{err}"
                         send 500
                     else
-                        send 200
+                        send success: true
             else
                 send 401
 
@@ -265,7 +265,7 @@ action 'mergeAccount', ->
                     console.log "[Merge] err: #{err}"
                     send 500
                 else
-                    send 200
+                    send success: true
 
 
 #PUT /account/upsert/:id
@@ -279,7 +279,7 @@ action 'upsertAccount', ->
                         console.log "[Upsert] err: #{err}"
                         send 500
                     else if doc
-                        send 200
+                        send success: true
                     else
                         send {"_id": res.id}, 201
         else
