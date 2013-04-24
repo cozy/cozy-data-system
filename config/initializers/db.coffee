@@ -33,12 +33,12 @@ module.exports = (compound) ->
     db_create = ->
         compound.logger.write "Database #{db.name} on" +
                 " #{db.connection.host}:#{db.connection.port} doesn't exist."
-        logCouchdb = initLogCouchdb()
         db.create (err) ->
             if err
                 compound.logger.write console.log "Error on " +
                     "database creation : #{err}"
-            else
+            else if (process.env.ENV_VARIABLE is 'production')
+                logCouchdb = initLogCouchdb()
                 data =
                     "admins":
                         "names":[logCouchdb[0]]
@@ -54,6 +54,9 @@ module.exports = (compound) ->
                     else
                         compound.logger.write console.log "Database #{db.name} on" +
                             " #{db.connection.host}:#{db.connection.port} created."
+            else
+                compound.logger.write console.log "Database #{db.name} on" +
+                    " #{db.connection.host}:#{db.connection.port} created." 
             feed_start()
 
     feed_start = ->

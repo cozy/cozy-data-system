@@ -9,16 +9,12 @@ initLogCouchdb = ->
 
 setup_credentials = ->
     #default credentials
-    logCouch = initLogCouchdb()
     credentials = {
         host : 'localhost',
         port : '5984',
         cache : false,
         raw: false
         db: 'cozy'
-        auth:
-            username: logCouch[0]
-            password: logCouch[1]
     }
 
 
@@ -30,9 +26,19 @@ setup_credentials = ->
         credentials.host = couch.host ? '127.0.0.1'
         credentials.port = couch.port ? '5984'
         credentials.db = couch.name ? 'cozy'
-        credentials.auth = {}
-        credentials.auth.username = couch.username ? logCouch[0]
-        credentials.auth.password = couch.password ? logCouch[1]
+
+    if process.env.ENV_VARIABLE is 'production'
+        logCouch = initLogCouchdb()
+        credentials.auth = {
+            username: logCouch[0]
+            password: logCouch[1]
+        }
+
+        # credentials retrieved by environment variable
+        if process.env.VCAP_SERVICES?
+            credentials.auth = {}
+            credentials.auth.username = couch.username ? logCouch[0]
+            credentials.auth.password = couch.password ? logCouch[1]
 
     return credentials
 
