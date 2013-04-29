@@ -21,19 +21,19 @@ after 'unlock request', ->
 
 before 'get doc', ->
     db.get params.id, (err, doc) =>
-        if err and err.error == "not_found"
+        if err and err.error is "not_found"
             app.locker.removeLock @lock
-            send 404
+            send error: "not found", 404
         else if err
             console.log "[Get doc] err: " + JSON.stringify err
             app.locker.removeLock @lock
-            send 500
+            send error: err, 500
         else if doc?
             @doc = doc
             next()
         else
             app.locker.removeLock @lock
-            send 404
+            send error: "not found", 404
 , only: ['find','update', 'delete', 'merge']
 
 
@@ -56,9 +56,9 @@ action "index", ->
 action 'exist', ->
     db.head params.id, (err, res, status) ->
         if status is 200
-            send {"exist": true}
+            send "exist": true
         else if status is 404
-            send {"exist": false}
+            send "exist": false
 
 # GET /data/:id
 action 'find', ->
@@ -72,21 +72,20 @@ action 'create', ->
     if params.id
         db.get params.id, (err, doc) -> # this GET needed because of cache
             if doc
-                send 409
+                send error: err.message, 409
             else
                 db.save params.id, body, (err, res) ->
                     if err
-                        send 409
+                        send error: err.message, 409
                     else
-                        send {"_id": res.id}, 201
+                        send "_id": res.id, 201
     else
         db.save body, (err, res) ->
             if err
-                # oops unexpected error !
                 railway.logger.write "[Create] err: " + JSON.stringify err
-                send 500
+                send error: err.message, 500
             else
-                send {"_id": res.id}, 201
+                send "_id": res.id, 201
 
 # PUT /data/:id
 action 'update', ->
@@ -94,11 +93,10 @@ action 'update', ->
     delete body._attachments
     db.save params.id, body, (err, res) ->
         if err
-            # oops unexpected error !
             console.log "[Update] err: " + JSON.stringify err
-            send 500
+            send error: err.message, 500
         else
-            send 200
+            send success: true, 200
 
 # PUT /data/upsert/:id
 action 'upsert', ->
@@ -107,11 +105,10 @@ action 'upsert', ->
         delete body._attachments
         db.save params.id, body, (err, res) ->
             if err
-                # oops unexpected error !
                 console.log "[Upsert] err: " + JSON.stringify err
-                send 500
+                send error: err.message, 500
             else if doc
-                send 200
+                send success: true, 200
             else
                 send {"_id": res.id}, 201
 
@@ -122,7 +119,7 @@ action 'delete', ->
         if err
             # oops unexpected error !
             console.log "[Delete] err: " + JSON.stringify err
-            send 500
+            send error: err.message, 500
         else
             # Event is emited
             doctype = @doc.docType?.toLowerCase()
@@ -130,7 +127,7 @@ action 'delete', ->
             app.feed.publish "#{doctype}.delete", @doc.id
             # Doc is removed from indexation
             client.del "index/#{params.id}/", (err, res, resbody) ->
-                send 204
+                send success: true, 204
 
 # PUT /data/merge/:id
 action 'merge', ->
@@ -140,6 +137,6 @@ action 'merge', ->
         if err
             # oops unexpected error !
             console.log "[Merge] err: " + JSON.stringify err
-            send 500
+            send error: err.message, 500
         else
             send success: true, 200

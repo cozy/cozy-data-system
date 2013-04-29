@@ -7,7 +7,7 @@ before 'lock request', ->
     @lock = "#{params.type}"
     compound.app.locker.runIfUnlock @lock, =>
         compound.app.locker.addLock @lock
-        
+
         next()
 , only: ['definition', 'remove']
 
@@ -20,10 +20,10 @@ action 'results', ->
     db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
         if err
             if err.error is "not_found"
-                send 404
+                send error: "not found", 404
             else
                 console.log "[Results] err: " + JSON.stringify err
-                send 500
+                send error: err.message, 500
         else
             res.forEach (value) ->
                 delete value._rev # CouchDB specific, user don't need it
@@ -44,12 +44,12 @@ action 'removeResults', ->
     delFunc = ->
         db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
             if err
-                send 404
+                send error: "not found", 404
             else
                 if res.length > 0
                     removeAllDocs(res)
                 else
-                    send 204
+                    send success: true, 204
     delFunc()
 
 
@@ -65,12 +65,12 @@ action 'definition', ->
             db.save "_design/#{params.type}", design_doc, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    send 500
+                    send error: true, msg: err.message, 500
                 else
-                    send 200
+                    send success: true, 200
 
         else if err
-            send 500
+            send error: true, msg: err.message, 500
 
         else
             views = res.views
@@ -78,23 +78,23 @@ action 'definition', ->
             db.merge "_design/#{params.type}", {views:views}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    send 500
+                    send error: true, msg: err.message, 500
                 else
-                    send 200
+                    send success: true, 200
 
 # DELETE /request/:type/:req_name
 action 'remove', ->
     db.get "_design/#{params.type}", (err, res) ->
-        if err && err.error is 'not_found'
-            send 404
+        if err and err.error is 'not_found'
+            send error: "not found", 404
         else if err
-            send 500
+            send error: true, msg: err.message, 500
         else
             views = res.views
             delete views[params.req_name]
             db.merge "_design/#{params.type}", {views:views}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    send 500
+                    send error: true, msg: err.message, 500
                 else
-                    send 204
+                    send success: true, 204
