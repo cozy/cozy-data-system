@@ -66,13 +66,12 @@ module.exports = (compound) ->
     db_ensure = ->
         db.exists (err, exists) ->
             if err
-                console.log("err")
                 compound.logger.write "Error:", err
                 feed_start()
             else if exists
-                console.log(exists)
                 if process.env.ENV_VARIABLE is 'production'
                     addCouchdbAdmin (err, body) =>
+                        logCouchdb = initLogCouchdb()
                         if not body.admins? or 
                                 body.admins.names[0] isnt logCouchdb[0]
                             addCozyAdmin (err) =>
