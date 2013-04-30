@@ -13,7 +13,7 @@ module.exports = (compound) ->
 
     ### Helpers ###
 
-    initLogCouchdb = ->
+    initLoginCouch = ->
         data = fs.readFileSync '/etc/cozy/couchdb.login'
         lines = S(data.toString('utf8')).lines()
         return lines
@@ -21,25 +21,25 @@ module.exports = (compound) ->
     # Add admin to couchDB 
     # Result : Unauthorized applications cannot create a database
     addCouchdbAdmin = (callback) ->
-        logCouchdb = initLogCouchdb()
-        couchClient.put "_config/admins/#{logCouchdb[0]}", "#{logCouchdb[1]}",
+        loginCouch = initLoginCouch()
+        couchClient.put "_config/admins/#{loginCouch[0]}", "#{loginCouch[1]}",
                 (err, res, body) =>
-            couchClient.setBasicAuth(logCouchdb[0],logCouchdb[1])
+            couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
             couchClient.get 'cozy/_security', (err, res, body) =>
                 callback err, body
 
     # Add admin to cozy database
     # Result : Unauthorized applications cannot read on cozy
     addCozyAdmin = (callback) ->
-        logCouchdb = initLogCouchdb()
+        loginCouch = initLoginCouch()
         data =
             "admins":
-                "names":[logCouchdb[0]]
+                "names":[loginCouch[0]]
                 "roles":[]
             "readers":
-                "names":[logCouchdb[0]]
+                "names":[loginCouch[0]]
                 "roles":[]
-        couchClient.setBasicAuth(logCouchdb[0],logCouchdb[1])
+        couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
         couchClient.put 'cozy/_security', data, (err, res, body)->
             callback err
 
@@ -71,9 +71,9 @@ module.exports = (compound) ->
             else if exists
                 if process.env.ENV_VARIABLE is 'production'
                     addCouchdbAdmin (err, body) =>
-                        logCouchdb = initLogCouchdb()
+                        loginCouch = initLoginCouch()
                         if not body.admins? or 
-                                body.admins.names[0] isnt logCouchdb[0]
+                                body.admins.names[0] isnt loginCouch[0]
                             addCozyAdmin (err) =>
                                 if err
                                     compound.logger.write "Error on database" +
@@ -86,11 +86,9 @@ module.exports = (compound) ->
                 else
                     logFound()
             else
-                console.log("create")
                 db_create()
 
     db_create = ->
-        console.log("create")
         compound.logger.write "Database #{db.name} on" +
                 " #{db.connection.host}:#{db.connection.port} doesn't exist."
         db.create (err) ->
