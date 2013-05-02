@@ -18,16 +18,6 @@ module.exports = (compound) ->
         lines = S(data.toString('utf8')).lines()
         return lines
 
-    # Add admin to couchDB 
-    # Result : Unauthorized applications cannot create a database
-    addCouchdbAdmin = (callback) ->
-        loginCouch = initLoginCouch()
-        couchClient.put "_config/admins/#{loginCouch[0]}", "#{loginCouch[1]}",
-                (err, res, body) =>
-            couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
-            couchClient.get 'cozy/_security', (err, res, body) =>
-                callback err, body
-
     # Add admin to cozy database
     # Result : Unauthorized applications cannot read on cozy
     addCozyAdmin = (callback) ->
@@ -70,8 +60,9 @@ module.exports = (compound) ->
                 feed_start()
             else if exists
                 if process.env.ENV_VARIABLE is 'production'
-                    addCouchdbAdmin (err, body) =>
-                        loginCouch = initLoginCouch()
+                    loginCouch = initLoginCouch()
+                    couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
+                    couchClient.get 'cozy/_security', (err, res, body)=>
                         if not body.admins? or 
                                 body.admins.names[0] isnt loginCouch[0]
                             addCozyAdmin (err) =>
@@ -94,16 +85,12 @@ module.exports = (compound) ->
         db.create (err) ->
             if err
                 logError()
-            else if (process.env.ENV_VARIABLE is 'production')
-                addCouchdbAdmin (err, body) =>
+            else if (process.env.ENV_VARIABLE is 'production')                     
+                addCozyAdmin (err) =>
                     if err
                         logError()
-                    else                        
-                        addCozyAdmin (err) =>
-                            if err
-                                logError()
-                            else
-                                logCreated
+                    else
+                        logCreated
             else
                 logCreated
 
