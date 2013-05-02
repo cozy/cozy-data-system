@@ -1,5 +1,5 @@
 { "name": "cozy-data-system"
-, "version": "0.8.0"
+, "version": "0.8.1"
 , "engines": ["*"]
 , "description": "Data-layer between cozy applications and persistence systems"
 , "repository":
