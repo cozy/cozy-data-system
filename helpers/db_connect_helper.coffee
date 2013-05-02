@@ -1,4 +1,11 @@
 cradle = require 'cradle'
+S = require 'string'
+fs = require 'fs'
+
+initLoginCouch = ->
+    data = fs.readFileSync '/etc/cozy/couchdb.login'
+    lines = S(data.toString('utf8')).lines()
+    return lines
 
 setup_credentials = ->
     #default credentials
@@ -19,9 +26,19 @@ setup_credentials = ->
         credentials.host = couch.host ? '127.0.0.1'
         credentials.port = couch.port ? '5984'
         credentials.db = couch.name ? 'cozy'
-        if couch.username? and couch.password?
-            credentials.auth = \
-                    {username: couch.username, password: couch.password}
+
+    if process.env.ENV_VARIABLE is 'production'
+        loginCouch = initLoginCouch()
+        credentials.auth = {
+            username: loginCouch[0]
+            password: loginCouch[1]
+        }
+
+        # credentials retrieved by environment variable
+        if process.env.VCAP_SERVICES?
+            credentials.auth = {}
+            credentials.auth.username = couch.username ? loginCouch[0]
+            credentials.auth.password = couch.password ? loginCouch[1]
 
     return credentials
 
