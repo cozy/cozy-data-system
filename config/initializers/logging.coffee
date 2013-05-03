@@ -14,7 +14,3 @@ module.exports = (compound) ->
     console.warn = (text) ->
         if process.env.NODE_ENV != "test"
             compound.logger.write text
-
-    flash = (text) ->
-        if process.env.NODE_ENV != "test"
-            compound.logger.write text
