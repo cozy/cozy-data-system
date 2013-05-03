@@ -59,7 +59,7 @@ module.exports = (compound) ->
                 compound.logger.write "Error:", err
                 feed_start()
             else if exists
-                if process.env.ENV_VARIABLE is 'production'
+                if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
                     couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
                     couchClient.get 'cozy/_security', (err, res, body)=>
@@ -85,7 +85,7 @@ module.exports = (compound) ->
         db.create (err) ->
             if err
                 logError()
-            else if (process.env.ENV_VARIABLE is 'production')                     
+            else if (process.env.NODE_ENV is 'production')                     
                 addCozyAdmin (err) =>
                     if err
                         logError()
