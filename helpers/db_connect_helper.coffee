@@ -23,7 +23,7 @@ setup_credentials = ->
 
 
     # credentials retrieved by environment variable
-    if process.env.ENV_VARIABLE is 'production'
+    if process.env.NODE_ENV is 'production'
         loginCouch = initLoginCouch()
         credentials.auth = {
             username: loginCouch[0]
