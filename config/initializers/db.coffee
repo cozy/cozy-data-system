@@ -36,16 +36,16 @@ module.exports = (compound) ->
     ### Logger ###
 
     logFound = ->
-        compound.logger.write "Database #{db.name} on #{db.connection.host}" + 
+        console.info "Database #{db.name} on #{db.connection.host}" + 
             ":#{db.connection.port} found."
         feed_start()
 
     logError = ->
-        compound.logger.write "Error on database creation : #{err}"
+        console.info "Error on database creation : #{err}"
         feed_start()
 
     logCreated = ->
-        compound.logger.write "Database #{db.name} on" +
+        console.info "Database #{db.name} on" +
             " #{db.connection.host}:#{db.connection.port} created." 
         feed_start()
 
