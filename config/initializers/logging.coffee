@@ -1,12 +1,15 @@
+logging = require '../../lib/logging'
+
 module.exports = (compound) ->
-    console.log = (text) ->
-        compound.logger.write text
 
-    console.info = (text) ->
-        compound.logger.write text
+    console.log = (text) =>		
+        logging.write text
 
-    console.err = (text) ->
-        compound.logger.write text
+    console.info = (text) =>		
+        logging.write text
 
-    console.warn = (text) ->
-        compound.logger.write text
+    console.error = (text) =>
+        logging.write text
+
+    console.warm = (text) =>
+        logging.write text
