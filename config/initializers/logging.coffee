@@ -6,7 +6,7 @@ module.exports = (compound) ->
         logging.write text
 
     console.info = (text) =>		
-       logging.write text
+        logging.write text
 
     console.error = (text) =>
         logging.write text
