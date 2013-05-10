@@ -72,7 +72,7 @@ action 'create', ->
     if params.id
         db.get params.id, (err, doc) -> # this GET needed because of cache
             if doc
-                send error: err.message, 409
+                send error: "The document exists", 409
             else
                 db.save params.id, body, (err, res) ->
                     if err
