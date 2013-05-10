@@ -26,7 +26,8 @@ createNoteFunction = (title, content) ->
             dragonNoteId = body._id if title is "Note 02"
             client.post "data/index/#{body._id}",
                 fields: ["title", "content"]
-                , callback
+                , (error, response, body) ->
+                callback error, body
 
 describe "Indexation", ->
 

@@ -22,10 +22,9 @@ describe "Data handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
-        db.destroy ->
-            db.create ->
-                db.save '321', {"value":"val"}, ->
-                    done()
+        db.create ->
+            db.save '321', {"value":"val"}, ->
+                done()
 
     before helpers.instantiateApp
 
@@ -39,7 +38,7 @@ describe "Data handling tests", ->
         it "When I send a request to check existence of Document with id 123", \
                 (done) ->
             client.get "data/exist/123/", (error, response, body) =>
-                response.statusCode.should.equal(200)
+                response.statusCode.should.equal 200
                 @body = body
                 done()
 
@@ -53,7 +52,7 @@ describe "Data handling tests", ->
         it "When I send a request to check existence of Document with id 321", \
                 (done) ->
             client.get "data/exist/321/", (error, response, body) =>
-                response.statusCode.should.equal(200)
+                response.statusCode.should.equal 200
                 @body = body
                 done()
 
@@ -73,14 +72,14 @@ describe "Data handling tests", ->
                     done()
 
             it "Then error 404 should be returned", ->
-                @response.statusCode.should.equal(404)
+                @response.statusCode.should.equal 404
 
         describe "Find a Document that does exist in database", ->
             before cleanRequest
 
             it "When I send a request to get Document with id 321", (done) ->
                 client.get 'data/321/', (error, response, body) =>
-                    response.statusCode.should.equal(200)
+                    response.statusCode.should.equal 200
                     @body = body
                     done()
 
@@ -92,15 +91,18 @@ describe "Data handling tests", ->
     describe "Create", ->
         describe "Try to Create a Document existing in Database", ->
             before cleanRequest
+            after ->
+                delete @randomValue
 
             it "When I send a request to create a doc with id 321", (done) ->
-                client.post 'data/321/', {"value":"created value"}, \
+                @randomValue = randomString()
+                client.post 'data/321/', {"value":@randomValue}, \
                             (error, response, body) =>
                     @response = response
                     done()
 
             it "Then error 409 should be returned", ->
-                @response.statusCode.should.equal(409)
+                @response.statusCode.should.equal 409
 
         describe "Create a new Document with a given id", ->
             before cleanRequest
@@ -140,7 +142,7 @@ describe "Data handling tests", ->
                 @randomValue = randomString()
                 client.post 'data/', {"value":@randomValue}, \
                             (error, response, body) =>
-                    response.statusCode.should.equal(201)
+                    response.statusCode.should.equal 201
                     @body = body
                     done()
 
@@ -371,7 +373,7 @@ describe "Data handling tests", ->
                     @randomValue = randomString()
                     client.post 'data/', {"value":@randomValue}, \
                                 (error, response, body) =>
-                        response.statusCode.should.equal(201)
+                        response.statusCode.should.equal 201
                         @body = body
                         done()
 

@@ -188,7 +188,7 @@ action 'deleteKeys', ->
         send 204
     else
         console.log "[deleteKeys] err: masterKey and slaveKey don't exist"
-        send 500
+        send error: "masterKey and slaveKey don't exis", 500
 
 
 #POST /account/
