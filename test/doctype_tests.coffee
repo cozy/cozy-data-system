@@ -107,54 +107,6 @@ describe "Doctype handling tests", ->
                     done()
 
 
-
-        describe "Create a new Doctype without field name", ->
-            before cleanRequest
-            after ->
-                delete @randomValue
-                delete @_id
-
-            it "When I send a request to create a doc without an id", (done) ->
-                @randomValue = randomString()
-                data = 
-                    "docType": "docType" 
-                client.post 'doctype/', data, (error, response, body) =>
-                    @error = body.error
-                    @response = response
-                    done()
-
-
-            it "Then error 409 should be returned", ->
-                @response.statusCode.should.equal 409
-
-            it "And error should be about field name", ->
-                @error.should.be.equal "docType should be equal to 'docType' " +
-                        "and field name are required"
-
-
-        describe "Create a new Doctype with docType different than 'docType'",->
-            before cleanRequest
-            after ->
-                delete @randomValue
-                delete @_id
-
-            it "When I send a request to create a doc without an id", (done) ->
-                @randomValue = randomString()
-                data = 
-                    "name": @randomValue
-                    "docType": "falseDocType" 
-                client.post 'doctype/', data, (error, response, body) =>
-                    @error = body.error
-                    @response = response
-                    done()
-
-            it "Then error 409 should be returned", ->
-                @response.statusCode.should.equal 409
-
-            it "And error should be about docType", ->
-                @error.should.be.equal "docType should be equal to 'docType' " +
-                        "and field name are required"
-
         describe "Create a doctype without field 'docType' ", ->
             before cleanRequest
             after ->
@@ -184,6 +136,87 @@ describe "Doctype handling tests", ->
 
             it "And document has a field docType equals to 'docType", ->
                 @body.should.have.property 'docType', "docType"
+
+
+        describe "Try to create a new Doctype without field name", ->
+            before cleanRequest
+            after ->
+                delete @randomValue
+                delete @_id
+
+            it "When I send a request to create a doc without an id", (done) ->
+                @randomValue = randomString()
+                data = 
+                    "docType": "docType" 
+                client.post 'doctype/', data, (error, response, body) =>
+                    @error = body.error
+                    @response = response
+                    done()
+
+
+            it "Then error 409 should be returned", ->
+                @response.statusCode.should.equal 409
+
+            it "And error should be about field name", ->
+                @error.should.be.equal "docType should be equal to 'docType' " +
+                        "and field name are required"
+
+
+        describe "Try to create a new Doctype with docType different than 'docType'",->
+            before cleanRequest
+            after ->
+                delete @randomValue
+                delete @_id
+
+            it "When I send a request to create a doc without an id", (done) ->
+                @randomValue = randomString()
+                data = 
+                    "name": @randomValue
+                    "docType": "falseDocType" 
+                client.post 'doctype/', data, (error, response, body) =>
+                    @error = body.error
+                    @response = response
+                    done()
+
+            it "Then error 409 should be returned", ->
+                @response.statusCode.should.equal 409
+
+            it "And error should be about docType", ->
+                @error.should.be.equal "docType should be equal to 'docType' " +
+                        "and field name are required"
+
+
+        describe "Try to create a docType already created",->
+            before cleanRequest
+            after ->
+                delete @randomValue
+                delete @_id
+
+            it "When I send a request to create a docType with name " + 
+                    "'Application'", (done) ->
+                @randomValue = randomString()
+                data = 
+                    "name": "Application"
+                    "docType": "docType" 
+                client.post 'doctype/', data, (error, response, body) =>
+                    done()
+
+            it "And I send a new request to create a docType with name " + 
+                    "'Application'", (done) ->
+                @randomValue = randomString()
+                data = 
+                    "name": "Application"
+                    "docType": "docType" 
+                client.post 'doctype/', data, (error, response, body) =>
+                    @error = body.error
+                    @response = response
+                    done()
+
+            it "Then error 409 should be returned", ->
+                @response.statusCode.should.equal 409
+
+            it "And error should be about docType", ->
+                @error.should.be.equal "docType is already created"
 
 
 

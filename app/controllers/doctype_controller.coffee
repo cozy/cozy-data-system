@@ -2,10 +2,13 @@ load 'application'
 
 git = require('git-rev')
 Client = require("request-json").JsonClient
+DocType = require './lib/doctype'
 
 client = new Client "http://localhost:9102/"
+docTypeManager = new DocType()
 db = require('./helpers/db_connect_helper').db_connect()
 
+## Helpers
 
 before 'get doc', ->
     db.get params.id, (err, doc) =>
@@ -25,33 +28,69 @@ before 'get doc', ->
 , only: ['delete']
 
 
+docTypeExist = (name, callback) ->
+
+    findDocType = (name, docTypes, callback) =>
+        if docTypes.length > 0
+            docType = docTypes.pop()
+            id = docType.value._id
+            db.get id, (err, res) =>
+                if err 
+                    callback err
+                else if res.name is name
+                    callback null, true
+                else 
+                    findDocType name, docTypes, callback
+        else
+            callback null, false
+
+    docTypeManager.getDocTypes (err, docTypes) ->
+        if err
+            railway.logger.write "[docTypeExist] err: " + JSON.stringify err
+            send 500
+        else
+            findDocType name, docTypes, (err, exist) =>
+                if err
+                    railway.logger.write "[docTypeExist] err: " + 
+                            JSON.stringify err
+                    send 500
+                else
+                    callback null, exist
+
+
 # POST /doctype
+# POST /doctype/:id
 action 'create', ->
     delete body._attachments
     if (body.docType? and body.docType isnt "docType") or !body.name
         send error: "docType should be equal to 'docType' and field name are "+
                 "required", 409
     else
-        body.docType = "docType"
-        if params.id
-            db.get params.id, (err, doc) -> # this GET needed because of cache
-                if doc
-                    send error: "The document exists", 409
+        docTypeExist body.name, (err, exist) =>
+            if exist
+                send error : "docType is already created", 409
+            else
+                body.docType = "docType"
+                if params.id
+                    db.get params.id, (err, doc) -> 
+                        if doc
+                            send error: "The document exists", 409
+                        else
+                            db.save params.id, body, (err, res) ->
+                                if err
+                                    send error: err.message, 409
+                                else
+                                    send "_id": res.id, 201
                 else
-                    db.save params.id, body, (err, res) ->
+                    db.save body, (err, res) ->
                         if err
-                            send error: err.message, 409
+                            railway.logger.write "[Create] err: " + 
+                                    JSON.stringify err
+                            send error: err.message, 500
                         else
                             send "_id": res.id, 201
-        else
-            db.save body, (err, res) ->
-                if err
-                    railway.logger.write "[Create] err: " + JSON.stringify err
-                    send error: err.message, 500
-                else
-                    send "_id": res.id, 201
 
-# DELETE /data/:id
+# DELETE /doctype/:id
 action 'delete', ->
     # this version don't take care of conflict (erase DB with the sent value)
     db.remove params.id, @doc.rev, (err, res) =>
