@@ -37,7 +37,7 @@ docTypeExist = (name, callback) ->
             db.get id, (err, res) =>
                 if err 
                     callback err
-                else if res.name is name
+                else if res.name.toLowerCase() is name
                     callback null, true
                 else 
                     findDocType name, docTypes, callback
@@ -62,15 +62,15 @@ docTypeExist = (name, callback) ->
 # POST /doctype/:id
 action 'create', ->
     delete body._attachments
-    if (body.docType? and body.docType isnt "docType") or !body.name
+    if (body.docType? and body.docType.toLowerCase() isnt "doctype") or !body.name
         send error: "docType should be equal to 'docType' and field name are "+
                 "required", 409
     else
-        docTypeExist body.name, (err, exist) =>
+        docTypeExist body.name.toLowerCase(), (err, exist) =>
             if exist
                 send error : "docType is already created", 409
             else
-                body.docType = "docType"
+                body.docType = "doctype"
                 if params.id
                     db.get params.id, (err, doc) -> 
                         if doc

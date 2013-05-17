@@ -68,7 +68,7 @@ describe "Doctype handling tests", ->
                     " to the sent document", (done) ->
                 client.get "data/321/", (error, response, body) =>    
                     body.should.have.property 'name', @randomValue 
-                    body.should.have.property 'docType', "docType"
+                    body.should.have.property 'docType', "doctype"
                     done() 
 
      
@@ -103,7 +103,7 @@ describe "Doctype handling tests", ->
                     "to the sent document", (done)->
                 client.get "data/"+ @_id + "/", (error, response, body) =>    
                     body.should.have.property 'name', @randomValue 
-                    body.should.have.property 'docType', "docType" 
+                    body.should.have.property 'docType', "doctype" 
                     done()
 
 
@@ -135,7 +135,7 @@ describe "Doctype handling tests", ->
                     done()
 
             it "And document has a field docType equals to 'docType", ->
-                @body.should.have.property 'docType', "docType"
+                @body.should.have.property 'docType', "doctype"
 
 
         describe "Try to create a new Doctype without field name", ->
@@ -202,7 +202,7 @@ describe "Doctype handling tests", ->
                     done()
 
             it "And I send a new request to create a docType with name " + 
-                    "'Application'", (done) ->
+                    "application'", (done) ->
                 @randomValue = randomString()
                 data = 
                     "name": "Application"

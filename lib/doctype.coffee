@@ -7,7 +7,7 @@ module.exports = class DocType
         db.get "_design/docType", (err, res) =>
             if err and err.error is 'not_found'
                 map = (doc) ->
-                    emit doc._id, doc if doc.docType is "docType"
+                    emit doc._id, doc if doc.docType is "doctype"
                 design_doc = {}
                 design_doc.all= map: map.toString()
 
