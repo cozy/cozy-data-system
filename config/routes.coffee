@@ -50,3 +50,8 @@ exports.routes = (map) ->
     map.put '/account/merge/:id/', 'account#mergeAccount'
     map.put '/account/upsert/:id/', 'account#upsertAccount'
     map.delete '/account/:id/', 'account#deleteAccount'
+
+    #DocType management
+    map.post '/doctype/', 'doctype#create'
+    map.post '/doctype/:id', 'doctype#create'
+    map.delete '/doctype/:id', 'doctype#delete'
