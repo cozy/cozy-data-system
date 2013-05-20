@@ -6,6 +6,30 @@ Client = require("request-json").JsonClient
 client = new Client "http://localhost:9102/"
 db = require('./helpers/db_connect_helper').db_connect()
 
+authorizedDocType = []
+
+## Helpers
+
+publish('requireToken', requireToken)
+requireToken = () ->
+    if req.header('x-auth-token')
+        token = req.header('x-auth-token')
+        # Recover application
+        db.view 'application/byToken', key: token , (err, doc) =>
+            if (err)
+                authorizedDocType = []
+                console.log "Warning : application is not authenticated"
+            else 
+                # Check authorized docType
+                authorizedDocType = doc.authorizedDocType
+    else
+        authorizedDocType = []
+        console.log "Warning : application is not authenticated"
+
+
+before ->
+    requireToken()  
+
 
 before 'lock request', ->
     @lock = "#{params.id}"
@@ -29,12 +53,23 @@ before 'get doc', ->
             app.locker.removeLock @lock
             send error: err, 500
         else if doc?
-            @doc = doc
-            next()
+            if authorizedDoctype.indexOf(doc) isnt -1
+                @doc = doc
+                next()
+            else
+                console.log("Application is not authorized to use this docType")
+                #send error : "You are not authorized to use this docType", 404
         else
             app.locker.removeLock @lock
             send error: "not found", 404
 , only: ['find','update', 'delete', 'merge']
+
+
+before 'checkAuthorization', ->
+    if params.docType? and authorizedDoctype.indexOf(params.docType) is -1
+        console.log("Application is not authorized to use this docType")
+        #send error : "You are not authorized to use this docType", 404
+, only: ['create', 'upsert']
 
 
 # Welcome page
