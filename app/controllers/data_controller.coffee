@@ -12,23 +12,30 @@ authorizedDocType = []
 
 publish('requireToken', requireToken)
 requireToken = () ->
-    if req.header('x-auth-token')
-        token = req.header('x-auth-token')
+    if req.header('authorization')
+        auth = req.header('authorization')
         # Recover application
+        console.log(auth.toString('utf8'))
+        next()
         db.view 'application/byToken', key: token , (err, doc) =>
             if (err)
+                console.log(err)
                 authorizedDocType = []
-                console.log "Warning : application is not authenticated"
+                console.log "Warning : err, application is not authenticated"
+                next()
             else 
                 # Check authorized docType
-                authorizedDocType = doc.authorizedDocType
+                console.log("Application is authenticated")
+                #authorizedDocType = doc.authorizedDocType
+                next()
     else
         authorizedDocType = []
         console.log "Warning : application is not authenticated"
+        next()
 
 
 before ->
-    requireToken()  
+     requireToken()  
 
 
 before 'lock request', ->
@@ -53,23 +60,25 @@ before 'get doc', ->
             app.locker.removeLock @lock
             send error: err, 500
         else if doc?
-            if authorizedDoctype.indexOf(doc) isnt -1
+            ###if authorizedDoctype.indexOf(doc) isnt -1
                 @doc = doc
                 next()
             else
                 console.log("Application is not authorized to use this docType")
-                #send error : "You are not authorized to use this docType", 404
+                #send error : "You are not authorized to use this docType", 404###
+            @doc = doc
+            next()
         else
             app.locker.removeLock @lock
             send error: "not found", 404
 , only: ['find','update', 'delete', 'merge']
 
 
-before 'checkAuthorization', ->
+###before 'checkAuthorization', ->
     if params.docType? and authorizedDoctype.indexOf(params.docType) is -1
         console.log("Application is not authorized to use this docType")
         #send error : "You are not authorized to use this docType", 404
-, only: ['create', 'upsert']
+, only: ['create', 'upsert']###
 
 
 # Welcome page
