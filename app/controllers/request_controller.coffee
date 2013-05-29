@@ -4,11 +4,11 @@ async = require "async"
 db = require('./helpers/db_connect_helper').db_connect()
 checkToken = require('./lib/token').checkToken
 
-## Helpers
+
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-        
+
 before 'lock request', ->
     @lock = "#{params.type}"
     compound.app.locker.runIfUnlock @lock, =>

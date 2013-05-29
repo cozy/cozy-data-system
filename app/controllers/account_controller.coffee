@@ -17,8 +17,6 @@ db = require('./helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
 
 
-## Helpers
-
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()

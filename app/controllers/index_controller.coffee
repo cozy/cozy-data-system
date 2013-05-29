@@ -11,9 +11,6 @@ db = require('./helpers/db_connect_helper').db_connect()
 checkToken = require('./lib/token').checkToken
 
 
-
-## Helpers
-
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()

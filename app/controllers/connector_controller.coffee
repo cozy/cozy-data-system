@@ -9,7 +9,6 @@ else
     client = new Client("http://localhost:9102/")
 
 
-
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()

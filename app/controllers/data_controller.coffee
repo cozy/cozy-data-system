@@ -11,11 +11,9 @@ db = require('./helpers/db_connect_helper').db_connect()
 authorizedDocType = []
 
 
-## Helpers
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-
 
 before 'lock request', ->
     @lock = "#{params.id}"
