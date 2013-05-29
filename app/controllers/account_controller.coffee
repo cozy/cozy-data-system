@@ -1,5 +1,4 @@
 load 'application'
-#load 'data'
 
 Client = require("request-json").JsonClient
 
