@@ -1,4 +1,5 @@
 load 'application'
+#load 'data'
 
 Client = require("request-json").JsonClient
 
@@ -10,11 +11,23 @@ randomString = require('./lib/random').randomString
 
 accountManager = new Account()
 client = new Client("http://localhost:9102/")
+checkToken = require('./lib/token').checkToken
 cryptoTools = new CryptoTools()
 user = new User()
 db = require('./helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
 
+
+## Helpers
+
+before 'requireToken', ->
+    checkToken req.header('authorization'), app.tokens, (err) =>
+        if err
+            console.log err
+        next()
+, only: ['initializeKeys', 'updateKeys', 'resetKeys', 'deleteKeys', 
+    'createAccount', 'findAccount', 'mergeAccount', 'updateAccount', 
+    'upsertAccount', 'deleteAccount', 'existAccount']
 
 before 'get doc with witness', ->
     db.get params.id, (err, doc) =>

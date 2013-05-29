@@ -8,6 +8,18 @@ else
     client = new Client "http://localhost:9102/"
 
 db = require('./helpers/db_connect_helper').db_connect()
+checkToken = require('./lib/token').checkToken
+
+
+
+## Helpers
+
+before 'requireToken', ->
+    checkToken req.header('authorization'), app.tokens, (err) =>
+        if err
+            console.log err
+        next()
+, only: ['index', 'search', 'remove', 'removeAll']
 
 before 'lock request', ->
     @lock = "#{params.id}"

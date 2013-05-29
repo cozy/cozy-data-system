@@ -2,40 +2,21 @@ load 'application'
 
 git = require('git-rev')
 Client = require("request-json").JsonClient
+checkToken = require('./lib/token').checkToken
 
 client = new Client "http://localhost:9102/"
 db = require('./helpers/db_connect_helper').db_connect()
 
+# By default application hasn't access to docTypes
 authorizedDocType = []
+
 
 ## Helpers
 
-publish('requireToken', requireToken)
-requireToken = () ->
-    if req.header('authorization')
-        auth = req.header('authorization')
-        # Recover application
-        console.log(auth.toString('utf8'))
+before 'requireToken', ->
+    checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-        db.view 'application/byToken', key: token , (err, doc) =>
-            if (err)
-                console.log(err)
-                authorizedDocType = []
-                console.log "Warning : err, application is not authenticated"
-                next()
-            else 
-                # Check authorized docType
-                console.log("Application is authenticated")
-                #authorizedDocType = doc.authorizedDocType
-                next()
-    else
-        authorizedDocType = []
-        console.log "Warning : application is not authenticated"
-        next()
-
-
-before ->
-     requireToken()  
+, only: ['create', 'exist', 'find', 'update', 'upsert', 'merge', 'delete']
 
 
 before 'lock request', ->
@@ -60,25 +41,12 @@ before 'get doc', ->
             app.locker.removeLock @lock
             send error: err, 500
         else if doc?
-            ###if authorizedDoctype.indexOf(doc) isnt -1
-                @doc = doc
-                next()
-            else
-                console.log("Application is not authorized to use this docType")
-                #send error : "You are not authorized to use this docType", 404###
             @doc = doc
             next()
         else
             app.locker.removeLock @lock
             send error: "not found", 404
 , only: ['find','update', 'delete', 'merge']
-
-
-###before 'checkAuthorization', ->
-    if params.docType? and authorizedDoctype.indexOf(params.docType) is -1
-        console.log("Application is not authorized to use this docType")
-        #send error : "You are not authorized to use this docType", 404
-, only: ['create', 'upsert']###
 
 
 # Welcome page
@@ -135,6 +103,12 @@ action 'create', ->
 action 'update', ->
     # this version don't take care of conflict (erase DB with the sent value)
     delete body._attachments
+    if body.docType is "Application"
+        # Update applications' tokens
+        if body.state is "installed"
+            app.tokens[body.name] = body.password
+        else if body.state is "stopped"
+            app.tokens[body.name] = undefined
     db.save params.id, body, (err, res) ->
         if err
             console.log "[Update] err: " + JSON.stringify err
@@ -158,6 +132,9 @@ action 'upsert', ->
 
 # DELETE /data/:id
 action 'delete', ->
+    if @doc.docType is "Application"
+        # Update applications' tokens
+        app.tokens[@doc.name] = undefined
     # this version don't take care of conflict (erase DB with the sent value)
     db.remove params.id, @doc.rev, (err, res) =>
         if err
