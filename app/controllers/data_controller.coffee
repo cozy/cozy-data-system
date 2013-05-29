@@ -2,8 +2,8 @@ load 'application'
 
 git = require('git-rev')
 Client = require("request-json").JsonClient
-checkToken = require('./lib/token').checkToken
 
+checkToken = require('./lib/token').checkToken
 client = new Client "http://localhost:9102/"
 db = require('./helpers/db_connect_helper').db_connect()
 
@@ -12,11 +12,10 @@ authorizedDocType = []
 
 
 ## Helpers
-
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-, only: ['create', 'exist', 'find', 'update', 'upsert', 'merge', 'delete']
+, only: ['index', 'create', 'exist', 'find', 'update', 'upsert', 'merge', 'delete' ]    
 
 
 before 'lock request', ->

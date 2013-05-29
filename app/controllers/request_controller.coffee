@@ -4,15 +4,11 @@ async = require "async"
 db = require('./helpers/db_connect_helper').db_connect()
 checkToken = require('./lib/token').checkToken
 
-
 ## Helpers
-
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
-        if err
-            console.log err
         next()
-, only: ['definition', 'remove', 'removeResults', 'results']
+, only: ['definition', 'results', 'remove', 'removeResults' ]    
 
 before 'lock request', ->
     @lock = "#{params.type}"

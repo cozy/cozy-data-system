@@ -16,8 +16,6 @@ checkToken = require('./lib/token').checkToken
 
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
-        if err
-            console.log err
         next()
 , only: ['index', 'search', 'remove', 'removeAll']
 

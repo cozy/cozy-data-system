@@ -22,8 +22,6 @@ correctWitness = "Encryption is correct"
 
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
-        if err
-            console.log err
         next()
 , only: ['initializeKeys', 'updateKeys', 'resetKeys', 'deleteKeys', 
     'createAccount', 'findAccount', 'mergeAccount', 'updateAccount', 

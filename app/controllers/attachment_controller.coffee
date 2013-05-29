@@ -7,13 +7,10 @@ checkToken = require('./lib/token').checkToken
 
 
 ## Helpers
-
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
-        if err
-            console.log err
         next()
-, only: ['addAttachment', 'getAttachment', 'removeAttachment']
+, only: ['addAttachment', 'getAttachment', 'removeAttachment' ]    
 
 before 'lock request', ->
     @lock = "#{params.id}"
