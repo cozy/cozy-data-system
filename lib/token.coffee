@@ -12,7 +12,6 @@ module.exports.checkToken = (auth, tokens, callback) ->
         # Recover username and password in field authorization
         auth = auth.substr(5, auth.length - 1)
         auth = new Buffer(auth, 'base64').toString('ascii')
-        console.log(auth)
         username = auth.split(':')[0]
         password = auth.split(':')[1]
         # Check if application is well authenticated
