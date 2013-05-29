@@ -13,7 +13,6 @@ else
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-, only: ['bank']
 
 # POST /connectors/bank/:name
 # Returns data extracted with connector name. Credentials are required.

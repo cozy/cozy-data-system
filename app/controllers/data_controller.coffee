@@ -15,7 +15,6 @@ authorizedDocType = []
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-, only: ['index', 'create', 'exist', 'find', 'update', 'upsert', 'merge', 'delete' ]    
 
 
 before 'lock request', ->

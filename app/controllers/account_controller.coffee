@@ -22,9 +22,6 @@ correctWitness = "Encryption is correct"
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-, only: ['initializeKeys', 'updateKeys', 'resetKeys', 'deleteKeys', 
-    'createAccount', 'findAccount', 'mergeAccount', 'updateAccount', 
-    'upsertAccount', 'deleteAccount', 'existAccount']
 
 before 'get doc with witness', ->
     db.get params.id, (err, doc) =>

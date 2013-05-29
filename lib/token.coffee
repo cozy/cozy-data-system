@@ -24,12 +24,13 @@ module.exports.checkToken = (auth, tokens, callback) ->
             console.log("Token received : " + password)
             callback null
     else
-        console.log "Warning : application is not authenticated : no field authorization"
+        console.log "Warning : application is not authenticated : no field " +
+            "authorization"
         callback null
 
 
 ## function init (app, callback)
-## @app {Object} application DS, allows to acces variables environment of data-system
+## @app {Object} application DS, allows to acces variables environment of DS
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize tokens which contains applications and their tokens
 module.exports.init = (app, callback) ->

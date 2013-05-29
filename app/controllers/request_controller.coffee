@@ -8,8 +8,7 @@ checkToken = require('./lib/token').checkToken
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-, only: ['definition', 'results', 'remove', 'removeResults' ]    
-
+        
 before 'lock request', ->
     @lock = "#{params.type}"
     compound.app.locker.runIfUnlock @lock, =>

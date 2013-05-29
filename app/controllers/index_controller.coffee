@@ -17,7 +17,6 @@ checkToken = require('./lib/token').checkToken
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-, only: ['index', 'search', 'remove', 'removeAll']
 
 before 'lock request', ->
     @lock = "#{params.id}"

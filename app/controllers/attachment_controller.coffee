@@ -10,7 +10,6 @@ checkToken = require('./lib/token').checkToken
 before 'requireToken', ->
     checkToken req.header('authorization'), app.tokens, (err) =>
         next()
-, only: ['addAttachment', 'getAttachment', 'removeAttachment' ]    
 
 before 'lock request', ->
     @lock = "#{params.id}"
