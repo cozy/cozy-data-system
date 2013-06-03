@@ -77,6 +77,8 @@ action 'find', ->
 # POST /data
 action 'create', ->
     delete body._attachments
+    if body.docType is "Application"
+        app.tokens[body.name] = body.password
     if params.id
         db.get params.id, (err, doc) -> # this GET needed because of cache
             if doc
@@ -99,12 +101,6 @@ action 'create', ->
 action 'update', ->
     # this version don't take care of conflict (erase DB with the sent value)
     delete body._attachments
-    if body.docType is "Application"
-        # Update applications' tokens
-        if body.state is "installed"
-            app.tokens[body.name] = body.password
-        else if body.state is "stopped"
-            app.tokens[body.name] = undefined
     db.save params.id, body, (err, res) ->
         if err
             console.log "[Update] err: " + JSON.stringify err
