@@ -3,17 +3,19 @@ load 'application'
 git = require('git-rev')
 Client = require("request-json").JsonClient
 
-checkToken = require('./lib/token').checkToken
+checkDocType = require('./lib/token').checkDocType
+updatePermissions = require('./lib/token').updatePermissions
 client = new Client "http://localhost:9102/"
 db = require('./helpers/db_connect_helper').db_connect()
 
 # By default application hasn't access to docTypes
 authorizedDocType = []
 
-
-before 'requireToken', ->
-    checkToken req.header('authorization'), app.tokens, (err) =>
+before 'permissions_add', ->
+    checkDocType req.header('authorization'), body.docType, (err, isAuthenticated, isAuthorized) =>
         next()
+, only: ['create', 'update', 'merge', 'upsert']
+
 
 before 'lock request', ->
     @lock = "#{params.id}"
@@ -44,6 +46,10 @@ before 'get doc', ->
             send error: "not found", 404
 , only: ['find','update', 'delete', 'merge']
 
+before 'permissions', ->
+    checkDocType req.header('authorization'), @doc.docType, (err, isAuthenticated, isAuthorized) =>
+        next()
+, only: ['find', 'delete', 'merge']
 
 # Welcome page
 action "index", ->
@@ -101,10 +107,7 @@ action 'update', ->
     delete body._attachments
     if body.docType is "Application"
         # Update applications' tokens
-        if body.state is "installed"
-            app.tokens[body.name] = body.password
-        else if body.state is "stopped"
-            app.tokens[body.name] = undefined
+        updatePermissions body
     db.save params.id, body, (err, res) ->
         if err
             console.log "[Update] err: " + JSON.stringify err
@@ -128,9 +131,10 @@ action 'upsert', ->
 
 # DELETE /data/:id
 action 'delete', ->
-    if @doc.docType is "Application"
+    if @doc.docType.toLowerCase is "application"
         # Update applications' tokens
-        app.tokens[@doc.name] = undefined
+        @doc.state = "stopped"
+        updatePermissions @doc
     # this version don't take care of conflict (erase DB with the sent value)
     db.remove params.id, @doc.rev, (err, res) =>
         if err

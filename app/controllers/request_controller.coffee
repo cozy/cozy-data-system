@@ -2,11 +2,11 @@ load 'application'
 
 async = require "async"
 db = require('./helpers/db_connect_helper').db_connect()
-checkToken = require('./lib/token').checkToken
+checkDocType = require('./lib/token').checkDocType
 
 
-before 'requireToken', ->
-    checkToken req.header('authorization'), app.tokens, (err) =>
+before 'permissions', ->
+    checkDocType req.header('authorization'), params.type, (err, isAuthenticated, isAuthorized) =>
         next()
 
 before 'lock request', ->
