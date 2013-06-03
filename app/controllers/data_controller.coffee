@@ -83,6 +83,8 @@ action 'find', ->
 # POST /data
 action 'create', ->
     delete body._attachments
+    if body.docType is "Application"
+        updatePermissions body
     if params.id
         db.get params.id, (err, doc) -> # this GET needed because of cache
             if doc
@@ -106,7 +108,6 @@ action 'update', ->
     # this version don't take care of conflict (erase DB with the sent value)
     delete body._attachments
     if body.docType is "Application"
-        # Update applications' tokens
         updatePermissions body
     db.save params.id, body, (err, res) ->
         if err

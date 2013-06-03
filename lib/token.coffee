@@ -79,14 +79,17 @@ module.exports.checkProxy = (auth, callback) ->
         callback null, false
 
 module.exports.updatePermissions = (body, callback) ->
-    if body.state is "installed"
+    if body.state is "installing"
         tokens[body.name] = body.password
         permissions[body.name] = {} 
         if body.permissions?
             for docType, description of body.permissions
                 permissions[body.name][docType.toLowerCase()] = description
-    else if body.state is "stopped"
-        tokens[body.name] = null
+    else if body.state is "installed"
+        permissions[body.name] = {} 
+        if body.permissions?
+            for docType, description of body.permissions
+                permissions[body.name][docType.toLowerCase()] = description
 
 
 
