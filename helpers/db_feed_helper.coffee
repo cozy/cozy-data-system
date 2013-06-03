@@ -1,6 +1,8 @@
 REDIS_PORT = 6379
 REDIS_HOST = "127.0.0.1"
 
+REDIS_CONNECT_COUNTER = 1
+
 module.exports = class Feed
 
     db:undefined
@@ -40,12 +42,23 @@ module.exports = class Feed
     # redisClient a redis client
     startPublishingToRedis: () ->
         redis = require('redis')
-        @redisClient = redis.createClient REDIS_PORT, REDIS_HOST,
-            max_attempts: 1
+        @redisClient = redis.createClient REDIS_PORT, REDIS_HOST
+
         @redisClient.on "error", (err) =>
-            console.log "Failled to connect to redis : #{err.stack}"
-            console.log "Everything else should work as expected"
+
+            @redisConnected = false
+
+            if (/ECONNREFUSED/).test err.message
+                cnt = REDIS_CONNECT_COUNTER++
+                console.log "Failled to connect to redis on attempt #{cnt}"
+                console.log "There will be no realtime"
+            else
+                console.log "Redis error : #{err.stack}"
         @redisClient.on "connect", =>
+
+            @redisConnected = true
+            REDIS_CONNECT_COUNTER = 1
+
             console.log "Begins publishing changes to redis"
 
     publish: (event, id) => @_publish(event, id)
@@ -53,7 +66,7 @@ module.exports = class Feed
 
     # [INTERNAL] publish to available outputs
     _publish: (event,id) ->
-        @redisClient.publish event, id  if @redisClient?
+        @redisClient.publish event, id  if @redisConnected?
 
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
     _onChange: (change) =>
