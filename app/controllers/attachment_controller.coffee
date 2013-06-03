@@ -2,12 +2,13 @@ load 'application'
 
 fs = require "fs"
 db = require('./helpers/db_connect_helper').db_connect()
-checkToken = require('./lib/token').checkToken
+checkPermissions = require('./lib/token').checkDocType
 
 
-before 'requireToken', ->
-    checkToken req.header('authorization'), app.tokens, (err) =>
+before 'permissions', ->
+    checkPermissions req.header('authorization'), "attachments", (err, isAuthenticated, isAuthorized) =>
         next()
+, only: ['addAttachment', 'getAttachment', 'removeAttachment'] 
 
 before 'lock request', ->
     @lock = "#{params.id}"

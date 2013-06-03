@@ -107,7 +107,7 @@ action 'create', ->
 action 'update', ->
     # this version don't take care of conflict (erase DB with the sent value)
     delete body._attachments
-    if body.docType is "Application"
+    if body.docType? and body.docType.toLowerCase is "application"
         updatePermissions body
     db.save params.id, body, (err, res) ->
         if err
@@ -132,10 +132,6 @@ action 'upsert', ->
 
 # DELETE /data/:id
 action 'delete', ->
-    if @doc.docType.toLowerCase is "application"
-        # Update applications' tokens
-        @doc.state = "stopped"
-        updatePermissions @doc
     # this version don't take care of conflict (erase DB with the sent value)
     db.remove params.id, @doc.rev, (err, res) =>
         if err
