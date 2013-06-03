@@ -23,6 +23,12 @@ before 'permission_keys', ->
         next()
 , only: ['initializeKeys', 'deleteKeys', 'resetKeys']
 
+before 'permission', ->
+    checkDocType req.header('authorization'), "EncryptedKeys",  (err, isAuthorized) =>
+        next()
+, only: ['updateKeys']
+
+
 before 'get doc with witness', ->
     db.get params.id, (err, doc) =>
         if err and err.error is "not_found"

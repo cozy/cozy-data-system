@@ -63,10 +63,11 @@ module.exports.checkProxy = (auth, callback) ->
         password = auth.split(':')[1]
         # Check if application is well authenticated
         if password isnt undefined and tokens[username] is password
-            console.log("application " + username + " is authenticated but isn't authoried")
             if username is "proxy"
+                console.log "proxy is authenticated"
                 callback null, true
             else
+                console.log("application " + username + " is authenticated but isn't authorized")
                 callback null, false
         else
             console.log("Wrong authentication")
@@ -103,13 +104,17 @@ module.exports.init = (app, callback) ->
     tokens['home'] = token
     permissions.home = 
         "application":
-            "description": "description, application_home" 
+            "description": "..."
         "notification":
-            "description": "description, notification_home"
+            "description": "..."
         "user":
-            "description": "description, user_home"
+            "description": "..."
         "alarm":
-            "description": "description, alarm_home"
+            "description": "..."
+        "cozyinstance":
+            "description": "..."
+        "encryptedkeys":
+            "description": "..."
     tokens['proxy'] = token
     permissions.proxy =
         "user":
