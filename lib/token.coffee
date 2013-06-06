@@ -38,10 +38,12 @@ checkToken = (auth, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Check if application can manage docType
 module.exports.checkDocType = (auth, docType, callback) ->
+    # Check if application is authenticated
     checkToken auth, (err, isAuthenticated, name) =>
         if isAuthenticated
             if docType?
                 docType = docType.toLowerCase()
+                # Check if application can manage docType
                 if permissions[name][docType]?
                     console.log "#{name} is authorized to manage #{docType} "
                     callback null, true, true
@@ -54,6 +56,13 @@ module.exports.checkDocType = (auth, docType, callback) ->
         else 
             callback null, false
 
+
+## function checkProxy (auth, callback)
+## @auth {String} Field 'authorization' i request header
+##     Contains application name and password
+## @callback {function} Continuation to pass control back to when complete.
+## Check if application is proxy
+## Useful for register and login requests
 module.exports.checkProxy = (auth, callback) ->
     if auth isnt "undefined" and auth?
         # Recover username and password in field authorization
@@ -61,7 +70,7 @@ module.exports.checkProxy = (auth, callback) ->
         auth = new Buffer(auth, 'base64').toString('ascii')
         username = auth.split(':')[0]
         password = auth.split(':')[1]
-        # Check if application is well authenticated
+        # Check if application is cozy-proxy
         if password isnt undefined and tokens[username] is password
             if username is "proxy"
                 console.log "proxy is authenticated"
@@ -79,6 +88,14 @@ module.exports.checkProxy = (auth, callback) ->
             "authorization"
         callback null, false
 
+
+## function updatePermissons (body, callback)
+## @body {Object} application:
+##   * body.password is application token
+##   * body.name is application name
+##   * body.permissions is application permissions
+## @callback {function} Continuation to pass control back to when complete.
+## Update application permissions and token 
 module.exports.updatePermissions = (body, callback) ->
     if body.state is "installing"
         tokens[body.name] = body.password
@@ -93,14 +110,14 @@ module.exports.updatePermissions = (body, callback) ->
                 permissions[body.name][docType.toLowerCase()] = description
 
 
-
-## function init (app, callback)
-## @app {Object} application DS, allows to acces variables environment of DS
+## function init (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize tokens which contains applications and their tokens
-module.exports.init = (app, callback) ->
+module.exports.init = (callback) ->
+    # Read shared token
     token = fs.readFileSync('/etc/cozy/tokens/data-system.token', 'utf8')
     token = token.split('\n')[0]
+    # Add home token and permissions
     tokens['home'] = token
     permissions.home = 
         "application":
@@ -115,15 +132,17 @@ module.exports.init = (app, callback) ->
             "description": "..."
         "encryptedkeys":
             "description": "..."
+    # Add proxy token and permissions
     tokens['proxy'] = token
     permissions.proxy =
         "user":
             "description": "description, user_proxy"
+    # Add token and permissions for other started applications
     db.view 'application/all', (err, res) ->
         if (err)
             callback new Error("Error in view")
         else 
-            # Search application with token
+            # Search application
             res.forEach (appli) ->
                 if appli.state is "installed"
                     tokens[appli.name] = appli.password 
