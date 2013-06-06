@@ -102,5 +102,5 @@ module.exports = (compound) ->
         # with compound 1.1.5-21+, we should make this initializer async
 
     db_ensure()
-    initTokens app, (tokens, permissions) =>
+    initTokens (tokens, permissions) =>
         
