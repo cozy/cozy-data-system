@@ -21,6 +21,7 @@ after 'unlock request', ->
     compound.app.locker.removeLock @lock
 , only: ['definition', 'remove']
 
+
 # POST /request/:type/:req_name
 action 'results', ->
     db.view "#{params.type}/#{params.req_name}", body, (err, res) ->

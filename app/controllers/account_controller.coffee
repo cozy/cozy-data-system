@@ -18,6 +18,7 @@ user = new User()
 db = require('./helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
 
+
 before 'permission_keys', ->
    checkProxy req.header('authorization'),  (err, isAuthorized) =>
         next()
@@ -27,7 +28,6 @@ before 'permission', ->
     checkDocType req.header('authorization'), "EncryptedKeys",  (err, isAuthorized) =>
         next()
 , only: ['updateKeys']
-
 
 before 'get doc with witness', ->
     db.get params.id, (err, doc) =>
@@ -83,7 +83,7 @@ before 'get doc', ->
 , only: ['deleteAccount']
 
 
-# helpers
+# Helpers
 encryptPassword = (body, callback)->
     app = compound.app
     if body.password

@@ -32,6 +32,7 @@ after 'unlock request', ->
     app.locker.removeLock @lock
 , only: ['index', 'remove']
 
+
 # POST /data/index/:id
 # Index given fields of document matching id.
 action 'index', ->

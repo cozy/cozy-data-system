@@ -8,14 +8,11 @@ updatePermissions = require('./lib/token').updatePermissions
 client = new Client "http://localhost:9102/"
 db = require('./helpers/db_connect_helper').db_connect()
 
-# By default application hasn't access to docTypes
-authorizedDocType = []
 
 before 'permissions_add', ->
     checkDocType req.header('authorization'), body.docType, (err, isAuthenticated, isAuthorized) =>
         next()
 , only: ['create', 'update', 'merge', 'upsert']
-
 
 before 'lock request', ->
     @lock = "#{params.id}"
@@ -27,7 +24,6 @@ before 'lock request', ->
 after 'unlock request', ->
     app.locker.removeLock @lock
 , only: ['update', 'upsert', 'delete', 'merge']
-
 
 before 'get doc', ->
     db.get params.id, (err, doc) =>

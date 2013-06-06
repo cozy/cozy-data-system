@@ -12,6 +12,7 @@ else
 before 'permissions', ->
     checkPermissions req.header('authorization'), "connectors", (err, isAuthenticated, isAuthorized) =>
         next()
+        
 
 # POST /connectors/bank/:name
 # Returns data extracted with connector name. Credentials are required.
