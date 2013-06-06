@@ -120,23 +120,16 @@ module.exports.init = (callback) ->
     # Add home token and permissions
     tokens['home'] = token
     permissions.home = 
-        "application":
-            "description": "..."
-        "notification":
-            "description": "..."
-        "user":
-            "description": "..."
-        "alarm":
-            "description": "..."
-        "cozyinstance":
-            "description": "..."
-        "encryptedkeys":
-            "description": "..."
+        "application": "authorized"
+        "notification": "authorized"
+        "user": "authorized"
+        "alarm": "authorized"
+        "cozyinstance": "authorized"
+        "encryptedkeys": "authorized"
     # Add proxy token and permissions
     tokens['proxy'] = token
     permissions.proxy =
-        "user":
-            "description": "description, user_proxy"
+        "user": "authorized"
     # Add token and permissions for other started applications
     db.view 'application/all', (err, res) ->
         if (err)
