@@ -101,6 +101,8 @@ action 'create', ->
 action 'update', ->
     # this version don't take care of conflict (erase DB with the sent value)
     delete body._attachments
+    if body.docType is "Application" and body.password?
+        app.tokens[body.name] = body.password
     db.save params.id, body, (err, res) ->
         if err
             console.log "[Update] err: " + JSON.stringify err
