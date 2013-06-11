@@ -10,16 +10,24 @@ randomString = require('./lib/random').randomString
 
 accountManager = new Account()
 client = new Client("http://localhost:9102/")
-checkToken = require('./lib/token').checkToken
+
+checkProxy = require('./lib/token').checkProxy
+checkDocType = require('./lib/token').checkDocType
 cryptoTools = new CryptoTools()
 user = new User()
 db = require('./helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
 
 
-before 'requireToken', ->
-    checkToken req.header('authorization'), app.tokens, (err) =>
+before 'permission_keys', ->
+   checkProxy req.header('authorization'),  (err, isAuthorized) =>
         next()
+, only: ['initializeKeys', 'deleteKeys', 'resetKeys']
+
+before 'permission', ->
+    checkDocType req.header('authorization'), "EncryptedKeys",  (err, isAuthorized) =>
+        next()
+, only: ['updateKeys']
 
 before 'get doc with witness', ->
     db.get params.id, (err, doc) =>
@@ -75,7 +83,7 @@ before 'get doc', ->
 , only: ['deleteAccount']
 
 
-# helpers
+# Helpers
 encryptPassword = (body, callback)->
     app = compound.app
     if body.password

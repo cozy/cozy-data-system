@@ -3,18 +3,21 @@ load 'application'
 git = require('git-rev')
 Client = require("request-json").JsonClient
 
-checkToken = require('./lib/token').checkToken
+checkDocType = require('./lib/token').checkDocType
+updatePermissions = require('./lib/token').updatePermissions
 client = new Client "http://localhost:9102/"
 db = require('./helpers/db_connect_helper').db_connect()
 
-# By default application hasn't access to docTypes
-authorizedDocType = []
 
-
-before 'requireToken', ->
-    checkToken req.header('authorization'), app.tokens, (err) =>
+# Required to be processed before other preprocessors (permissions required to
+# check existence as example)
+before 'permissions_add', ->
+    auth = req.header('authorization')
+    checkDocType auth, body.docType, (err, isAuthenticated, isAuthorized) =>
         next()
+, only: ['create', 'update', 'merge', 'upsert']
 
+# Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
     @lock = "#{params.id}"
     app.locker.runIfUnlock @lock, =>
@@ -25,7 +28,6 @@ before 'lock request', ->
 after 'unlock request', ->
     app.locker.removeLock @lock
 , only: ['update', 'upsert', 'delete', 'merge']
-
 
 before 'get doc', ->
     db.get params.id, (err, doc) =>
@@ -43,6 +45,12 @@ before 'get doc', ->
             app.locker.removeLock @lock
             send error: "not found", 404
 , only: ['find','update', 'delete', 'merge']
+
+before 'permissions', ->
+    auth = req.header('authorization')
+    checkDocType auth, @doc.docType, (err, isAuthenticated, isAuthorized) =>
+        next()
+, only: ['find', 'delete', 'merge']
 
 
 # Welcome page
@@ -77,8 +85,8 @@ action 'find', ->
 # POST /data
 action 'create', ->
     delete body._attachments
-    if body.docType is "Application"
-        app.tokens[body.name] = body.password
+    if body.docType? and body.docType.toLowerCase() is "application"
+        updatePermissions body
     if params.id
         db.get params.id, (err, doc) -> # this GET needed because of cache
             if doc
@@ -101,8 +109,8 @@ action 'create', ->
 action 'update', ->
     # this version don't take care of conflict (erase DB with the sent value)
     delete body._attachments
-    if body.docType is "Application" and body.password?
-        app.tokens[body.name] = body.password
+    if body.docType? and body.docType.toLowerCase() is "application"
+        updatePermissions body
     db.save params.id, body, (err, res) ->
         if err
             console.log "[Update] err: " + JSON.stringify err
@@ -126,9 +134,6 @@ action 'upsert', ->
 
 # DELETE /data/:id
 action 'delete', ->
-    if @doc.docType is "Application"
-        # Update applications' tokens
-        app.tokens[@doc.name] = undefined
     # this version don't take care of conflict (erase DB with the sent value)
     db.remove params.id, @doc.rev, (err, res) =>
         if err

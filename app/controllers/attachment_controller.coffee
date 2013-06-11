@@ -2,14 +2,17 @@ load 'application'
 
 fs = require "fs"
 db = require('./helpers/db_connect_helper').db_connect()
-checkToken = require('./lib/token').checkToken
+checkPermissions = require('./lib/token').checkDocType
 
 
-before 'requireToken', ->
-    checkToken req.header('authorization'), app.tokens, (err) =>
+before 'permissions', ->
+    auth = req.header('authorization')
+    checkPermissions auth, "attachments", (err, isAuth, isAuthorized) =>
         next()
+, only: ['addAttachment', 'getAttachment', 'removeAttachment']
 
 
+# TODO: make it recursive
 deleteFiles = (req, callback) ->
     i = 0
     lasterr = null
@@ -23,7 +26,7 @@ deleteFiles = (req, callback) ->
                 console.log lasterr if lasterr
                 callback lasterr
 
-    if i is 0 #no files in req
+    if i is 0
         callback()
 
 

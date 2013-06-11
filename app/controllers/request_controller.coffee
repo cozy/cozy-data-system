@@ -2,11 +2,11 @@ load 'application'
 
 async = require "async"
 db = require('./helpers/db_connect_helper').db_connect()
-checkToken = require('./lib/token').checkToken
+checkDocType = require('./lib/token').checkDocType
 
 
-before 'requireToken', ->
-    checkToken req.header('authorization'), app.tokens, (err) =>
+before 'permissions', ->
+    checkDocType req.header('authorization'), params.type, (err, isAuthenticated, isAuthorized) =>
         next()
 
 before 'lock request', ->
@@ -20,6 +20,7 @@ before 'lock request', ->
 after 'unlock request', ->
     compound.app.locker.removeLock @lock
 , only: ['definition', 'remove']
+
 
 # POST /request/:type/:req_name
 action 'results', ->
