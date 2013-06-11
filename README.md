@@ -39,12 +39,13 @@ To set it up inside your cozy instance:
     
 ## Tests
 
+[![Build
+Status](https://travis-ci.org/mycozycloud/cozy-data-system.png?branch=master)](https://travis-ci.org/mycozycloud/cozy-data-system)
+
 Run tests with following commmand
 
     NODE_ENV="test" cake tests
 
-NB: Indexation tests required that 
-[Cozy Indexer](https://github.com/mycozycloud/cozy-data-indexer) to be up.
 
 # About Cozy
 
