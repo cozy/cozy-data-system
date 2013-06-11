@@ -34,17 +34,18 @@ module.exports.checkToken = (auth, tokens, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize tokens which contains applications and their tokens
 module.exports.init = (app, callback) ->
-    app.tokens = []    
-    token = fs.readFileSync('/etc/cozy/tokens/data-system.token', 'utf8')
-    token = token.split('\n')[0]
-    app.tokens['home'] = token
-    app.tokens['proxy'] = token
-    db.view 'application/all', (err, res) ->
-        if (err)
-            callback new Error("Error in view")
-        else 
-            # Search application with token
-            res.forEach (row) ->
-                if row.state is "installed"
-                    app.tokens[row.name] = row.password 
-            callback app.tokens
+    app.tokens = []
+    if process.env.NODE_ENV is "production"
+        token = process.env.token
+        token = token.split('\n')[0]
+        app.tokens['home'] = token
+        app.tokens['proxy'] = token
+        db.view 'application/all', (err, res) ->
+            if (err)
+                callback new Error("Error in view application/all")
+            else
+                # Search application with token
+                res.forEach (row) ->
+                    if row.state is "installed"
+                        app.tokens[row.name] = row.password
+                callback app.tokens
