@@ -7,7 +7,6 @@ CryptoTools = require './lib/crypto_tools'
 User = require './lib/user'
 randomString = require('./lib/random').randomString
 
-
 accountManager = new Account()
 client = new Client("http://localhost:9102/")
 
@@ -25,7 +24,8 @@ before 'permission_keys', ->
 , only: ['initializeKeys', 'deleteKeys', 'resetKeys']
 
 before 'permission', ->
-    checkDocType req.header('authorization'), "EncryptedKeys",  (err, isAuthorized) =>
+    auth = req.header('authorization')
+    checkDocType auth, "EncryptedKeys",  (err, isAuthorized) =>
         next()
 , only: ['updateKeys']
 
@@ -88,7 +88,8 @@ encryptPassword = (body, callback)->
     app = compound.app
     if body.password
         if app.crypto? and app.crypto.masterKey and app.crypto.slaveKey
-            slaveKey = cryptoTools.decrypt app.crypto.masterKey, app.crypto.slaveKey
+            slaveKey =
+                cryptoTools.decrypt app.crypto.masterKey, app.crypto.slaveKey
             newPwd = cryptoTools.encrypt slaveKey, body.password
             body.password = newPwd
             body.docType = "Account"

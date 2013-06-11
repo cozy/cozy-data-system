@@ -76,7 +76,8 @@ module.exports.checkProxy = (auth, callback) ->
                 console.log "proxy is authenticated"
                 callback null, true
             else
-                console.log("application " + username + " is authenticated but isn't authorized")
+                console.log "application " + username +
+                    " is authenticated but isn't authorized"
                 callback null, false
         else
             console.log("Wrong authentication")

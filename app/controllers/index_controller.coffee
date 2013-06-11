@@ -12,12 +12,14 @@ checkDocType = require('./lib/token').checkDocType
 
 
 before 'permission', ->
-    checkDocType req.header('authorization'), params.type, (err, isAuthenticated, isAuthorized) =>
+    auth = req.header('authorization')
+    checkDocType auth, params.type, (err, isAuthenticated, isAuthorized) =>
         next()
 , only: ['search']
 
 before 'permission', ->
-    checkDocType req.header('authorization'), "index", (err, isAuthenticated, isAuthorized) =>
+    auth = req.header('authorization')
+    checkDocType auth, "index", (err, isAuthenticated, isAuthorized) =>
         next()
 , only: ['remove', 'removeAll', 'index']
 
@@ -49,7 +51,7 @@ action 'index', ->
 
     db.get params.id, (err, doc) ->
         if doc? then indexDoc(doc) else send 404
-            
+
 
 # POST /data/search/
 # Returnds documents matching given text query
@@ -76,7 +78,7 @@ action 'search', ->
                             resDoc = doc.doc
                             resDoc.id = doc.id
                             results.push resDoc
-                    
+
                     send rows: results, 200
 
 

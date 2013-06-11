@@ -6,7 +6,8 @@ checkDocType = require('./lib/token').checkDocType
 
 
 before 'permissions', ->
-    checkDocType req.header('authorization'), params.type, (err, isAuthenticated, isAuthorized) =>
+    auth = req.header('authorization')
+    checkDocType auth, params.type, (err, isAuthenticated, isAuthorized) =>
         next()
 
 before 'lock request', ->
