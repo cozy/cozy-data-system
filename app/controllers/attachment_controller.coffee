@@ -2,6 +2,12 @@ load 'application'
 
 fs = require "fs"
 db = require('./helpers/db_connect_helper').db_connect()
+checkToken = require('./lib/token').checkToken
+
+
+before 'requireToken', ->
+    checkToken req.header('authorization'), app.tokens, (err) =>
+        next()
 
 
 deleteFiles = (req, callback) ->

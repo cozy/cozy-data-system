@@ -3,6 +3,7 @@ S = require 'string'
 Client = require("request-json").JsonClient
 couchUrl = "http://localhost:5984/"
 couchClient = new Client couchUrl
+initTokens = require('../../lib/token').init
 
 
 module.exports = (compound) ->
@@ -101,4 +102,5 @@ module.exports = (compound) ->
         # with compound 1.1.5-21+, we should make this initializer async
 
     db_ensure()
+    initTokens app, (tokens) =>
         

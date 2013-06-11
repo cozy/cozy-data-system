@@ -3,9 +3,17 @@ load 'application'
 git = require('git-rev')
 Client = require("request-json").JsonClient
 
+checkToken = require('./lib/token').checkToken
 client = new Client "http://localhost:9102/"
 db = require('./helpers/db_connect_helper').db_connect()
 
+# By default application hasn't access to docTypes
+authorizedDocType = []
+
+
+before 'requireToken', ->
+    checkToken req.header('authorization'), app.tokens, (err) =>
+        next()
 
 before 'lock request', ->
     @lock = "#{params.id}"
@@ -69,6 +77,8 @@ action 'find', ->
 # POST /data
 action 'create', ->
     delete body._attachments
+    if body.docType is "Application"
+        app.tokens[body.name] = body.password
     if params.id
         db.get params.id, (err, doc) -> # this GET needed because of cache
             if doc
@@ -91,6 +101,8 @@ action 'create', ->
 action 'update', ->
     # this version don't take care of conflict (erase DB with the sent value)
     delete body._attachments
+    if body.docType is "Application" and body.password?
+        app.tokens[body.name] = body.password
     db.save params.id, body, (err, res) ->
         if err
             console.log "[Update] err: " + JSON.stringify err
@@ -114,6 +126,9 @@ action 'upsert', ->
 
 # DELETE /data/:id
 action 'delete', ->
+    if @doc.docType is "Application"
+        # Update applications' tokens
+        app.tokens[@doc.name] = undefined
     # this version don't take care of conflict (erase DB with the sent value)
     db.remove params.id, @doc.rev, (err, res) =>
         if err

@@ -10,11 +10,16 @@ randomString = require('./lib/random').randomString
 
 accountManager = new Account()
 client = new Client("http://localhost:9102/")
+checkToken = require('./lib/token').checkToken
 cryptoTools = new CryptoTools()
 user = new User()
 db = require('./helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
 
+
+before 'requireToken', ->
+    checkToken req.header('authorization'), app.tokens, (err) =>
+        next()
 
 before 'get doc with witness', ->
     db.get params.id, (err, doc) =>
