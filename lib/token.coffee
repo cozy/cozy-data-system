@@ -47,6 +47,10 @@ module.exports.checkDocType = (auth, docType, callback) ->
                 if permissions[name][docType]?
                     console.log "#{name} is authorized to manage #{docType} "
                     callback null, true, true
+                else if permissions[name]["all"]?
+                    console.log "#{name} is authorized to manage all docTypes" +
+                        " so, also #{docType} "
+                    callback null, true, true
                 else
                     console.log "#{name} is NOT authorized to manage #{docType}"
                     callback null, true, false
@@ -76,7 +80,8 @@ module.exports.checkProxy = (auth, callback) ->
                 console.log "proxy is authenticated"
                 callback null, true
             else
-                console.log("application " + username + " is authenticated but isn't authorized")
+                console.log "application " + username +
+                    " is authenticated but isn't authorized"
                 callback null, false
         else
             console.log("Wrong authentication")
@@ -105,39 +110,55 @@ module.exports.updatePermissions = (body, callback) ->
             permissions[body.name][docType.toLowerCase()] = description
 
 
+## function initHomeProxy (callback)
+## @callback {function} Continuation to pass control back to when complete
+## Initialize tokens and permissions for Home and Proxy
+initHomeProxy = (callback) ->
+    token = process.env.TOKEN
+    token = token.split('\n')[0]
+    # Add home token and permissions
+    tokens['home'] = token
+    permissions.home =
+        "application": "authorized"
+        "notification": "authorized"
+        "user": "authorized"
+        "alarm": "authorized"
+        "cozyinstance": "authorized"
+        "encryptedkeys": "authorized"
+    # Add proxy token and permissions
+    tokens['proxy'] = token
+    permissions.proxy =
+        "user": "authorized"
+    callback null
+
+
+## function initApplication (callback)
+## @appli {Object} Application
+## @callback {function} Continuation to pass control back to when complete
+## Initialize tokens and permissions for application
+initApplication = (appli, callback) ->
+    if appli.state is "installed"
+        tokens[appli.name] = appli.password
+        if appli.permissions? and appli.permissions isnt null
+            permissions[appli.name] = {}
+            for docType, description of appli.permissions
+                docType = docType.toLowerCase()
+                permissions[appli.name][docType] = description
+            callback null
+
+
 ## function init (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize tokens which contains applications and their tokens
 module.exports.init = (callback) ->
-    tokens = []
     # Read shared token
     if process.env.NODE_ENV is "production"
-        token = process.env.token
-        token = token.split('\n')[0]
-        # Add home token and permissions
-        tokens['home'] = token
-        permissions.home =
-            "application": "authorized"
-            "notification": "authorized"
-            "user": "authorized"
-            "alarm": "authorized"
-            "cozyinstance": "authorized"
-            "encryptedkeys": "authorized"
-        # Add proxy token and permissions
-        tokens['proxy'] = token
-        permissions.proxy =
-            "user": "authorized"
-        # Add token and permissions for other started applications
-        db.view 'application/all', (err, res) ->
-            if err then callback new Error("Error in view")
-            else
-                # Search application
-                res.forEach (appli) ->
-                    if appli.state is "installed"
-                        tokens[appli.name] = appli.password
-                        if appli.permissions? and appli.permissions isnt null
-                            permissions[appli.name] = {}
-                            for docType, description of appli.permissions
-                                docType = docType.toLowerCase()
-                                permissions[appli.name][docType] = description
-                callback tokens, permissions
+        initHomeProxy () ->
+            # Add token and permissions for other started applications
+            db.view 'application/all', (err, res) ->
+                if err then callback new Error("Error in view")
+                else
+                    # Search application
+                    res.forEach (appli) ->
+                        initApplication appli, () ->
+                    callback tokens, permissions

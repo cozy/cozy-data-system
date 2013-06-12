@@ -5,10 +5,15 @@ db = require('./helpers/db_connect_helper').db_connect()
 checkDocType = require('./lib/token').checkDocType
 
 
+# Before and after methods
+
+# Check if application is authorized to manipulate docType given in params.type
 before 'permissions', ->
-    checkDocType req.header('authorization'), params.type, (err, isAuthenticated, isAuthorized) =>
+    auth = req.header('authorization')
+    checkDocType auth, params.type, (err, isAuthenticated, isAuthorized) =>
         next()
 
+# Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
     @lock = "#{params.type}"
     compound.app.locker.runIfUnlock @lock, =>
@@ -17,10 +22,13 @@ before 'lock request', ->
         next()
 , only: ['definition', 'remove']
 
+# Unlock document when action is finished
 after 'unlock request', ->
     compound.app.locker.removeLock @lock
 , only: ['definition', 'remove']
 
+
+## Actions
 
 # POST /request/:type/:req_name
 action 'results', ->
@@ -59,10 +67,8 @@ action 'removeResults', ->
                     send success: true, 204
     delFunc()
 
-
 # PUT /request/:type/:req_name
 action 'definition', ->
-
     # no need to precise language because it's javascript
     db.get "_design/#{params.type}", (err, res) ->
 

@@ -9,10 +9,16 @@ else
     client = new Client("http://localhost:9102/")
 
 
+## Before and after methods
+
+# Check if application is authorized to manipulate connectors doocType
 before 'permissions', ->
-    checkPermissions req.header('authorization'), "connectors", (err, isAuthenticated, isAuthorized) =>
+    auth = req.header('authorization')
+    checkPermissions auth, "connectors", (err, isAuthenticated, isAuthorized) =>
         next()
-        
+
+
+## Actions
 
 # POST /connectors/bank/:name
 # Returns data extracted with connector name. Credentials are required.

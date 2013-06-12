@@ -5,12 +5,7 @@ db = require('./helpers/db_connect_helper').db_connect()
 checkPermissions = require('./lib/token').checkDocType
 
 
-before 'permissions', ->
-    auth = req.header('authorization')
-    checkPermissions auth, "attachments", (err, isAuth, isAuthorized) =>
-        next()
-, only: ['addAttachment', 'getAttachment', 'removeAttachment']
-
+## Helpers
 
 # TODO: make it recursive
 deleteFiles = (req, callback) ->
@@ -25,12 +20,20 @@ deleteFiles = (req, callback) ->
             if i is 0
                 console.log lasterr if lasterr
                 callback lasterr
-
     if i is 0
         callback()
 
 
+## Before and after methods
 
+#  Check if application is authorized to manage attachments docType
+before 'permissions', ->
+    auth = req.header('authorization')
+    checkPermissions auth, "attachments", (err, isAuth, isAuthorized) =>
+        next()
+, only: ['addAttachment', 'getAttachment', 'removeAttachment']
+
+# Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
     @lock = "#{params.id}"
 
@@ -39,10 +42,12 @@ before 'lock request', ->
         next()
 , only: ['addAttachment', 'removeAttachment']
 
+# Unlock document when action is finished
 after 'unlock request', ->
     app.locker.removeLock @lock
 , only: ['addAttachment', 'removeAttachment']
 
+# Recover document from database with id equal to params.id
 before 'get doc', ->
     db.get params.id, (err, doc) =>
         if err and err.error == "not_found"
@@ -59,6 +64,8 @@ before 'get doc', ->
             app.locker.removeLock @lock
             deleteFiles req, -> send 404
 
+
+## Actions
 
 # POST /data/:id/attachments/
 action 'addAttachment', ->
