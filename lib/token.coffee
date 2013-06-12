@@ -39,26 +39,30 @@ checkToken = (auth, callback) ->
 ## Check if application can manage docType
 module.exports.checkDocType = (auth, docType, callback) ->
     # Check if application is authenticated
-    checkToken auth, (err, isAuthenticated, name) =>
-        if isAuthenticated
-            if docType?
-                docType = docType.toLowerCase()
-                # Check if application can manage docType
-                if permissions[name][docType]?
-                    console.log "#{name} is authorized to manage #{docType} "
-                    callback null, true, true
-                else if permissions[name]["all"]?
-                    console.log "#{name} is authorized to manage all docTypes" +
-                        " so, also #{docType} "
-                    callback null, true, true
+    if process.env.NODE_ENV is "production"
+        checkToken auth, (err, isAuthenticated, name) =>
+            if isAuthenticated
+                if docType?
+                    docType = docType.toLowerCase()
+                    # Check if application can manage docType
+                    if permissions[name][docType]?
+                        console.log "#{name} is authorized to manage #{docType}"
+                        callback null, true, true
+                    else if permissions[name]["all"]?
+                        console.log "#{name} is authorized to manage all " +
+                            "docTypes so, also #{docType} "
+                        callback null, true, true
+                    else
+                        console.log "#{name} is NOT authorized to manage " +
+                            "#{docType}"
+                        callback null, true, false
                 else
-                    console.log "#{name} is NOT authorized to manage #{docType}"
-                    callback null, true, false
+                    console.log "document hasn't docType"
+                    callback null, true, true
             else
-                console.log "document hasn't docType"
-                callback null, true, true
-        else
-            callback null, false
+                callback null, false
+    else
+        callback null, null, null
 
 
 ## function checkProxy (auth, callback)
@@ -68,30 +72,33 @@ module.exports.checkDocType = (auth, docType, callback) ->
 ## Check if application is proxy
 ## Useful for register and login requests
 module.exports.checkProxy = (auth, callback) ->
-    if auth isnt "undefined" and auth?
-        # Recover username and password in field authorization
-        auth = auth.substr(5, auth.length - 1)
-        auth = new Buffer(auth, 'base64').toString('ascii')
-        username = auth.split(':')[0]
-        password = auth.split(':')[1]
-        # Check if application is cozy-proxy
-        if password isnt undefined and tokens[username] is password
-            if username is "proxy"
-                console.log "proxy is authenticated"
-                callback null, true
+    if process.env.NODE_ENV is "production"
+        if auth isnt "undefined" and auth?
+            # Recover username and password in field authorization
+            auth = auth.substr(5, auth.length - 1)
+            auth = new Buffer(auth, 'base64').toString('ascii')
+            username = auth.split(':')[0]
+            password = auth.split(':')[1]
+            # Check if application is cozy-proxy
+            if password isnt undefined and tokens[username] is password
+                if username is "proxy"
+                    console.log "proxy is authenticated"
+                    callback null, true
+                else
+                    console.log "application " + username +
+                        " is authenticated but isn't authorized"
+                    callback null, false
             else
-                console.log "application " + username +
-                    " is authenticated but isn't authorized"
+                console.log("Wrong authentication")
+                console.log("Token expected : " + tokens[username])
+                console.log("Token received : " + password)
                 callback null, false
         else
-            console.log("Wrong authentication")
-            console.log("Token expected : " + tokens[username])
-            console.log("Token received : " + password)
+            console.log "Warning : application is not authenticated : no " +
+                "field authorization"
             callback null, false
     else
-        console.log "Warning : application is not authenticated : no field " +
-            "authorization"
-        callback null, false
+        callback null, null
 
 
 ## function updatePermissons (body, callback)
@@ -102,12 +109,13 @@ module.exports.checkProxy = (auth, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Update application permissions and token
 module.exports.updatePermissions = (body, callback) ->
-    if body.password?
-        tokens[body.name] = body.password
-    permissions[body.name] = {}
-    if body.permissions?
-        for docType, description of body.permissions
-            permissions[body.name][docType.toLowerCase()] = description
+    if process.env.NODE_ENV is "production"
+        if body.password?
+            tokens[body.name] = body.password
+        permissions[body.name] = {}
+        if body.permissions?
+            for docType, description of body.permissions
+                permissions[body.name][docType.toLowerCase()] = description
 
 
 ## function initHomeProxy (callback)
@@ -161,4 +169,4 @@ module.exports.init = (callback) ->
                     # Search application
                     res.forEach (appli) ->
                         initApplication appli, () ->
-                    callback tokens, permissions
+    callback tokens, permissions
