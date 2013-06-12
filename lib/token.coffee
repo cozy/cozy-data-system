@@ -47,6 +47,10 @@ module.exports.checkDocType = (auth, docType, callback) ->
                 if permissions[name][docType]?
                     console.log "#{name} is authorized to manage #{docType} "
                     callback null, true, true
+                else if permissions[name]["all"]?
+                    console.log "#{name} is authorized to manage all docTypes" +
+                        " so, also #{docType} "
+                    callback null, true, true
                 else
                     console.log "#{name} is NOT authorized to manage #{docType}"
                     callback null, true, false
