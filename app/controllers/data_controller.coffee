@@ -9,13 +9,7 @@ client = new Client "http://localhost:9102/"
 db = require('./helpers/db_connect_helper').db_connect()
 
 
-# Required to be processed before other preprocessors (permissions required to
-# check existence as example)
-before 'permissions_add', ->
-    auth = req.header('authorization')
-    checkDocType auth, body.docType, (err, isAuthenticated, isAuthorized) =>
-        next()
-, only: ['create', 'update', 'merge', 'upsert']
+## Before and after methods
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
@@ -25,10 +19,12 @@ before 'lock request', ->
         next()
 , only: ['update', 'upsert', 'delete', 'merge']
 
+# Unlock document when action is finished
 after 'unlock request', ->
     app.locker.removeLock @lock
 , only: ['update', 'upsert', 'delete', 'merge']
 
+# Recover document from database with id equal to params.id
 before 'get doc', ->
     db.get params.id, (err, doc) =>
         if err and err.error is "not_found"
@@ -46,12 +42,25 @@ before 'get doc', ->
             send error: "not found", 404
 , only: ['find','update', 'delete', 'merge']
 
+# Check if application is authorized to manage docType of document
+# docType corresponds to docType given in parameters
+before 'permissions_param', ->
+    auth = req.header('authorization')
+    checkDocType auth, body.docType, (err, isAuthenticated, isAuthorized) =>
+        next()
+, only: ['create', 'update', 'merge', 'upsert']
+
+# Check if application is authorized to manage docType of document
+# docType corresponds to docType of recovered document from database
+# Required to be processed after "get doc"
 before 'permissions', ->
     auth = req.header('authorization')
     checkDocType auth, @doc.docType, (err, isAuthenticated, isAuthorized) =>
         next()
 , only: ['find', 'delete', 'merge']
 
+
+## Actions
 
 # Welcome page
 action "index", ->
@@ -80,8 +89,8 @@ action 'exist', ->
 action 'find', ->
     delete @doc._rev # CouchDB specific, user don't need it
     send @doc
-# POST /data/:id
 
+# POST /data/:id
 # POST /data
 action 'create', ->
     delete body._attachments

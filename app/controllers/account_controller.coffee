@@ -18,18 +18,25 @@ db = require('./helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
 
 
+## Before and after methods
+
+# Check if application which want manage encrypted keys is Proxy
 before 'permission_keys', ->
    checkProxy req.header('authorization'),  (err, isAuthorized) =>
         next()
 , only: ['initializeKeys', 'deleteKeys', 'resetKeys']
 
+# Check if application is authorized to manage EncryptedKeys sdocType
 before 'permission', ->
     auth = req.header('authorization')
     checkDocType auth, "EncryptedKeys",  (err, isAuthorized) =>
         next()
 , only: ['updateKeys']
 
+# Recover doc from database  with id equal to params.id
+# and check if decryption of witness is correct
 before 'get doc with witness', ->
+    # Recover doc
     db.get params.id, (err, doc) =>
         if err and err.error is "not_found"
             send 404
@@ -42,6 +49,7 @@ before 'get doc with witness', ->
                     app.crypto.slaveKey
                 if doc.witness?
                     try
+                        # Check witness decryption
                         witness = cryptoTools.decrypt slaveKey, doc.witness
                         if witness is correctWitness
                             @doc = doc
@@ -53,6 +61,7 @@ before 'get doc with witness', ->
                         console.log "[Get doc] err: data are corrupted"
                         send 402
                 else
+                    # Add witness in document for the next time
                     witness = cryptoTools.encrypt slaveKey, correctWitness
                     db.merge params.id, witness: witness, (err, res) =>
                         if err
@@ -68,6 +77,7 @@ before 'get doc with witness', ->
             send 404
 , only: ['findAccount', 'updateAccount', 'mergeAccount']
 
+# Recover document from database with id equal to params.id
 before 'get doc', ->
     db.get params.id, (err, doc) =>
         if err and err.error is "not_found"
@@ -83,7 +93,13 @@ before 'get doc', ->
 , only: ['deleteAccount']
 
 
-# Helpers
+## Helpers
+
+## function encryptPassword (body, callback)
+## @body {Object} Application:
+##    * body.password : password to be encrypted
+## @callback {function} Continuation to pass control back to when complete.
+## Encrypt password of application and add docType "Account"
 encryptPassword = (body, callback)->
     app = compound.app
     if body.password
@@ -101,9 +117,13 @@ encryptPassword = (body, callback)->
     else
         callback false
 
+## function toString ()
+## Helpers to hide password in logger
 toString = ->
     "[Account for model: #{@id}]"
 
+
+## Actions
 
 #POST /accounts/password/
 action 'initializeKeys', =>

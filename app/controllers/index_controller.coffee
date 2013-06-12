@@ -11,18 +11,23 @@ db = require('./helpers/db_connect_helper').db_connect()
 checkDocType = require('./lib/token').checkDocType
 
 
+## Before and after methods
+
+# Check if application is authorized to manipulate docType given in params.type
 before 'permission', ->
     auth = req.header('authorization')
     checkDocType auth, params.type, (err, isAuthenticated, isAuthorized) =>
         next()
 , only: ['search']
 
+# Check if application is authorized to manipulate index docType
 before 'permission', ->
     auth = req.header('authorization')
     checkDocType auth, "index", (err, isAuthenticated, isAuthorized) =>
         next()
 , only: ['remove', 'removeAll', 'index']
 
+# Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
     @lock = "#{params.id}"
     app.locker.runIfUnlock @lock, =>
@@ -30,10 +35,13 @@ before 'lock request', ->
         next()
 , only: ['index', 'remove']
 
+# Unlock document when action is finished
 after 'unlock request', ->
     app.locker.removeLock @lock
 , only: ['index', 'remove']
 
+
+## Actions
 
 # POST /data/index/:id
 # Index given fields of document matching id.
@@ -54,7 +62,7 @@ action 'index', ->
 
 
 # POST /data/search/
-# Returnds documents matching given text query
+# Returns documents matching given text query
 action 'search', ->
     data =
         docType: params.type
