@@ -110,7 +110,7 @@ module.exports.updatePermissions = (body, callback) ->
 ## @callback {function} Continuation to pass control back to when complete
 ## Initialize tokens and permissions for Home and Proxy
 initHomeProxy = (callback) ->
-    token = process.env.token
+    token = process.env.TOKEN
     token = token.split('\n')[0]
     # Add home token and permissions
     tokens['home'] = token
