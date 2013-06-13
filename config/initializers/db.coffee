@@ -9,7 +9,7 @@ initTokens = require('../../lib/token').init
 module.exports = (compound) ->
     Feed = require('../../helpers/db_feed_helper')
     db = require('../../helpers/db_connect_helper').db_connect()
-    
+
     app = compound.app
 
     ### Helpers ###
@@ -37,7 +37,7 @@ module.exports = (compound) ->
     ### Logger ###
 
     logFound = ->
-        console.info "Database #{db.name} on #{db.connection.host}" + 
+        console.info "Database #{db.name} on #{db.connection.host}" +
             ":#{db.connection.port} found."
         feed_start()
 
@@ -46,11 +46,11 @@ module.exports = (compound) ->
 
     logCreated = ->
         console.info "Database #{db.name} on" +
-            " #{db.connection.host}:#{db.connection.port} created." 
+            " #{db.connection.host}:#{db.connection.port} created."
         feed_start()
 
     ### Check existence of cozy database or create it ###
-          
+
     app.feed = new Feed(app)
 
 
@@ -63,7 +63,7 @@ module.exports = (compound) ->
                     loginCouch = initLoginCouch()
                     couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
                     couchClient.get 'cozy/_security', (err, res, body)=>
-                        if not body.admins? or 
+                        if not body.admins? or
                                 body.admins.names[0] isnt loginCouch[0]
                             addCozyAdmin (err) =>
                                 if err
@@ -84,7 +84,7 @@ module.exports = (compound) ->
         db.create (err) ->
             if err
                 logError()
-            else if (process.env.NODE_ENV is 'production')                     
+            else if (process.env.NODE_ENV is 'production')
                 addCozyAdmin (err) =>
                     if err
                         logError()
@@ -101,4 +101,4 @@ module.exports = (compound) ->
 
     db_ensure()
     initTokens (tokens, permissions) =>
-        
+

@@ -1,5 +1,5 @@
 http = require 'http'
-instantiateApp = require '..'
+instantiateApp = require '../server'
 
 exports.instantiateApp = (done) ->
     @app = instantiateApp()
@@ -34,7 +34,7 @@ exports.Subscriber = class Subscriber
     callback: ->
     wait: (callback) ->
         @callback = callback
-    listener: (pattern, channel, msg) =>
+    listener: (channel, msg) =>
         @calls.push channel:channel, msg:msg
         @callback()
         @callback = ->
