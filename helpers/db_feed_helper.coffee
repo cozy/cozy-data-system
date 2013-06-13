@@ -1,21 +1,16 @@
-REDIS_PORT = 6379
-REDIS_HOST = "127.0.0.1"
-
-REDIS_CONNECT_COUNTER = 1
-
 module.exports = class Feed
 
-    db:undefined
-    feed:undefined
-    redisClient:undefined
+    db:       undefined
+    feed:     undefined
+    axonSock: undefined
 
     constructor: (@app) ->
-        @startPublishingToRedis()
+        @startPublishingToAxon()
 
         @logger = @app.compound.logger
         @app.compound.server.on 'close', =>
             @stopListening()
-            @redisClient.end() if @redisClient?
+            @axonSock.close()  if @axonSock?
 
     # define input craddle connection
     # db the craddle connection
@@ -24,7 +19,7 @@ module.exports = class Feed
         @feed = db.changes since:'now'
         @feed.on 'change', @_onChange
         @feed.on 'error', (err) =>
-            console.log "error occured with feed : #{err.stack}"
+            console.log "Error occured with feed : #{err.stack}"
             @stopListening()
 
         @db = db
@@ -38,48 +33,31 @@ module.exports = class Feed
         if @db?
             @db = null
 
-    # set output redis server
-    # redisClient a redis client
-    startPublishingToRedis: () ->
-        redis = require('redis')
-        @redisClient = redis.createClient REDIS_PORT, REDIS_HOST
+    startPublishingToAxon: (attempt = 0) ->
+        axon = require 'axon'
+        @axonSock = axon.socket 'pub-emitter'
+        @axonSock.bind 9105
+        console.log 'Pub server started'
 
-        @redisClient.on "error", (err) =>
-
-            @redisConnected = false
-
-            if (/ECONNREFUSED/).test err.message
-                cnt = REDIS_CONNECT_COUNTER++
-                console.log "Failled to connect to redis on attempt #{cnt}"
-                console.log "There will be no realtime"
-            else
-                console.log "Redis error : #{err.stack}"
-        @redisClient.on "connect", =>
-
-            @redisConnected = true
-            REDIS_CONNECT_COUNTER = 1
-
-            console.log "Begins publishing changes to redis"
+        @axonSock.sock.on 'connect', () ->
+            console.info "An application conected to the change feeds"
 
     publish: (event, id) => @_publish(event, id)
 
 
     # [INTERNAL] publish to available outputs
-    _publish: (event,id) ->
-        @redisClient.publish event, id  if @redisConnected?
+    _publish: (event, id) ->
+        console.info "Publishing #{event} #{id}"
+        @axonSock.emit event, id if @axonSock?
 
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
     _onChange: (change) =>
-        if change.deleted == true
-            @_publish "delete", change.id
+        return if change.deleted #delete events are send by data controller
 
-        else
-            operation = if change.changes[0].rev.split('-')[0] is '1'
-            then 'create'
-            else 'update'
+        isCreation = change.changes[0].rev.split('-')[0] is '1'
+        operation = if isCreation then 'create' else 'update'
 
-            @db.get change.id, (err, doc) =>
-                console.log err if err?
-                doctype = doc?.docType?.toLowerCase()
-                doctype ?= 'null'
-                @_publish "#{doctype}.#{operation}", doc._id
+        @db.get change.id, (err, doc) =>
+            console.log err if err?
+            doctype = doc?.docType?.toLowerCase()
+            @_publish "#{doctype}.#{operation}", doc._id if doctype

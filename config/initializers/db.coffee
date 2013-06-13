@@ -9,7 +9,7 @@ initTokens = require('../../lib/token').init
 module.exports = (compound) ->
     Feed = require('../../helpers/db_feed_helper')
     db = require('../../helpers/db_connect_helper').db_connect()
-    
+
     app = compound.app
 
     ### Helpers ###
@@ -37,40 +37,38 @@ module.exports = (compound) ->
     ### Logger ###
 
     logFound = ->
-        console.info "Database #{db.name} on #{db.connection.host}" + 
+        console.info "Database #{db.name} on #{db.connection.host}" +
             ":#{db.connection.port} found."
         feed_start()
 
     logError = ->
         console.info "Error on database creation : #{err}"
-        feed_start()
 
     logCreated = ->
         console.info "Database #{db.name} on" +
-            " #{db.connection.host}:#{db.connection.port} created." 
+            " #{db.connection.host}:#{db.connection.port} created."
         feed_start()
 
     ### Check existence of cozy database or create it ###
-          
+
     app.feed = new Feed(app)
+
 
     db_ensure = ->
         db.exists (err, exists) ->
             if err
                 compound.logger.write "Error:", err
-                feed_start()
             else if exists
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
                     couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
                     couchClient.get 'cozy/_security', (err, res, body)=>
-                        if not body.admins? or 
+                        if not body.admins? or
                                 body.admins.names[0] isnt loginCouch[0]
                             addCozyAdmin (err) =>
                                 if err
                                     compound.logger.write "Error on database" +
                                     " Add admin : #{err}"
-                                    feed_start()
                                 else
                                     logFound()
                         else
@@ -86,7 +84,7 @@ module.exports = (compound) ->
         db.create (err) ->
             if err
                 logError()
-            else if (process.env.NODE_ENV is 'production')                     
+            else if (process.env.NODE_ENV is 'production')
                 addCozyAdmin (err) =>
                     if err
                         logError()
@@ -103,4 +101,4 @@ module.exports = (compound) ->
 
     db_ensure()
     initTokens (tokens, permissions) =>
-        
+
