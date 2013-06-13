@@ -1,6 +1,7 @@
 
 fs = require 'fs'
 path = require 'path'
+util = require 'util'
 
 exports.stream = null
 
@@ -19,7 +20,8 @@ exports.init = (compound, callback) =>
             callback exports.stream
         else
             callback null
-	
-exports.write = (text) =>
+
+exports.write = () =>
+    text = util.format.apply util, arguments
     stream = exports.stream || process.stdout
     stream.write text + '\n' || console.log text
