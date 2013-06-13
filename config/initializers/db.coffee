@@ -43,7 +43,6 @@ module.exports = (compound) ->
 
     logError = ->
         console.info "Error on database creation : #{err}"
-        feed_start()
 
     logCreated = ->
         console.info "Database #{db.name} on" +
@@ -54,11 +53,11 @@ module.exports = (compound) ->
           
     app.feed = new Feed(app)
 
+
     db_ensure = ->
         db.exists (err, exists) ->
             if err
                 compound.logger.write "Error:", err
-                feed_start()
             else if exists
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
@@ -70,7 +69,6 @@ module.exports = (compound) ->
                                 if err
                                     compound.logger.write "Error on database" +
                                     " Add admin : #{err}"
-                                    feed_start()
                                 else
                                     logFound()
                         else
