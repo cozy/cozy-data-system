@@ -19,16 +19,10 @@ checkToken = (auth, callback) ->
         password = auth.split(':')[1]
         # Check if application is well authenticated
         if password isnt undefined and tokens[username] is password
-            console.log("application " + username + " is authenticated")
             callback null, true, username
         else
-            console.log("Wrong authentication")
-            console.log("Token expected : " + tokens[username])
-            console.log("Token received : " + password)
             callback null, false, username
     else
-        console.log "Warning : application is not authenticated : no field " +
-            "authorization"
         callback null, false, null
 
 
@@ -46,23 +40,17 @@ module.exports.checkDocType = (auth, docType, callback) ->
                     docType = docType.toLowerCase()
                     # Check if application can manage docType
                     if permissions[name][docType]?
-                        console.log "#{name} is authorized to manage #{docType}"
                         callback null, true, true
                     else if permissions[name]["all"]?
-                        console.log "#{name} is authorized to manage all " +
-                            "docTypes so, also #{docType} "
                         callback null, true, true
                     else
-                        console.log "#{name} is NOT authorized to manage " +
-                            "#{docType}"
                         callback null, true, false
                 else
-                    console.log "document hasn't docType"
                     callback null, true, true
             else
                 callback null, false
     else
-        callback null, null, null
+        callback null, true, true
 
 
 ## function checkProxy (auth, callback)
@@ -71,7 +59,7 @@ module.exports.checkDocType = (auth, docType, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Check if application is proxy
 ## Useful for register and login requests
-module.exports.checkProxy = (auth, callback) ->
+module.exports.checkProxyHome = (auth, callback) ->
     if process.env.NODE_ENV is "production"
         if auth isnt "undefined" and auth?
             # Recover username and password in field authorization
@@ -81,21 +69,13 @@ module.exports.checkProxy = (auth, callback) ->
             password = auth.split(':')[1]
             # Check if application is cozy-proxy
             if password isnt undefined and tokens[username] is password
-                if username is "proxy"
-                    console.log "proxy is authenticated"
+                if username is "proxy" or username is "home"
                     callback null, true
                 else
-                    console.log "application " + username +
-                        " is authenticated but isn't authorized"
                     callback null, false
             else
-                console.log("Wrong authentication")
-                console.log("Token expected : " + tokens[username])
-                console.log("Token received : " + password)
                 callback null, false
         else
-            console.log "Warning : application is not authenticated : no " +
-                "field authorization"
             callback null, false
     else
         callback null, null
