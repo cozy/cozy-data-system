@@ -117,6 +117,7 @@ initHomeProxy = (callback) ->
     tokens['proxy'] = token
     permissions.proxy =
         "user": "authorized"
+        "cozyinstance": "authorized"
     callback null
 
 
