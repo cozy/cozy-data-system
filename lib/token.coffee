@@ -78,7 +78,7 @@ module.exports.checkProxyHome = (auth, callback) ->
         else
             callback null, false
     else
-        callback null, null
+        callback null, true
 
 
 ## function updatePermissons (body, callback)
