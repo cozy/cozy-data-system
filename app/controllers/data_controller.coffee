@@ -47,7 +47,14 @@ before 'get doc', ->
 before 'permissions_param', ->
     auth = req.header('authorization')
     checkDocType auth, body.docType, (err, isAuthenticated, isAuthorized) =>
-        next()
+        if not isAuthenticated
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            next()
 , only: ['create', 'update', 'merge', 'upsert']
 
 # Check if application is authorized to manage docType of document
@@ -56,7 +63,14 @@ before 'permissions_param', ->
 before 'permissions', ->
     auth = req.header('authorization')
     checkDocType auth, @doc.docType, (err, isAuthenticated, isAuthorized) =>
-        next()
+        if not isAuthenticated
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            next()
 , only: ['find', 'delete', 'merge']
 
 

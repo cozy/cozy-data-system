@@ -14,8 +14,15 @@ else
 # Check if application is authorized to manipulate connectors doocType
 before 'permissions', ->
     auth = req.header('authorization')
-    checkPermissions auth, "connectors", (err, isAuthenticated, isAuthorized) =>
-        next()
+    checkPermissions auth, body.docType, (err, isAuthenticated, isAuthorized) =>
+        if not isAuthenticated
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            next()
 
 
 ## Actions

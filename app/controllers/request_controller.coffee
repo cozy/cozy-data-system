@@ -11,7 +11,14 @@ checkDocType = require('./lib/token').checkDocType
 before 'permissions', ->
     auth = req.header('authorization')
     checkDocType auth, params.type, (err, isAuthenticated, isAuthorized) =>
-        next()
+        if not isAuthenticated
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            next()
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
