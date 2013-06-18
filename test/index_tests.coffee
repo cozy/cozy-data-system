@@ -4,7 +4,7 @@ fakeServer = require('./helpers').fakeServer
 Client = require('request-json').JsonClient
 helpers = require('./helpers')
 
-client = new Client("http://localhost:8888/")
+client = new Client("http://localhost:8888s/")
 db = require('../helpers/db_connect_helper').db_connect()
 
 
@@ -24,6 +24,8 @@ createNoteFunction = (title, content) ->
         client.post "data/", note, (error, response, body) ->
             console.log error if error
             dragonNoteId = body._id if title is "Note 02"
+
+            client.setBasicAuth "home", "token"
             client.post "data/index/#{body._id}",
                 fields: ["title", "content"]
                 , (error, response, body) ->
@@ -43,7 +45,7 @@ describe "Indexation", ->
     before helpers.instantiateApp
 
     after helpers.closeApp
-        
+
 
     describe "indexing and searching", ->
         it "Given I index four notes", (done) =>
@@ -54,7 +56,7 @@ describe "Indexation", ->
                 createNoteFunction "Note 04", "such as humans"
             ], =>
                 done()
-            
+
         it "When I send a request to search the notes with dragons", (done) ->
             data = ids: [dragonNoteId]
             indexer = fakeServer data, 200, (url, body) ->

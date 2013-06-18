@@ -6,7 +6,7 @@ Client = require('request-json').JsonClient
 client = new Client 'http://localhost:8888/'
 
 describe 'Connectors - Bank', ->
-    
+
     # Start application before starting tests.
     before helpers.instantiateApp
 
@@ -16,7 +16,7 @@ describe 'Connectors - Bank', ->
             { label: 'livret A', balance: '2000' }
         ]
         indexer = fakeServer data, 200, (url, body) ->
-            
+
             if url is '/connectors/bank/bnp/'
                 should.exist body.login
                 should.exist body.password
@@ -27,7 +27,7 @@ describe 'Connectors - Bank', ->
         @indexerServer.close()
 
     after helpers.closeApp
-        
+
 
     describe 'Bank account data retrieval', ->
 
@@ -35,6 +35,7 @@ describe 'Connectors - Bank', ->
             data =
                 login: 'me'
                 password: 'secret'
+            client.setBasicAuth "home", "token"
             client.post 'connectors/bank/bnp/', data, (err, res, body) =>
                 @res = res
                 @body = body

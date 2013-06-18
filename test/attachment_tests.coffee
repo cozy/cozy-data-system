@@ -4,8 +4,6 @@ helpers = require('./helpers')
 Client = require("request-json").JsonClient
 db = require('../helpers/db_connect_helper').db_connect()
 
-
-
 describe "Attachments", ->
 
     # Clear DB, create a new one, then init data for tests.
@@ -20,6 +18,7 @@ describe "Attachments", ->
     # Start application before starting tests.
     before (done) ->
         @client = new Client "http://localhost:8888/"
+        @client.setBasicAuth "home", "token"
         files = fs.readdirSync('/tmp')
         @nbOfFileInTmpFolder = files.length
         done()
@@ -56,6 +55,7 @@ describe "Attachments", ->
 
         it "When I claim this attachment", (done) ->
             @client = new Client("http://localhost:8888/")
+            @client.setBasicAuth "home", "token"
             @client.saveFile "data/321/attachments/test.png", \
                              './test/test-get.png', -> done()
 

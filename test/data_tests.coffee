@@ -26,10 +26,13 @@ describe "Data handling tests", ->
             db.save '321', {"value":"val"}, ->
                 done()
 
+    before ->
+        client.setBasicAuth "home", "token"
+
     before helpers.instantiateApp
 
     after helpers.closeApp
-        
+
 
     describe "Existence", ->
         describe "Check Existence of a doc that does not exist in database", ->
