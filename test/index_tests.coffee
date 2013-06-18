@@ -3,8 +3,9 @@ async = require('async')
 fakeServer = require('./helpers').fakeServer
 Client = require('request-json').JsonClient
 helpers = require('./helpers')
+process.env.TOKEN = "token"
 
-client = new Client("http://localhost:8888s/")
+client = new Client("http://localhost:8888/")
 db = require('../helpers/db_connect_helper').db_connect()
 
 
@@ -21,15 +22,16 @@ createNoteFunction = (title, content) ->
             content: content
             docType: "Note"
 
+        client.setBasicAuth "test", "token"
         client.post "data/", note, (error, response, body) ->
             console.log error if error
             dragonNoteId = body._id if title is "Note 02"
 
-            client.setBasicAuth "home", "token"
             client.post "data/index/#{body._id}",
                 fields: ["title", "content"]
                 , (error, response, body) ->
                 callback error, body
+
 
 describe "Indexation", ->
 
@@ -46,6 +48,30 @@ describe "Indexation", ->
 
     after helpers.closeApp
 
+    describe "Install application which can manage note", ->
+
+        it "When I send a request to post an application", (done) ->
+            data =
+                "name": "test"
+                "slug": "test"
+                "state": "installed"
+                "password": "token"
+                "permissions":
+                    "Note":
+                        "description": "This application needs ..."
+                "docType": "Application"
+            client.setBasicAuth "home", "token"
+            client.post 'data/', data, (err, res, body) =>
+                @body = body
+                @err = err
+                @res = res
+                done()
+
+        it "Then no error should be returned", ->
+            should.equal  @err, null
+
+        it "And HTTP status 201 should be returned", ->
+            @res.statusCode.should.equal 201
 
     describe "indexing and searching", ->
         it "Given I index four notes", (done) =>
@@ -84,8 +110,11 @@ describe "Indexation", ->
     describe "Fail indexing", ->
 
         it "When I index a document that does not exist", (done) ->
-            client.post "data/index/923", \
-                    { fields: ["title", "content"] }, (error, response, body) =>
+            data =
+                fields: ["title", "content"]
+
+            client.setBasicAuth "test", "token"
+            client.post "data/index/923", data, (error, response, body) =>
                 @response = response
                 done()
 

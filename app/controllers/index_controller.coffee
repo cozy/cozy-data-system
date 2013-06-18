@@ -88,8 +88,11 @@ action 'index', ->
                 send resbody, res.statusCode
 
     db.get params.id, (err, doc) ->
-        permission doc.docType, () =>
-            if doc? then indexDoc(doc) else send 404
+        if doc?
+            permission doc.docType, () =>
+                indexDoc(doc)
+        else
+            send 404
 
 
 # POST /data/search/
@@ -133,7 +136,11 @@ action 'remove', ->
 
     db.get params.id, (err, doc) ->
         permission doc.docType, () =>
-            if doc? then removeIndex(doc) else send 404
+            if doc?
+                permission doc.docType, () =>
+                    removeIndex(doc)
+            else
+                send 404
 
 
 # DELETE /data/index/clear-all/

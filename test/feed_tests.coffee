@@ -42,11 +42,11 @@ describe "Feed tests", ->
                 @res = res
                 done()
 
-            it "Then no error should be returned", ->
-                should.equal  @err, null
+        it "Then no error should be returned", ->
+            should.equal  @err, null
 
-            it "And HTTP status 201 should be returned", ->
-                @res.statusCode.should.equal 201
+        it "And HTTP status 201 should be returned", ->
+            @res.statusCode.should.equal 201
 
     describe "Typed Create", ->
 
