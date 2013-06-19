@@ -223,7 +223,7 @@ action 'resetKeys', ->
                     console.log "[resetKeys] err: #{err}"
                     send 500
                 else
-                    send 204
+                    send success: true, 204
 
 
 #DELETE /accounts/
@@ -231,7 +231,7 @@ action 'deleteKeys', ->
     if app.crypto? and app.crypto.masterKey and app.crypto.slaveKey
         app.crypto.masterKey = null
         app.crypto.slaveKey = null
-        send 204
+        send sucess: true, 204
     else
         console.log "[deleteKeys] err: masterKey and slaveKey don't exist"
         send error: "masterKey and slaveKey don't exis", 500
