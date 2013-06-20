@@ -4,6 +4,9 @@ fs = require 'fs'
 permissions = {}
 tokens = {}
 
+productionOrTest = process.env.NODE_ENV is "production" or
+    process.env.NODE_ENV is "test"
+
 
 ## function checkToken (auth, tokens, callback)
 ## @auth {string} Field 'authorization' of request
@@ -33,7 +36,7 @@ checkToken = (auth, callback) ->
 ## Check if application can manage docType
 module.exports.checkDocType = (auth, docType, callback) ->
     # Check if application is authenticated
-    if process.env.NODE_ENV is "production" or process.env.NODE_ENV is "test"
+    if productionOrTest
         checkToken auth, (err, isAuthenticated, name) =>
             if isAuthenticated
                 if docType?
@@ -60,7 +63,7 @@ module.exports.checkDocType = (auth, docType, callback) ->
 ## Check if application is proxy
 ## Useful for register and login requests
 module.exports.checkProxyHome = (auth, callback) ->
-    if process.env.NODE_ENV is "production" or process.env.NODE_ENV is "test"
+    if productionOrTest
         if auth isnt "undefined" and auth?
             # Recover username and password in field authorization
             auth = auth.substr(5, auth.length - 1)
@@ -89,7 +92,7 @@ module.exports.checkProxyHome = (auth, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Update application permissions and token
 module.exports.updatePermissions = (body, callback) ->
-    if process.env.NODE_ENV is "production" or process.env.NODE_ENV is "test"
+    if productionOrTest
         if body.password?
             tokens[body.name] = body.password
         permissions[body.name] = {}
@@ -133,7 +136,7 @@ initApplication = (appli, callback) ->
             for docType, description of appli.permissions
                 docType = docType.toLowerCase()
                 permissions[appli.name][docType] = description
-            callback null
+    callback null
 
 
 ## function init (callback)
@@ -141,7 +144,7 @@ initApplication = (appli, callback) ->
 ## Initialize tokens which contains applications and their tokens
 module.exports.init = (callback) ->
     # Read shared token
-    if process.env.NODE_ENV is "production" or process.env.NODE_ENV is "test"
+    if productionOrTest
         initHomeProxy () ->
             # Add token and permissions for other started applications
             db.view 'application/all', (err, res) ->
