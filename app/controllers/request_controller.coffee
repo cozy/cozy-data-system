@@ -30,6 +30,29 @@ after 'unlock request', ->
 
 ## Actions
 
+
+# GET /doctypes
+# list all doctypes that have been created
+# a doctype is a design document with a "all" request
+action 'doctypes', ->
+
+    query =
+        startkey: "_design/"
+        endkey:   "_design0"
+        include_docs: true
+
+    out = []
+
+    db.all query, (err, res) ->
+        for row in res
+            if row.doc?.views?.all
+                out.push row.key.replace '_design/', ''
+
+        send out
+
+
+
+
 # POST /request/:type/:req_name
 action 'results', ->
     db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
