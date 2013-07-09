@@ -60,7 +60,7 @@ describe "Request handling tests", ->
                         (error, response, body) =>
                     response.statusCode.should.equal 200
                     done()
-            
+
             it "Then the design document should exist and contain the view", \
                     (done) ->
                 db.get '_design/all', (err, res) ->
@@ -159,7 +159,7 @@ describe "Request handling tests", ->
                 @body.should.have.length 0
 
     describe "Deletion of docs through requests", ->
-        
+
         describe "Delete a doc from a view : even_num", (done) ->
             before cleanRequest
 
@@ -261,7 +261,7 @@ describe "Request handling tests", ->
 
     describe "Create fastly three requests (concurrency test)", ->
         before cleanRequest
-        
+
         it "When I create fastly three requests", (done) ->
             async.parallel {
                 one: createAuthorRequestFunction('all')
@@ -282,5 +282,17 @@ describe "Request handling tests", ->
                 res.views.should.have.property 'all'
                 res.views.should.have.property 'byName'
                 res.views.should.have.property 'byAuthor'
+
+                done()
+
+    describe "When I call the doctype list", ->
+        it "should send me existing doctypes", (done) ->
+
+            client.get 'doctypes', (error, response, body) ->
+                should.not.exist error
+                should.exist body
+
+                body.length.should.eql 1
+                body[0].should.eql 'author'
 
                 done()
