@@ -30,6 +30,8 @@ exports.routes = (map) ->
     map.delete '/data/:id/attachments/:name', 'attachment#removeAttachment'
 
     # Request handling
+
+    map.get '/doctypes', 'request#doctypes'
     map.post '/request/:type/:req_name/', 'request#results'
     map.put '/request/:type/:req_name/destroy/', 'request#removeResults'
     map.put '/request/:type/:req_name/', 'request#definition'
