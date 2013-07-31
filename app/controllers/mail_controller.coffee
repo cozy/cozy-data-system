@@ -1,6 +1,28 @@
 User = require './lib/user'
 user = new User()
 nodemailer = require "nodemailer"
+checkDocType = require('./lib/token').checkDocType
+
+# Check if application is authorized to manage send any mail
+before 'permissionSendMail', ->
+    auth = req.header('authorization')
+    checkDocType auth, "send mail",  (err, isAuthorized) =>
+        next()
+, only: ['sendMail']
+
+# Check if application is authorized to send a mail to user
+before 'permissionSendMail', ->
+    auth = req.header('authorization')
+    checkDocType auth, "send mail to user",  (err, isAuthorized) =>
+        next()
+, only: ['sendMailToUser']
+
+# Check if application is authorized to send a mail from user
+before 'permissionSendMail', ->
+    auth = req.header('authorization')
+    checkDocType auth, "send mail from user",  (err, isAuthorized) =>
+        next()
+, only: ['sendMailFromUser']
 
 # Helpers 
 sendEmail = (mailOptions, callback) =>
