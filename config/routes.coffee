@@ -52,3 +52,8 @@ exports.routes = (map) ->
     map.put '/account/merge/:id/', 'account#mergeAccount'
     map.put '/account/upsert/:id/', 'account#upsertAccount'
     map.delete '/account/:id/', 'account#deleteAccount'
+
+    # Mail management
+    map.post '/mail/', 'mail#sendMail'
+    map.post '/mail/to-user', 'mail#sendMailToUser'
+    map.post '/mail/from-user', 'mail#sendMailFromUser'
