@@ -61,7 +61,7 @@ action 'sendMailToUser', =>
     checkBody ['from', 'subject', 'content']
     user.getUser (err, user) ->
         if err
-            console.log "[initializeKeys] err: #{err}"
+            console.log "[sendMailToUser] err: #{err}"
             send 500
         else 
             mailOptions = 
@@ -84,7 +84,7 @@ action 'sendMailFromUser', =>
     checkBody ['to', 'subject', 'content']
     user.getUser (err, user) ->
         if err
-            console.log "[initializeKeys] err: #{err}"
+            console.log "[sendMailFromUser] err: #{err}"
             send 500
         else
             mailOptions =
