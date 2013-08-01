@@ -133,6 +133,7 @@ initHomeProxy = (callback) ->
         "alarm": "authorized"
         "cozyinstance": "authorized"
         "encryptedkeys": "authorized"
+        "send mail to user": "authorized"
     # Add proxy token and permissions
     tokens['proxy'] = token
     permissions.proxy =

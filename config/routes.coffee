@@ -57,3 +57,8 @@ exports.routes = (map) ->
     map.post '/doctype/', 'doctype#create'
     map.post '/doctype/:id', 'doctype#create'
     map.delete '/doctype/:id', 'doctype#delete'
+
+    # Mail management
+    map.post '/mail/', 'mail#sendMail'
+    map.post '/mail/to-user', 'mail#sendMailToUser'
+    map.post '/mail/from-user', 'mail#sendMailFromUser'
