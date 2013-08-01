@@ -107,7 +107,7 @@ describe "Mail handling tests", ->
                         'attributes'
 
 
-    describe "Send an email with wrong mail: ", ->        
+    ###describe "Send an email with wrong mail: ", ->        
 
         it "When I send a request to send email", (done) ->
             data =
@@ -127,7 +127,7 @@ describe "Mail handling tests", ->
                 @body.error.name.should.be.equal 'RecipientError'  
 
 
-    ###describe "Send an email: ", ->        
+    describe "Send an email: ", ->        
 
         it "When I send a request to send email", (done) ->
             data =
