@@ -96,14 +96,21 @@ action 'addAttachment', ->
 action 'getAttachment', ->
     name = params.name
 
-    db.getAttachment @doc.id, name, (err) ->
+    stream = db.getAttachment @doc.id, name, (err) ->
         if err and err.error = "not_found"
             send 404
         else if err
             send 500
         else
             send 200
-    .pipe(res)
+
+    if req.headers['range']?
+        stream.setHeader('range', req.headers['range'])
+
+    stream.pipe(res)
+
+    res.on 'close', ->
+        stream.abort()
 
 
 # DELETE /data/:id/attachments/:name
