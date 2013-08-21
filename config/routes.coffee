@@ -23,6 +23,7 @@ exports.routes = (map) ->
 
     # Browser connectors
     map.post '/connectors/bank/:name/', 'connector#bank'
+    map.post '/connectors/bank/:name/history', 'connector#bankHistory'
 
     # File management
     map.post '/data/:id/attachments/', 'attachment#addAttachment'
