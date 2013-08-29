@@ -61,6 +61,3 @@ module.exports = class Feed
             console.log err if err?
             doctype = doc?.docType?.toLowerCase()
             @_publish "#{doctype}.#{operation}", doc._id if doctype
-
-    usage: (app) ->
-        @_publish "usage.application", app
