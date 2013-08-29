@@ -1,6 +1,5 @@
 db = require('../helpers/db_connect_helper').db_connect()
 fs = require 'fs'
-
 permissions = {}
 tokens = {}
 
@@ -47,18 +46,18 @@ module.exports.checkDocType = (auth, docType, callback) ->
                     # Check if application can manage docType
                     if permissions[name][docType]?
                         console.log "#{name} is authorized to manage #{docType}"
-                        callback null, true, true
+                        callback null, name, true
                     else if permissions[name]["all"]?
                         console.log "#{name} is authorized to manage all " +
                             "docTypes so, also #{docType} "
-                        callback null, true, true
+                        callback null, name, true
                     else
                         console.log "#{name} is NOT authorized to manage " +
                             "#{docType}"
-                        callback null, true, false
+                        callback null, name, false
                 else
                     console.log "document hasn't docType"
-                    callback null, true, true
+                    callback null, name, true
             else
                 callback null, false
     else
