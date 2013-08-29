@@ -14,7 +14,8 @@ else
 # Check if application is authorized to manipulate connectors doocType
 before 'permissions', ->
     auth = req.header('authorization')
-    checkPermissions auth, "connectors", (err, isAuthenticated, isAuthorized) =>
+    checkPermissions auth, "connectors", (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
         next()
 
 

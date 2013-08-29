@@ -16,14 +16,16 @@ checkDocType = require('./lib/token').checkDocType
 # Check if application is authorized to manipulate docType given in params.type
 before 'permission', ->
     auth = req.header('authorization')
-    checkDocType auth, params.type, (err, isAuthenticated, isAuthorized) =>
+    checkDocType auth, params.type, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
         next()
 , only: ['search']
 
 # Check if application is authorized to manipulate index docType
 before 'permission', ->
     auth = req.header('authorization')
-    checkDocType auth, "index", (err, isAuthenticated, isAuthorized) =>
+    checkDocType auth, "index", (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
         next()
 , only: ['remove', 'removeAll', 'index']
 
