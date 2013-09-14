@@ -11,6 +11,6 @@ if not module.parent
     host = process.env.HOST || "127.0.0.1"
     server = app()
     server.listen port, host, ->
-        msg = "Compound server listening on #{host}:#{port} within " + 
+        msg = "Compound server listening on #{host}:#{port} within " +
                 "#{server.set('env')} environment"
         console.log msg

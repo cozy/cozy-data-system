@@ -28,18 +28,6 @@ walk = (dir, fileList) ->
     return fileList
 
 
-task 'tests', 'run server tests, ./test is parsed by default, otherwise use -f or --dir', (opts) ->
-    options   = opts
-    testFiles = []
-    if options.dir
-        dirList   = options.dir
-        testFiles = walk(dir, testFiles) for dir in dirList
-    if options.file
-        testFiles  = testFiles.concat(options.file)
-    if not(options.dir or options.file)
-        testFiles = walk("test", [])
-    runTests testFiles
-
 runTests = (fileList) ->
     command = "mocha " + fileList.join(" ") + " "
     if options['debug-brk']
@@ -53,12 +41,18 @@ runTests = (fileList) ->
         console.log stdout
 
 
-task "xunit", "", ->
-    process.env.TZ = "Europe/Paris"
-    command = "mocha "
-    command += " --require should --compilers coffee:coffee-script -R xunit > xunit.xml"
-    exec command, (err, stdout, stderr) ->
-        console.log stdout
+task 'tests', 'run server tests, ./test is parsed by default, otherwise use -f or --dir', (opts) ->
+    options   = opts
+    testFiles = []
+    if options.dir
+        dirList   = options.dir
+        testFiles = walk(dir, testFiles) for dir in dirList
+    if options.file
+        testFiles  = testFiles.concat(options.file)
+    if not(options.dir or options.file)
+        testFiles = walk("test", [])
+    runTests testFiles
+
 
 task "lint", "Run coffeelint on backend files", ->
     process.env.TZ = "Europe/Paris"
@@ -66,3 +60,20 @@ task "lint", "Run coffeelint on backend files", ->
     command += " -f coffeelint.json -r app/ config/ helpers/ test/"
     exec command, (err, stdout, stderr) ->
         console.log stdout
+
+
+task 'convert', 'convert coffee files to JS', ->
+    files = walk "app", []
+    files.concat walk "config", []
+    files.concat walk "lib", []
+    files.concat walk "helpers", []
+    console.log "Compile to JS..."
+    command = "coffee -cb server.coffee #{files.join ' '} "
+    exec command, (err, stdout, stderr) ->
+        console.log stdout
+        if err
+            console.log "Running convertion caught exception: \n" + err
+            process.exit 1
+        else
+            console.log "Convertion succeeded."
+            process.exit 0
