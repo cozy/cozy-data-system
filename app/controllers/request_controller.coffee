@@ -19,7 +19,6 @@ before 'lock request', ->
     @lock = "#{params.type}"
     compound.app.locker.runIfUnlock @lock, =>
         compound.app.locker.addLock @lock
-
         next()
 , only: ['definition', 'remove']
 

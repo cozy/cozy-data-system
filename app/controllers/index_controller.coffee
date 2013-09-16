@@ -27,7 +27,7 @@ before 'permission', ->
     checkDocType auth, "all", (err, appName, isAuthorized) =>
         compound.app.feed.publish 'usage.application', appName
         next()
-, only: ['remove', 'removeAll', 'index']
+, only: ['removeAll']
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
@@ -48,15 +48,9 @@ after 'unlock request', ->
 # Check if application is authorized to manipulate docType given in params.type
 permission = (docType, callback) ->
     auth = req.header('authorization')
-    checkDocType auth, docType, (err, isAuthenticated, isAuthorized) =>
-        if not isAuthenticated
-            err = new Error("Application is not authenticated")
-            send error: err, 401
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            send error: err, 403
-        else
-            callback()
+    checkDocType auth, docType, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        callback()
 
 
 ## Actions

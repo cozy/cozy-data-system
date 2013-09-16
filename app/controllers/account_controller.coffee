@@ -39,11 +39,6 @@ before 'permission', ->
 , only: ['createAccount', 'findAccount', 'existAccount', 'updateAccount',
         'upsertAccount', 'deleteAccount', 'deleteAllAccounts', 'mergeAccount']
 
-    checkDocType auth, "EncryptedKeys",  (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
-, only: ['updateKeys']
-
 # Recover doc from database  with id equal to params.id
 # and check if decryption of witness is correct
 before 'get doc with witness', ->
