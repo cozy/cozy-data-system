@@ -311,3 +311,15 @@ describe "Request handling tests", ->
                 res.views.should.have.property 'byAuthor'
 
                 done()
+
+    describe "When I call the doctype list", ->
+        it "should send me existing doctypes", (done) ->
+
+            client.get 'doctypes', (error, response, body) ->
+                should.not.exist error
+                should.exist body
+
+                body.length.should.eql 1
+                body[0].should.eql 'author'
+
+                done()

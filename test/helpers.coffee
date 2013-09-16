@@ -2,9 +2,9 @@ http = require 'http'
 instantiateApp = require '../server'
 
 exports.instantiateApp = (done) ->
+    @timeout 5000
     @app = instantiateApp()
-    @app.listen 8888
-    @app.on 'db ready', done
+    @app.listen 8888, '0.0.0.0', done
 
 
 exports.closeApp = (done) ->

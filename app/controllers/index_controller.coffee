@@ -16,30 +16,18 @@ checkDocType = require('./lib/token').checkDocType
 # Check if application is authorized to manipulate docType given in params.type
 before 'permission', ->
     auth = req.header('authorization')
-    checkDocType auth, params.type, (err, isAuthenticated, isAuthorized) =>
-        if not isAuthenticated
-            err = new Error("Application is not authenticated")
-            send error: err, 401
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            send error: err, 403
-        else
-            next()
+    checkDocType auth, params.type, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        next()
 , only: ['search']
 
 # Check if application is authorized to manipulate all docTypes
 before 'permission', ->
     auth = req.header('authorization')
-    checkDocType auth, "all", (err, isAuthenticated, isAuthorized) =>
-        if not isAuthenticated
-            err = new Error("Application is not authenticated")
-            send error: err, 401
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            send error: err, 403
-        else
-            next()
-, only: ['removeAll']
+    checkDocType auth, "all", (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        next()
+, only: ['remove', 'removeAll', 'index']
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->

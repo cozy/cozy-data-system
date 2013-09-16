@@ -1,6 +1,5 @@
 db = require('../helpers/db_connect_helper').db_connect()
 fs = require 'fs'
-
 permissions = {}
 tokens = {}
 
@@ -43,13 +42,13 @@ module.exports.checkDocType = (auth, docType, callback) ->
                     docType = docType.toLowerCase()
                     # Check if application can manage docType
                     if permissions[name][docType]?
-                        callback null, true, true
+                        callback null, name, true
                     else if permissions[name]["all"]?
-                        callback null, true, true
+                        callback null, name, true
                     else
-                        callback null, true, false
+                        callback null, name, false
                 else
-                    callback null, true, true
+                    callback null, name, true
             else
                 callback null, false, false
     else
@@ -116,6 +115,7 @@ initHomeProxy = (callback) ->
         "alarm": "authorized"
         "cozyinstance": "authorized"
         "encryptedkeys": "authorized"
+        "send mail to user": "authorized"
     # Add proxy token and permissions
     tokens['proxy'] = token
     permissions.proxy =

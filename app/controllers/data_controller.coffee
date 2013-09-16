@@ -46,15 +46,9 @@ before 'get doc', ->
 # docType corresponds to docType given in parameters
 before 'permissions_param', ->
     auth = req.header('authorization')
-    checkDocType auth, body.docType, (err, isAuthenticated, isAuthorized) =>
-        if not isAuthenticated
-            err = new Error("Application is not authenticated")
-            send error: err, 401
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            send error: err, 403
-        else
-            next()
+    checkDocType auth, body.docType, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        next()
 , only: ['create', 'update', 'merge', 'upsert']
 
 # Check if application is authorized to manage docType of document
@@ -62,15 +56,9 @@ before 'permissions_param', ->
 # Required to be processed after "get doc"
 before 'permissions', ->
     auth = req.header('authorization')
-    checkDocType auth, @doc.docType, (err, isAuthenticated, isAuthorized) =>
-        if not isAuthenticated
-            err = new Error("Application is not authenticated")
-            send error: err, 401
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            send error: err, 403
-        else
-            next()
+    checkDocType auth, @doc.docType, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        next()
 , only: ['find', 'delete', 'merge']
 
 

@@ -62,15 +62,9 @@ before 'get doc', ->
 # Required to be processed after "get doc"
 before 'permissions', ->
     auth = req.header('authorization')
-    checkPermissions auth, @doc.docType, (err, isAuth, isAuthorized) =>
-        if not isAuth
-            err = new Error("Application is not authenticated")
-            send error: err, 401
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            send error: err, 403
-        else
-            next()
+    checkPermissions auth, @doc.docType, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        next()
 , only: ['addAttachment','getAttachment','removeAttachment']
 
 
@@ -105,14 +99,21 @@ action 'addAttachment', ->
 action 'getAttachment', ->
     name = params.name
 
-    db.getAttachment @doc.id, name, (err) ->
+    stream = db.getAttachment @doc.id, name, (err) ->
         if err and err.error = "not_found"
             send 404
         else if err
             send 500
         else
             send 200
-    .pipe(res)
+
+    if req.headers['range']?
+        stream.setHeader('range', req.headers['range'])
+
+    stream.pipe(res)
+
+    res.on 'close', ->
+        stream.abort()
 
 
 # DELETE /data/:id/attachments/:name

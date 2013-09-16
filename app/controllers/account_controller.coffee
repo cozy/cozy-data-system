@@ -33,17 +33,16 @@ before 'permission_keys', ->
 # Check if application is authorized to manage EncryptedKeys sdocType
 before 'permission', ->
     auth = req.header('authorization')
-    checkDocType auth, "Account",  (err, isAuthenticated, isAuthorized) =>
-        if not isAuthenticated
-            err = new Error("Application is not authenticated")
-            send error: err, 401
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            send error: err, 403
-        else
-            next()
+    checkDocType auth, "Account",  (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        next()
 , only: ['createAccount', 'findAccount', 'existAccount', 'updateAccount',
         'upsertAccount', 'deleteAccount', 'deleteAllAccounts', 'mergeAccount']
+
+    checkDocType auth, "EncryptedKeys",  (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        next()
+, only: ['updateKeys']
 
 # Recover doc from database  with id equal to params.id
 # and check if decryption of witness is correct

@@ -23,6 +23,7 @@ exports.routes = (map) ->
 
     # Browser connectors
     map.post '/connectors/bank/:name/', 'connector#bank'
+    map.post '/connectors/bank/:name/history', 'connector#bankHistory'
 
     # File management
     map.post '/data/:id/attachments/', 'attachment#addAttachment'
@@ -30,6 +31,8 @@ exports.routes = (map) ->
     map.delete '/data/:id/attachments/:name', 'attachment#removeAttachment'
 
     # Request handling
+
+    map.get '/doctypes', 'request#doctypes'
     map.post '/request/:type/:req_name/', 'request#results'
     map.put '/request/:type/:req_name/destroy/', 'request#removeResults'
     map.put '/request/:type/:req_name/', 'request#definition'
@@ -50,3 +53,13 @@ exports.routes = (map) ->
     map.put '/account/merge/:id/', 'account#mergeAccount'
     map.put '/account/upsert/:id/', 'account#upsertAccount'
     map.delete '/account/:id/', 'account#deleteAccount'
+
+    #DocType management
+    map.post '/doctype/', 'doctype#create'
+    map.post '/doctype/:id', 'doctype#create'
+    map.delete '/doctype/:id', 'doctype#delete'
+
+    # Mail management
+    map.post '/mail/', 'mail#sendMail'
+    map.post '/mail/to-user', 'mail#sendMailToUser'
+    map.post '/mail/from-user', 'mail#sendMailFromUser'

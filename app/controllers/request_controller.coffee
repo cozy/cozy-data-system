@@ -10,15 +10,9 @@ checkDocType = require('./lib/token').checkDocType
 # Check if application is authorized to manipulate docType given in params.type
 before 'permissions', ->
     auth = req.header('authorization')
-    checkDocType auth, params.type, (err, isAuthenticated, isAuthorized) =>
-        if not isAuthenticated
-            err = new Error("Application is not authenticated")
-            send error: err, 401
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            send error: err, 403
-        else
-            next()
+    checkDocType auth, params.type, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        next()
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
@@ -36,6 +30,29 @@ after 'unlock request', ->
 
 
 ## Actions
+
+
+# GET /doctypes
+# list all doctypes that have been created
+# a doctype is a design document with a "all" request
+action 'doctypes', ->
+
+    query =
+        startkey: "_design/"
+        endkey:   "_design0"
+        include_docs: true
+
+    out = []
+
+    db.all query, (err, res) ->
+        for row in res
+            if row.doc?.views?.all
+                out.push row.key.replace '_design/', ''
+
+        send out
+
+
+
 
 # POST /request/:type/:req_name
 action 'results', ->
