@@ -4,9 +4,16 @@ helpers = require('./helpers')
 client = new Client("http://localhost:8888/")
 
 axon = require 'axon'
+db = require('../helpers/db_connect_helper').db_connect()
 
 describe "Feed tests", ->
 
+
+    # Clear DB, create a new one, then init data for tests.
+    before (done) ->
+        db.destroy ->
+            db.create ->
+                done()
     # Start application before starting tests.
     before helpers.instantiateApp
 
@@ -22,6 +29,11 @@ describe "Feed tests", ->
 
     after ->
         @axonSock.close()
+
+    after (done)->
+        db.destroy ->
+            db.create ->
+                done()
 
     describe "Typed Create", ->
 
