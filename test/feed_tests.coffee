@@ -8,7 +8,6 @@ db = require('../helpers/db_connect_helper').db_connect()
 
 describe "Feed tests", ->
 
-
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
         db.destroy ->
