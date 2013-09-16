@@ -13,7 +13,7 @@ describe "Feed tests", ->
     before ->
         @subscriber = new helpers.Subscriber()
         @axonSock = axon.socket 'sub-emitter'
-        @axonSock.on '*', @subscriber.listener
+        @axonSock.on 'note.*', @subscriber.listener
         @axonSock.connect 9105
 
     # Stop application after finishing tests.
@@ -39,7 +39,7 @@ describe "Feed tests", ->
             @subscriber.wait done
 
         it "Then I receive a note.create on my subscriber", ->
-            @subscriber.haveBeenCalled('note.create', @idT).should.be.ok
+            @subscriber.haveBeenCalled('create', @idT).should.be.ok
 
     describe "Typed Update", ->
 
@@ -57,7 +57,7 @@ describe "Feed tests", ->
             @subscriber.wait done
 
         it "Then I receive a note.update on my subscriber", ->
-            @subscriber.haveBeenCalled('note.update', @idT).should.be.ok
+            @subscriber.haveBeenCalled('update', @idT).should.be.ok
 
     describe "Typed Delete", ->
 
@@ -70,5 +70,5 @@ describe "Feed tests", ->
 
             @subscriber.wait done
 
-         it "Then I receive a delete and a note.delete on my subscriber", ->
-            @subscriber.haveBeenCalled('note.delete', @idT).should.be.ok
+         it "Then I receive a note.delete on my subscriber", ->
+            @subscriber.haveBeenCalled('delete', @idT).should.be.ok
