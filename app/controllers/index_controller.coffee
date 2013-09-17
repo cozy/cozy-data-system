@@ -20,7 +20,7 @@ before 'permission', ->
         if not appName
             err = new Error("Application is not authenticated")
             send error: err, 401
-        else if not isAuthorized
+        else if isAuthorized
             err = new Error("Application is not authorized")
             send error: err, 403
         else
@@ -35,7 +35,7 @@ before 'permission', ->
         if not appName
             err = new Error("Application is not authenticated")
             send error: err, 401
-        else if not isAuthorized
+        else if isAuthorized
             err = new Error("Application is not authorized")
             send error: err, 403
         else

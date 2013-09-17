@@ -23,7 +23,7 @@ correctWitness = "Encryption is correct"
 # Check if application which want manage encrypted keys is Proxy
 before 'permission_keys', ->
    checkProxyHome req.header('authorization'), (err, isAuthorized) =>
-        if not isAuthorized
+        if isAuthorized
             err = new Error("Application is not authorized")
             send error: err, 403
         else
@@ -37,7 +37,7 @@ before 'permission', ->
         if not appName
             err = new Error("Application is not authenticated")
             send error: err, 401
-        else if not isAuthorized
+        else if isAuthorized
             err = new Error("Application is not authorized")
             send error: err, 403
         else
