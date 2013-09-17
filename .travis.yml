@@ -10,8 +10,8 @@ env:
 before_install:
     - git clone git://github.com/mycozycloud/cozy-data-indexer.git
     - cd cozy-data-indexer
-    - pip install -r requirements/common.txt
-    - pip install -r requirements/production.txt
+    - pip install -r requirements/common.txt --use-mirrors
+    - pip install -r requirements/production.txt --use-mirrors
     - python server.py
     - sleep 3
     - curl http://localhost:9102/
