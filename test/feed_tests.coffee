@@ -29,9 +29,11 @@ describe "Feed tests", ->
 
     after helpers.closeApp
 
-    after (done)->
+    after (done) ->
         db.destroy ->
-            db.create done
+            db.create (err) ->
+                console.log err if err
+                done()
 
     describe "Typed Create", ->
 

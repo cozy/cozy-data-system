@@ -46,8 +46,9 @@ describe "Indexation", ->
 
     after (done) ->
         db.destroy ->
-            db.create done
-
+            db.create (err) ->
+                console.log err if err
+                done()
 
     describe "indexing and searching", ->
         it "Given I index four notes", (done) =>

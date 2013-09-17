@@ -30,7 +30,9 @@ describe "Mail handling tests", ->
 
     after (done) ->
         db.destroy ->
-            db.create done
+            db.create (err) ->
+                console.log err if err
+                done()
 
 
     describe "Send an email without an attributes", ->

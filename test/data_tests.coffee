@@ -32,7 +32,9 @@ describe "Data handling tests", ->
 
     after (done) ->
         db.destroy ->
-            db.create done
+            db.create (err) ->
+                console.log err if err
+                done()
 
 
     describe "Existence", ->
