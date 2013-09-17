@@ -63,8 +63,15 @@ before 'get doc', ->
 before 'permissions', ->
     auth = req.header('authorization')
     checkPermissions auth, @doc.docType, (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
 , only: ['addAttachment','getAttachment','removeAttachment']
 
 

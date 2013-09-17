@@ -34,8 +34,15 @@ before 'permission_keys', ->
 before 'permission', ->
     auth = req.header('authorization')
     checkDocType auth, "Account",  (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
 , only: ['createAccount', 'findAccount', 'existAccount', 'updateAccount',
         'upsertAccount', 'deleteAccount', 'deleteAllAccounts', 'mergeAccount']
 

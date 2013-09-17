@@ -7,24 +7,45 @@ checkDocType = require('./lib/token').checkDocType
 before 'permissionSendMail', ->
     auth = req.header('authorization')
     checkDocType auth, "send mail",  (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
 , only: ['sendMail']
 
 # Check if application is authorized to send a mail to user
 before 'permissionSendMail', ->
     auth = req.header('authorization')
     checkDocType auth, "send mail to user",  (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
 , only: ['sendMailToUser']
 
 # Check if application is authorized to send a mail from user
 before 'permissionSendMail', ->
     auth = req.header('authorization')
     checkDocType auth, "send mail from user",  (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
 , only: ['sendMailFromUser']
 
 # Helpers 
