@@ -15,11 +15,11 @@ describe "Feed tests", ->
     # Start application before starting tests.
     before helpers.instantiateApp
 
-    before ->
+    before (done) ->
         @subscriber = new helpers.Subscriber()
         @axonSock = axon.socket 'sub-emitter'
         @axonSock.on 'note.*', @subscriber.listener
-        @axonSock.connect 9105
+        @axonSock.connect 9105, done
 
     # Stop application after finishing tests.
 
