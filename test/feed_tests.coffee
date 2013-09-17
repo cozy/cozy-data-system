@@ -11,8 +11,7 @@ describe "Feed tests", ->
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
         db.destroy ->
-            db.create ->
-                done()
+            db.create done
     # Start application before starting tests.
     before helpers.instantiateApp
 
@@ -24,15 +23,15 @@ describe "Feed tests", ->
 
     # Stop application after finishing tests.
 
-    after helpers.closeApp
-
     after ->
         @axonSock.close()
+        @axonSock = null
+
+    after helpers.closeApp
 
     after (done)->
         db.destroy ->
-            db.create ->
-                done()
+            db.create done
 
     describe "Typed Create", ->
 

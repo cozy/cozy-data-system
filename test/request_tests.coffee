@@ -46,6 +46,10 @@ describe "Request handling tests", ->
 
     after helpers.closeApp
 
+    after (done) ->
+        db.destroy ->
+            db.create done
+
     describe "View creation", ->
         describe "Creation of the first view + design document creation", ->
             before cleanRequest
