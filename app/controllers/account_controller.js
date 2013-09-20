@@ -190,6 +190,7 @@ action('initializeKeys', function() {
             console.log("[initializeKeys] err: " + err);
             return send(500);
           } else {
+            console.log('key intialized');
             return send({
               success: true
             });

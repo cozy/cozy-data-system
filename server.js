@@ -15,9 +15,6 @@ if (!module.parent) {
     var msg;
 
     msg = ("Compound server listening on " + host + ":" + port + " within ") + ("" + (server.set('env')) + " environment");
-    console.log(msg);
-    return setInterval(function() {
-      return console.log(process.memoryUsage());
-    }, 2000);
+    return console.log(msg);
   });
 }
