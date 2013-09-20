@@ -29,7 +29,8 @@ deleteFiles = (req, callback) ->
 #  Check if application is authorized to manage attachments docType
 before 'permissions', ->
     auth = req.header('authorization')
-    checkPermissions auth, "attachments", (err, isAuth, isAuthorized) =>
+    checkPermissions auth, "attachments", (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
         next()
 , only: ['addAttachment', 'getAttachment', 'removeAttachment']
 

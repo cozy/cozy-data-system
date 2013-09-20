@@ -10,7 +10,8 @@ checkDocType = require('./lib/token').checkDocType
 # Check if application is authorized to manipulate docType given in params.type
 before 'permissions', ->
     auth = req.header('authorization')
-    checkDocType auth, params.type, (err, isAuthenticated, isAuthorized) =>
+    checkDocType auth, params.type, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
         next()
 
 # Lock document to avoid multiple modifications at the same time.
@@ -80,7 +81,10 @@ action 'removeResults', ->
                 delFunc()
 
     delFunc = ->
-        db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
+        # db.view seems to alter the options object
+        # cloning the object before each query prevents that
+        query = JSON.parse JSON.stringify body
+        db.view "#{params.type}/#{params.req_name}", query, (err, res) ->
             if err
                 send error: "not found", 404
             else

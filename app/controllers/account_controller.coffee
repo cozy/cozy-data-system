@@ -29,7 +29,8 @@ before 'permission_keys', ->
 # Check if application is authorized to manage EncryptedKeys sdocType
 before 'permission', ->
     auth = req.header('authorization')
-    checkDocType auth, "EncryptedKeys",  (err, isAuthorized) =>
+    checkDocType auth, "EncryptedKeys",  (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
         next()
 , only: ['updateKeys']
 

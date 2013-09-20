@@ -46,7 +46,8 @@ before 'get doc', ->
 # docType corresponds to docType given in parameters
 before 'permissions_param', ->
     auth = req.header('authorization')
-    checkDocType auth, body.docType, (err, isAuthenticated, isAuthorized) =>
+    checkDocType auth, body.docType, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
         next()
 , only: ['create', 'update', 'merge', 'upsert']
 
@@ -55,7 +56,8 @@ before 'permissions_param', ->
 # Required to be processed after "get doc"
 before 'permissions', ->
     auth = req.header('authorization')
-    checkDocType auth, @doc.docType, (err, isAuthenticated, isAuthorized) =>
+    checkDocType auth, @doc.docType, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
         next()
 , only: ['find', 'delete', 'merge']
 
