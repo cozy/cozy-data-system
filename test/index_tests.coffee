@@ -43,7 +43,12 @@ describe "Indexation", ->
     before helpers.instantiateApp
 
     after helpers.closeApp
-        
+
+    after (done) ->
+        db.destroy ->
+            db.create (err) ->
+                console.log err if err
+                done()
 
     describe "indexing and searching", ->
         it "Given I index four notes", (done) =>
@@ -54,7 +59,7 @@ describe "Indexation", ->
                 createNoteFunction "Note 04", "such as humans"
             ], =>
                 done()
-            
+
         it "When I send a request to search the notes with dragons", (done) ->
             data = ids: [dragonNoteId]
             indexer = fakeServer data, 200, (url, body) ->

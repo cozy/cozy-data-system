@@ -11,27 +11,28 @@ describe "Feed tests", ->
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
         db.destroy ->
-            db.create ->
-                done()
+            db.create done
     # Start application before starting tests.
     before helpers.instantiateApp
 
-    before ->
+    before (done) ->
         @subscriber = new helpers.Subscriber()
         @axonSock = axon.socket 'sub-emitter'
         @axonSock.on 'note.*', @subscriber.listener
-        @axonSock.connect 9105
+        @axonSock.connect 9105, done
 
     # Stop application after finishing tests.
 
-    after helpers.closeApp
-
     after ->
         @axonSock.close()
+        @axonSock = null
 
-    after (done)->
+    after helpers.closeApp
+
+    after (done) ->
         db.destroy ->
-            db.create ->
+            db.create (err) ->
+                console.log err if err
                 done()
 
     describe "Typed Create", ->

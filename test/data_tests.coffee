@@ -22,14 +22,20 @@ describe "Data handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
-        db.create ->
-            db.save '321', {"value":"val"}, ->
-                done()
+        db.destroy ->
+            db.create ->
+                db.save '321', value:"val", done
 
     before helpers.instantiateApp
 
     after helpers.closeApp
-        
+
+    after (done) ->
+        db.destroy ->
+            db.create (err) ->
+                console.log err if err
+                done()
+
 
     describe "Existence", ->
         describe "Check Existence of a doc that does not exist in database", ->

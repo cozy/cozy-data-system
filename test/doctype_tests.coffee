@@ -25,16 +25,10 @@ describe "Doctype handling tests", ->
         db.destroy ->
             db.create ->
                 done()
-    
 
     before helpers.instantiateApp
 
     after helpers.closeApp
-
-    after (done)->
-        db.destroy ->
-            db.create ->
-                done()
 
     describe "Create", ->
         describe "Create a Doctype in Database", ->
@@ -44,9 +38,9 @@ describe "Doctype handling tests", ->
 
             it "When I send a request to create a doc with id 321", (done) ->
                 @randomValue = randomString()
-                data = 
+                data =
                     "name": @randomValue
-                    "docType": "docType" 
+                    "docType": "docType"
                 client.post 'doctype/321/', data, (error, response, body) =>
                     @response = response
                     @body = body
@@ -66,12 +60,12 @@ describe "Doctype handling tests", ->
 
             it "And the document with id 321 in  database should be equal" +
                     " to the sent document", (done) ->
-                client.get "data/321/", (error, response, body) =>    
-                    body.should.have.property 'name', @randomValue 
+                client.get "data/321/", (error, response, body) =>
+                    body.should.have.property 'name', @randomValue
                     body.should.have.property 'docType', "doctype"
-                    done() 
+                    done()
 
-     
+
         describe "Create a new Doctype without an id", ->
             before cleanRequest
             after ->
@@ -80,9 +74,9 @@ describe "Doctype handling tests", ->
 
             it "When I send a request to create a doc without an id", (done) ->
                 @randomValue = randomString()
-                data = 
+                data =
                     "name": @randomValue
-                    "docType": "docType" 
+                    "docType": "docType"
                 client.post 'doctype/', data, (error, response, body) =>
                     @response = response
                     @body = body
@@ -101,9 +95,9 @@ describe "Doctype handling tests", ->
 
             it "And the document in  database should be equal " +
                     "to the sent document", (done)->
-                client.get "data/"+ @_id + "/", (error, response, body) =>    
-                    body.should.have.property 'name', @randomValue 
-                    body.should.have.property 'docType', "doctype" 
+                client.get "data/"+ @_id + "/", (error, response, body) =>
+                    body.should.have.property 'name', @randomValue
+                    body.should.have.property 'docType', "doctype"
                     done()
 
 
@@ -129,9 +123,9 @@ describe "Doctype handling tests", ->
 
             it "And the name of the document in  database should be equal to " +
                     "the sent document", (done) ->
-                client.get "data/123/", (error, response, body) => 
-                    @body = body     
-                    @body.should.have.property 'name', @randomValue 
+                client.get "data/123/", (error, response, body) =>
+                    @body = body
+                    @body.should.have.property 'name', @randomValue
                     done()
 
             it "And document has a field docType equals to 'docType", ->
@@ -146,8 +140,8 @@ describe "Doctype handling tests", ->
 
             it "When I send a request to create a doc without an id", (done) ->
                 @randomValue = randomString()
-                data = 
-                    "docType": "docType" 
+                data =
+                    "docType": "docType"
                 client.post 'doctype/', data, (error, response, body) =>
                     @error = body.error
                     @response = response
@@ -170,9 +164,9 @@ describe "Doctype handling tests", ->
 
             it "When I send a request to create a doc without an id", (done) ->
                 @randomValue = randomString()
-                data = 
+                data =
                     "name": @randomValue
-                    "docType": "falseDocType" 
+                    "docType": "falseDocType"
                 client.post 'doctype/', data, (error, response, body) =>
                     @error = body.error
                     @response = response
@@ -192,21 +186,21 @@ describe "Doctype handling tests", ->
                 delete @randomValue
                 delete @_id
 
-            it "When I send a request to create a docType with name " + 
+            it "When I send a request to create a docType with name " +
                     "'Application'", (done) ->
                 @randomValue = randomString()
-                data = 
+                data =
                     "name": "Application"
-                    "docType": "docType" 
+                    "docType": "docType"
                 client.post 'doctype/', data, (error, response, body) =>
                     done()
 
-            it "And I send a new request to create a docType with name " + 
+            it "And I send a new request to create a docType with name " +
                     "application'", (done) ->
                 @randomValue = randomString()
-                data = 
+                data =
                     "name": "Application"
-                    "docType": "docType" 
+                    "docType": "docType"
                 client.post 'doctype/', data, (error, response, body) =>
                     @error = body.error
                     @response = response

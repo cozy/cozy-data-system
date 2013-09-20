@@ -28,9 +28,16 @@ describe "Mail handling tests", ->
 
     after  helpers.closeApp
 
+    after (done) ->
+        db.destroy ->
+            db.create (err) ->
+                console.log err if err
+                done()
+
+
     describe "Send an email without an attributes", ->
 
-        describe "Send an email without email: ", ->        
+        describe "Send an email without email: ", ->
 
             it "When I send a request to send email", (done) ->
                 data =
@@ -49,7 +56,7 @@ describe "Mail handling tests", ->
                     @body.error.should.be.equal 'Body has not all necessary ' +
                         'attributes'
 
-        describe "Send an email without from: ", ->        
+        describe "Send an email without from: ", ->
 
             it "When I send a request to send email", (done) ->
                 data =
@@ -68,7 +75,7 @@ describe "Mail handling tests", ->
                     @body.error.should.be.equal 'Body has not all necessary ' +
                         'attributes'
 
-        describe "Send an email without subject: ", ->        
+        describe "Send an email without subject: ", ->
 
             it "When I send a request to send email", (done) ->
                 data =
@@ -87,7 +94,7 @@ describe "Mail handling tests", ->
                     @body.error.should.be.equal 'Body has not all necessary ' +
                         'attributes'
 
-        describe "Send an email without content: ", ->        
+        describe "Send an email without content: ", ->
 
             it "When I send a request to send email", (done) ->
                 data =
@@ -107,7 +114,7 @@ describe "Mail handling tests", ->
                         'attributes'
 
 
-    ###describe "Send an email with wrong mail: ", ->        
+    ###describe "Send an email with wrong mail: ", ->
 
         it "When I send a request to send email", (done) ->
             data =
@@ -124,10 +131,10 @@ describe "Mail handling tests", ->
         it "Then 500 sould be returned as error code", ->
                 @res.statusCode.should.be.equal 500
                 @body.error.should.be.exist
-                @body.error.name.should.be.equal 'RecipientError'  
+                @body.error.name.should.be.equal 'RecipientError'
 
 
-    describe "Send an email: ", ->        
+    describe "Send an email: ", ->
 
         it "When I send a request to send email", (done) ->
             data =
@@ -143,9 +150,9 @@ describe "Mail handling tests", ->
                 done()
 
         it "Then 200 sould be returned as code", ->
-            @res.statusCode.should.be.equal 200  
+            @res.statusCode.should.be.equal 200
 
-    describe "Send an email to several recipients: ", ->        
+    describe "Send an email to several recipients: ", ->
 
         it "When I send a request to send email", (done) ->
             data =
@@ -162,7 +169,7 @@ describe "Mail handling tests", ->
         it "Then 200 sould be returned as code", ->
             @res.statusCode.should.be.equal 200
 
-    describe "Send an email to user: ", ->        
+    describe "Send an email to user: ", ->
 
         it "When I send a request to send email", (done) ->
             data =
@@ -178,7 +185,7 @@ describe "Mail handling tests", ->
         it "Then 200 sould be returned as code", ->
             @res.statusCode.should.be.equal 200
 
-    describe "Send an email from user: ", ->        
+    describe "Send an email from user: ", ->
 
         it "When I send a request to send email", (done) ->
             data =
