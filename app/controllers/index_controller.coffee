@@ -17,17 +17,31 @@ checkDocType = require('./lib/token').checkDocType
 before 'permission', ->
     auth = req.header('authorization')
     checkDocType auth, params.type, (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
 , only: ['search']
 
-# Check if application is authorized to manipulate index docType
+# Check if application is authorized to manipulate all docTypes
 before 'permission', ->
     auth = req.header('authorization')
-    checkDocType auth, "index", (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
-, only: ['remove', 'removeAll', 'index']
+    checkDocType auth, "all", (err, appName, isAuthorized) =>
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
+, only: ['removeAll']
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
@@ -41,6 +55,16 @@ before 'lock request', ->
 after 'unlock request', ->
     app.locker.removeLock @lock
 , only: ['index', 'remove']
+
+
+## Helpers
+
+# Check if application is authorized to manipulate docType given in params.type
+permission = (docType, callback) ->
+    auth = req.header('authorization')
+    checkDocType auth, docType, (err, appName, isAuthorized) =>
+        compound.app.feed.publish 'usage.application', appName
+        callback()
 
 
 ## Actions
@@ -60,7 +84,11 @@ action 'index', ->
                 send resbody, res.statusCode
 
     db.get params.id, (err, doc) ->
-        if doc? then indexDoc(doc) else send 404
+        if doc?
+            permission doc.docType, () =>
+                indexDoc(doc)
+        else
+            send 404
 
 
 # POST /data/search/
@@ -103,7 +131,12 @@ action 'remove', ->
                 send resbody, res.statusCode
 
     db.get params.id, (err, doc) ->
-        if doc? then removeIndex(doc) else send 404
+        permission doc.docType, () =>
+            if doc?
+                permission doc.docType, () =>
+                    removeIndex(doc)
+            else
+                send 404
 
 
 # DELETE /data/index/clear-all/

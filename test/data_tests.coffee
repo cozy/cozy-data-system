@@ -26,16 +26,22 @@ describe "Data handling tests", ->
             db.create ->
                 db.save '321', value:"val", done
 
+    before ->
+        client.setBasicAuth "home", "token"
+
     before helpers.instantiateApp
 
     after helpers.closeApp
 
+<<<<<<< HEAD
     after (done) ->
         db.destroy ->
             db.create (err) ->
                 console.log err if err
                 done()
 
+=======
+>>>>>>> 4378c93caf499a0c226d13445118bac55d03fe92
 
     describe "Existence", ->
         describe "Check Existence of a doc that does not exist in database", ->

@@ -3,7 +3,7 @@ module.exports = (compound) ->
     fs = require 'fs'
     app = compound.app
 
-        
+
     app.configure ->
         app.enable 'coffee'
 
@@ -18,5 +18,7 @@ module.exports = (compound) ->
         if process.env.NODE_ENV is "production"
             logFile = fs.createWriteStream './log/production.log', {flags: 'a'}
             app.use express.logger {stream: logFile, format: format}
+        if process.env.NODE_ENV is "test"
+            process.env.TOKEN = "token"
 
         app.use app.router

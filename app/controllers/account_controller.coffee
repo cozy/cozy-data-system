@@ -10,7 +10,7 @@ randomString = require('./lib/random').randomString
 accountManager = new Account()
 client = new Client("http://localhost:9102/")
 
-checkProxy = require('./lib/token').checkProxy
+checkProxyHome = require('./lib/token').checkProxyHome
 checkDocType = require('./lib/token').checkDocType
 cryptoTools = new CryptoTools()
 user = new User()
@@ -22,17 +22,29 @@ correctWitness = "Encryption is correct"
 
 # Check if application which want manage encrypted keys is Proxy
 before 'permission_keys', ->
-   checkProxy req.header('authorization'),  (err, isAuthorized) =>
-        next()
-, only: ['initializeKeys', 'deleteKeys', 'resetKeys']
+   checkProxyHome req.header('authorization'), (err, isAuthorized) =>
+        if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            next()
+, only: ['initializeKeys','updateKeys', 'deleteKeys', 'resetKeys']
 
 # Check if application is authorized to manage EncryptedKeys sdocType
 before 'permission', ->
     auth = req.header('authorization')
-    checkDocType auth, "EncryptedKeys",  (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
-, only: ['updateKeys']
+    checkDocType auth, "Account",  (err, appName, isAuthorized) =>
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
+, only: ['createAccount', 'findAccount', 'existAccount', 'updateAccount',
+        'upsertAccount', 'deleteAccount', 'deleteAllAccounts', 'mergeAccount']
 
 # Recover doc from database  with id equal to params.id
 # and check if decryption of witness is correct
@@ -213,7 +225,7 @@ action 'resetKeys', ->
                     console.log "[resetKeys] err: #{err}"
                     send 500
                 else
-                    send 204
+                    send success: true, 204
 
 
 #DELETE /accounts/
@@ -221,7 +233,7 @@ action 'deleteKeys', ->
     if app.crypto? and app.crypto.masterKey and app.crypto.slaveKey
         app.crypto.masterKey = null
         app.crypto.slaveKey = null
-        send 204
+        send sucess: true, 204
     else
         console.log "[deleteKeys] err: masterKey and slaveKey don't exist"
         send error: "masterKey and slaveKey don't exis", 500

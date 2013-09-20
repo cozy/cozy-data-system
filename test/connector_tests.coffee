@@ -44,6 +44,7 @@ describe 'Connectors - Bank / Accounts', ->
             data =
                 login: 'me'
                 password: 'secret'
+            client.setBasicAuth "home", "token"
             client.post 'connectors/bank/bnp/', data, (err, res, body) =>
                 @res = res
                 @body = body

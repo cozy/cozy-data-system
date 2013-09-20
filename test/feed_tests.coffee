@@ -35,6 +35,31 @@ describe "Feed tests", ->
                 console.log err if err
                 done()
 
+    describe "Install application which can manage note", ->
+
+        it "When I send a request to post an application", (done) ->
+            data =
+                "name": "test"
+                "slug": "test"
+                "state": "installed"
+                "password": "token"
+                "permissions":
+                    "Note":
+                        "description": "This application needs ..."
+                "docType": "Application"
+            client.setBasicAuth "home", "token"
+            client.post 'data/', data, (err, res, body) =>
+                @body = body
+                @err = err
+                @res = res
+                done()
+
+        it "Then no error should be returned", ->
+            should.equal  @err, null
+
+        it "And HTTP status 201 should be returned", ->
+            @res.statusCode.should.equal 201
+
     describe "Typed Create", ->
 
         it "When I send a request to create a Note-typed doc", (done) ->
@@ -43,12 +68,12 @@ describe "Feed tests", ->
                 title: "title"
                 content: "content"
                 docType: "Note"
-
+            client.setBasicAuth "test", "token"
             client.post "data/", note, (error, response, body) =>
                 console.log error if error
                 @idT = body['_id']
 
-            @subscriber.wait done
+                @subscriber.wait done
 
         it "Then I receive a note.create on my subscriber", ->
             @subscriber.haveBeenCalled('create', @idT).should.be.ok

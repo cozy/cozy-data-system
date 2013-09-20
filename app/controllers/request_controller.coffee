@@ -11,15 +11,21 @@ checkDocType = require('./lib/token').checkDocType
 before 'permissions', ->
     auth = req.header('authorization')
     checkDocType auth, params.type, (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
     @lock = "#{params.type}"
     compound.app.locker.runIfUnlock @lock, =>
         compound.app.locker.addLock @lock
-
         next()
 , only: ['definition', 'remove']
 
