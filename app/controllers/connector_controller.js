@@ -18,7 +18,8 @@ before('permissions', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkPermissions(auth, "connectors", function(err, isAuthenticated, isAuthorized) {
+  return checkPermissions(auth, "connectors", function(err, appName, isAuthorized) {
+    compound.app.feed.publish('usage.application', appName);
     return next();
   });
 });

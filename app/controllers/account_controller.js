@@ -45,7 +45,8 @@ before('permission', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkDocType(auth, "EncryptedKeys", function(err, isAuthorized) {
+  return checkDocType(auth, "EncryptedKeys", function(err, appName, isAuthorized) {
+    compound.app.feed.publish('usage.application', appName);
     return next();
   });
 }, {

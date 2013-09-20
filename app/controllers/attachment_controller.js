@@ -41,7 +41,8 @@ before('permissions', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkPermissions(auth, "attachments", function(err, isAuth, isAuthorized) {
+  return checkPermissions(auth, "attachments", function(err, appName, isAuthorized) {
+    compound.app.feed.publish('usage.application', appName);
     return next();
   });
 }, {

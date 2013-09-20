@@ -20,7 +20,8 @@ before('permission', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkDocType(auth, params.type, function(err, isAuthenticated, isAuthorized) {
+  return checkDocType(auth, params.type, function(err, appName, isAuthorized) {
+    compound.app.feed.publish('usage.application', appName);
     return next();
   });
 }, {
@@ -32,7 +33,8 @@ before('permission', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkDocType(auth, "index", function(err, isAuthenticated, isAuthorized) {
+  return checkDocType(auth, "index", function(err, appName, isAuthorized) {
+    compound.app.feed.publish('usage.application', appName);
     return next();
   });
 }, {

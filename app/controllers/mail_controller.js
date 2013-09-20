@@ -15,7 +15,8 @@ before('permissionSendMail', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkDocType(auth, "send mail", function(err, isAuthorized) {
+  return checkDocType(auth, "send mail", function(err, appName, isAuthorized) {
+    compound.app.feed.publish('usage.application', appName);
     return next();
   });
 }, {
@@ -27,7 +28,8 @@ before('permissionSendMail', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkDocType(auth, "send mail to user", function(err, isAuthorized) {
+  return checkDocType(auth, "send mail to user", function(err, appName, isAuthorized) {
+    compound.app.feed.publish('usage.application', appName);
     return next();
   });
 }, {
@@ -39,7 +41,8 @@ before('permissionSendMail', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkDocType(auth, "send mail from user", function(err, isAuthorized) {
+  return checkDocType(auth, "send mail from user", function(err, appName, isAuthorized) {
+    compound.app.feed.publish('usage.application', appName);
     return next();
   });
 }, {

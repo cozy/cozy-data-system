@@ -14,7 +14,8 @@ before('permissions', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkDocType(auth, params.type, function(err, isAuthenticated, isAuthorized) {
+  return checkDocType(auth, params.type, function(err, appName, isAuthorized) {
+    compound.app.feed.publish('usage.application', appName);
     return next();
   });
 });
@@ -100,7 +101,10 @@ action('removeResults', function() {
     });
   };
   delFunc = function() {
-    return db.view("" + params.type + "/" + params.req_name, body, function(err, res) {
+    var query;
+
+    query = JSON.parse(JSON.stringify(body));
+    return db.view("" + params.type + "/" + params.req_name, query, function(err, res) {
       if (err) {
         return send({
           error: "not found"
