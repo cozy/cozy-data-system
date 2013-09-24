@@ -90,9 +90,9 @@ action 'addAttachment', ->
         stream = db.saveAttachment @doc, fileData, (err, res) ->
             if err
                 console.log "[Attachment] err: " + JSON.stringify err
-                deleteFiles req, -> send 500
+                deleteFiles req, -> send error: err.toString(), 500
             else
-                deleteFiles req, -> send 201
+                deleteFiles req, -> send success: true, 201
 
         fs.createReadStream(file.path).pipe(stream)
 
