@@ -11,6 +11,7 @@ checkDocType = require('./lib/token').checkDocType
 before 'permissions', ->
     auth = req.header('authorization')
     checkDocType auth, params.type, (err, appName, isAuthorized) =>
+        @appName = appName
         compound.app.feed.publish 'usage.application', appName
         next()
 
@@ -52,11 +53,9 @@ action 'doctypes', ->
         send out
 
 
-
-
 # POST /request/:type/:req_name
 action 'results', ->
-    db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
+    db.view "#{params.type}/#{@appName}-#{params.req_name}", body, (err, res) ->
         if err
             if err.error is "not_found"
                 send error: "not found", 404
@@ -84,7 +83,8 @@ action 'removeResults', ->
         # db.view seems to alter the options object
         # cloning the object before each query prevents that
         query = JSON.parse JSON.stringify body
-        db.view "#{params.type}/#{params.req_name}", query, (err, res) ->
+        path = "#{params.type}/#{@appName}-#{params.req_name}"
+        db.view path, query, (err, res) ->
             if err
                 send error: "not found", 404
             else
@@ -97,7 +97,7 @@ action 'removeResults', ->
 # PUT /request/:type/:req_name
 action 'definition', ->
     # no need to precise language because it's javascript
-    db.get "_design/#{params.type}", (err, res) ->
+    db.get "_design/#{params.type}", (err, res) =>
 
         if err && err.error is 'not_found'
             design_doc = {}
@@ -114,7 +114,7 @@ action 'definition', ->
 
         else
             views = res.views
-            views[params.req_name] = body
+            views["#{@appName}-#{params.req_name}"] = body
             db.merge "_design/#{params.type}", {views:views}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
@@ -131,7 +131,7 @@ action 'remove', ->
             send error: true, msg: err.message, 500
         else
             views = res.views
-            delete views[params.req_name]
+            delete views["#{@appName}-#{params.req_name}"]
             db.merge "_design/#{params.type}", {views:views}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
