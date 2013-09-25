@@ -9,7 +9,6 @@
     "type": "git",
     "url": "https://github.com/mycozycloud/cozy-data-system.git"
   },
-  "main": "server.coffee",
   "dependencies": {
     "express": "= 3.0.6",
     "compound": "= 1.1.6-2",
