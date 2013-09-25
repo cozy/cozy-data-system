@@ -91,13 +91,14 @@ module.exports.checkProxyHome = (auth, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Update application permissions and token
 module.exports.updatePermissions = (body, callback) ->
+    name = body.slug
     if productionOrTest
         if body.password?
-            tokens[body.name] = body.password
-        permissions[body.name] = {}
+            tokens[name] = body.password
+        permissions[name] = {}
         if body.permissions?
             for docType, description of body.permissions
-                permissions[body.name][docType.toLowerCase()] = description
+                permissions[name][docType.toLowerCase()] = description
 
 
 ## function initHomeProxy (callback)
@@ -129,13 +130,14 @@ initHomeProxy = (callback) ->
 ## @callback {function} Continuation to pass control back to when complete
 ## Initialize tokens and permissions for application
 initApplication = (appli, callback) ->
+    name = body.slug
     if appli.state is "installed"
-        tokens[appli.name] = appli.password
+        tokens[name] = appli.password
         if appli.permissions? and appli.permissions isnt null
-            permissions[appli.name] = {}
+            permissions[name] = {}
             for docType, description of appli.permissions
                 docType = docType.toLowerCase()
-                permissions[appli.name][docType] = description
+                permissions[name][docType] = description
     callback null
 
 
