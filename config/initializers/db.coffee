@@ -59,6 +59,7 @@ module.exports = (compound) ->
             if err
                 compound.logger.write "Error:", err
             else if exists
+                request_create()
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
                     couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
@@ -76,6 +77,7 @@ module.exports = (compound) ->
                 else
                     logFound()
             else
+                request_create()
                 db_create()
 
     db_create = ->
@@ -92,6 +94,18 @@ module.exports = (compound) ->
                         logCreated
             else
                 logCreated
+
+    # this request is used to retrieved all the doctypes in the DS
+    request_create = ->
+        db.save('_design/doctypes', {
+            all: {
+                map: (doc) ->
+                    if(doc.docType)
+                        emit doc.docType, null
+                reduce: (key, values) -> # use to make a "distinct"
+                    null
+            }
+        });
 
     feed_start = ->
         app.feed.startListening(db)
