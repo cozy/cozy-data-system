@@ -31,6 +31,32 @@ describe "Doctype handling tests", ->
     after helpers.closeApp
 
     describe "Create", ->
+        describe "Install an application which has access to every docs", ->
+            before cleanRequest
+
+        it "When I send a request to post an application", (done) ->
+            data =
+                "name": "test"
+                "slug": "test"
+                "state": "installed"
+                "password": "token"
+                "permissions":
+                    "All":
+                        "description": "This application needs manage notes because ..."
+                "docType": "Application"
+            client.setBasicAuth "home", "token"
+            client.post 'data/', data, (err, res, body) =>
+                @body = body
+                @err = err
+                @res = res
+                done()
+
+            it "Then no error should be returned", ->
+                should.equal  @err, null
+
+            it "And HTTP status 201 should be returned", ->
+                @res.statusCode.should.equal 201
+
         describe "Create a Doctype in Database", ->
             before cleanRequest
             after ->
@@ -41,6 +67,7 @@ describe "Doctype handling tests", ->
                 data =
                     "name": @randomValue
                     "docType": "docType"
+                client.setBasicAuth "test", "token"
                 client.post 'doctype/321/', data, (error, response, body) =>
                     @response = response
                     @body = body

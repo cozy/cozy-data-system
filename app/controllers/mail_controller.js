@@ -16,8 +16,20 @@ before('permissionSendMail', function() {
 
   auth = req.header('authorization');
   return checkDocType(auth, "send mail", function(err, appName, isAuthorized) {
-    compound.app.feed.publish('usage.application', appName);
-    return next();
+    if (!appName) {
+      err = new Error("Application is not authenticated");
+      return send({
+        error: err
+      }, 401);
+    } else if (!isAuthorized) {
+      err = new Error("Application is not authorized");
+      return send({
+        error: err
+      }, 403);
+    } else {
+      compound.app.feed.publish('usage.application', appName);
+      return next();
+    }
   });
 }, {
   only: ['sendMail']
@@ -29,8 +41,20 @@ before('permissionSendMail', function() {
 
   auth = req.header('authorization');
   return checkDocType(auth, "send mail to user", function(err, appName, isAuthorized) {
-    compound.app.feed.publish('usage.application', appName);
-    return next();
+    if (!appName) {
+      err = new Error("Application is not authenticated");
+      return send({
+        error: err
+      }, 401);
+    } else if (!isAuthorized) {
+      err = new Error("Application is not authorized");
+      return send({
+        error: err
+      }, 403);
+    } else {
+      compound.app.feed.publish('usage.application', appName);
+      return next();
+    }
   });
 }, {
   only: ['sendMailToUser']
@@ -42,8 +66,20 @@ before('permissionSendMail', function() {
 
   auth = req.header('authorization');
   return checkDocType(auth, "send mail from user", function(err, appName, isAuthorized) {
-    compound.app.feed.publish('usage.application', appName);
-    return next();
+    if (!appName) {
+      err = new Error("Application is not authenticated");
+      return send({
+        error: err
+      }, 401);
+    } else if (!isAuthorized) {
+      err = new Error("Application is not authorized");
+      return send({
+        error: err
+      }, 403);
+    } else {
+      compound.app.feed.publish('usage.application', appName);
+      return next();
+    }
   });
 }, {
   only: ['sendMailFromUser']

@@ -18,9 +18,21 @@ before('permissions', function() {
     _this = this;
 
   auth = req.header('authorization');
-  return checkPermissions(auth, "connectors", function(err, appName, isAuthorized) {
-    compound.app.feed.publish('usage.application', appName);
-    return next();
+  return checkPermissions(auth, body.docType, function(err, appName, isAuthorized) {
+    if (!appName) {
+      err = new Error("Application is not authenticated");
+      return send({
+        error: err
+      }, 401);
+    } else if (!isAuthorized) {
+      err = new Error("Application is not authorized");
+      return send({
+        error: err
+      }, 403);
+    } else {
+      compound.app.feed.publish('usage.application', appName);
+      return next();
+    }
   });
 });
 

@@ -36,19 +36,6 @@ deleteFiles = function(req, callback) {
   }
 };
 
-before('permissions', function() {
-  var auth,
-    _this = this;
-
-  auth = req.header('authorization');
-  return checkPermissions(auth, "attachments", function(err, appName, isAuthorized) {
-    compound.app.feed.publish('usage.application', appName);
-    return next();
-  });
-}, {
-  only: ['addAttachment', 'getAttachment', 'removeAttachment']
-});
-
 before('lock request', function() {
   var _this = this;
 
@@ -92,6 +79,31 @@ before('get doc', function() {
       });
     }
   });
+});
+
+before('permissions', function() {
+  var auth,
+    _this = this;
+
+  auth = req.header('authorization');
+  return checkPermissions(auth, this.doc.docType, function(err, appName, isAuthorized) {
+    if (!appName) {
+      err = new Error("Application is not authenticated");
+      return send({
+        error: err
+      }, 401);
+    } else if (!isAuthorized) {
+      err = new Error("Application is not authorized");
+      return send({
+        error: err
+      }, 403);
+    } else {
+      compound.app.feed.publish('usage.application', appName);
+      return next();
+    }
+  });
+}, {
+  only: ['addAttachment', 'getAttachment', 'removeAttachment']
 });
 
 action('addAttachment', function() {

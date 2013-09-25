@@ -26,14 +26,6 @@ deleteFiles = (req, callback) ->
 
 ## Before and after methods
 
-#  Check if application is authorized to manage attachments docType
-before 'permissions', ->
-    auth = req.header('authorization')
-    checkPermissions auth, "attachments", (err, appName, isAuthorized) =>
-        compound.app.feed.publish 'usage.application', appName
-        next()
-, only: ['addAttachment', 'getAttachment', 'removeAttachment']
-
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
     @lock = "#{params.id}"
@@ -64,6 +56,23 @@ before 'get doc', ->
         else
             app.locker.removeLock @lock
             deleteFiles req, -> send error: "not found", 404
+
+# Check if application is authorized to manage docType
+# docType corresponds to docType of recovered document from database
+# Required to be processed after "get doc"
+before 'permissions', ->
+    auth = req.header('authorization')
+    checkPermissions auth, @doc.docType, (err, appName, isAuthorized) =>
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            compound.app.feed.publish 'usage.application', appName
+            next()
+, only: ['addAttachment','getAttachment','removeAttachment']
 
 
 ## Actions

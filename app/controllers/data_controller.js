@@ -68,8 +68,20 @@ before('permissions_param', function() {
 
   auth = req.header('authorization');
   return checkDocType(auth, body.docType, function(err, appName, isAuthorized) {
-    compound.app.feed.publish('usage.application', appName);
-    return next();
+    if (!appName) {
+      err = new Error("Application is not authenticated");
+      return send({
+        error: err
+      }, 401);
+    } else if (!isAuthorized) {
+      err = new Error("Application is not authorized");
+      return send({
+        error: err
+      }, 403);
+    } else {
+      compound.app.feed.publish('usage.application', appName);
+      return next();
+    }
   });
 }, {
   only: ['create', 'update', 'merge', 'upsert']
@@ -81,8 +93,20 @@ before('permissions', function() {
 
   auth = req.header('authorization');
   return checkDocType(auth, this.doc.docType, function(err, appName, isAuthorized) {
-    compound.app.feed.publish('usage.application', appName);
-    return next();
+    if (!appName) {
+      err = new Error("Application is not authenticated");
+      return send({
+        error: err
+      }, 401);
+    } else if (!isAuthorized) {
+      err = new Error("Application is not authorized");
+      return send({
+        error: err
+      }, 403);
+    } else {
+      compound.app.feed.publish('usage.application', appName);
+      return next();
+    }
   });
 }, {
   only: ['find', 'delete', 'merge']
