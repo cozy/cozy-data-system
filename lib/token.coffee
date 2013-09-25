@@ -130,7 +130,7 @@ initHomeProxy = (callback) ->
 ## @callback {function} Continuation to pass control back to when complete
 ## Initialize tokens and permissions for application
 initApplication = (appli, callback) ->
-    name = body.slug
+    name = appli.slug
     if appli.state is "installed"
         tokens[name] = appli.password
         if appli.permissions? and appli.permissions isnt null
