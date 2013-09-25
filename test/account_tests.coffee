@@ -36,6 +36,10 @@ describe "Account handling tests", ->
 
     after  helpers.closeApp
 
+    after (done) ->
+        db.destroy ->
+            db.create done
+
     describe "Operation of cryptography : ", ->
         describe "Encryption", ->
             before cleanRequest

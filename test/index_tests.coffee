@@ -48,6 +48,12 @@ describe "Indexation", ->
 
     after helpers.closeApp
 
+    after (done) ->
+        db.destroy ->
+            db.create (err) ->
+                console.log err if err
+                done()
+                
     describe "Install application which can manage note", ->
 
         it "When I send a request to post an application", (done) ->

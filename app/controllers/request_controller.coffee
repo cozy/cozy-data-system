@@ -87,7 +87,10 @@ action 'removeResults', ->
                 delFunc()
 
     delFunc = ->
-        db.view "#{params.type}/#{params.req_name}", body, (err, res) ->
+        # db.view seems to alter the options object
+        # cloning the object before each query prevents that
+        query = JSON.parse JSON.stringify body
+        db.view "#{params.type}/#{params.req_name}", query, (err, res) ->
             if err
                 send error: "not found", 404
             else

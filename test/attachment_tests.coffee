@@ -10,8 +10,7 @@ describe "Attachments", ->
     before (done) ->
         db.destroy ->
             db.create ->
-                db.save '321', value: "val", ->
-                    done()
+                db.save '321', value: "val", done
 
     before helpers.instantiateApp
 
@@ -24,6 +23,10 @@ describe "Attachments", ->
         done()
 
     after helpers.closeApp
+
+    after (done) ->
+        db.destroy ->
+            db.create done
 
     describe "Add an attachment", ->
 

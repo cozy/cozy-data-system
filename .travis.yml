@@ -7,3 +7,13 @@ services:
 env:
     global:
         - NODE_ENV=test
+before_install:
+    - sudo /usr/bin/npm install coffee-script -g
+    - git clone git://github.com/mycozycloud/cozy-data-indexer.git
+    - cd cozy-data-indexer
+    - sudo pip install -r requirements/common.txt --use-mirrors
+    - sudo pip install -r requirements/production.txt --use-mirrors
+    - sudo start-stop-daemon --start -b --exec /usr/bin/python /home/travis/build/mycozycloud/cozy-data-system/cozy-data-indexer/server.py
+    - sleep 3
+    - curl http://localhost:9102/
+    - cd ..

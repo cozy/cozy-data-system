@@ -47,6 +47,10 @@ describe "Request handling tests", ->
 
     after helpers.closeApp
 
+    after (done) ->
+        db.destroy ->
+            db.create done
+
     describe "View creation", ->
         describe "Install an application which has access to every docs", ->
 
@@ -119,6 +123,18 @@ describe "Request handling tests", ->
                     res.views.should.have.property 'even_num', @viewEven
                     done()
 
+            it "When I send a request to create a complex view (with array)", (done) ->
+                map = (doc) ->
+                    if (doc.num? && (doc.num % 2) is 0)
+                        emit ["test", doc.num, doc.num], doc
+                    return
+                @viewEven = {map:map.toString()}
+
+                client.put 'request/all/even_num_array/', @viewEven, \
+                        (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    done()
+
     describe "Access to a view without option", ->
         describe "Access to a non existing view", ->
             before cleanRequest
@@ -172,6 +188,17 @@ describe "Request handling tests", ->
             it "Then I should have 1 documents returned", ->
                 @body.should.have.length 1
 
+            it "When I send a request to get doc with complex query", (done) ->
+                client.post "request/all/even_num_array/", \
+                    {startkey: ["test", 10], endkey: ["test", 10, {}]}, \
+                            (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = body
+                    done()
+
+            it "Then I should have 1 documents returned", ->
+                @body.should.have.length 1
+
         describe "Access to a view : even_num, with wrong key param", (done) ->
             before cleanRequest
 
@@ -207,6 +234,14 @@ describe "Request handling tests", ->
             it "Then I should have 0 documents returned", ->
                 @body.should.have.length 0
 
+            it "When I send a request to delete a doc from even_num with complex query", (done) ->
+                client.put "request/all/even_num_array/destroy/", \
+                            {startkey: ["test", 8], endkey: ["test", 8, {}]}, \
+                            (err, response, body) ->
+                    response.statusCode.should.equal 204
+                    should.not.exist err
+                    done()
+
             it "And I send a request to grab all docs from even_num", (done) ->
                 client.post "request/all/even_num/", {}, \
                             (error, response, body) =>
@@ -214,8 +249,8 @@ describe "Request handling tests", ->
                     @body = body
                     done()
 
-            it "Then I should have 0 documents returned", ->
-                @body.should.have.length 50
+            it "Then I should have 49 documents returned", ->
+                @body.should.have.length 49
 
 
         describe "Delete all doc from a view : even_num", (done) ->

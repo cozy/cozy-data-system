@@ -169,6 +169,7 @@ action 'initializeKeys', =>
                         console.log "[initializeKeys] err: #{err}"
                         send 500
                     else
+                        console.log 'key intialized'
                         send success: true
 
 

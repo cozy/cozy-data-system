@@ -47,7 +47,7 @@ module.exports = class Feed
 
     # [INTERNAL] publish to available outputs
     _publish: (event, id) ->
-        console.info "Publishing #{event} #{id}"
+        console.info "Publishing #{event} #{id}" unless process.env.NODE_ENV is "test"
         @axonSock.emit event, id if @axonSock?
 
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
