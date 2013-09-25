@@ -53,17 +53,17 @@ before 'get doc', ->
     db.get params.id, (err, doc) =>
         if err and err.error == "not_found"
             app.locker.removeLock @lock
-            deleteFiles req, -> send 404
+            deleteFiles req, -> send error: err.error, 404
         else if err
             console.log "[Attachment] err: " + JSON.stringify err
             app.locker.removeLock @lock
-            deleteFiles req, -> send 500
+            deleteFiles req, -> send error: err.error, 500
         else if doc?
             @doc = doc
             next()
         else
             app.locker.removeLock @lock
-            deleteFiles req, -> send 404
+            deleteFiles req, -> send error: "not found", 404
 
 
 ## Actions
@@ -81,9 +81,9 @@ action 'addAttachment', ->
         stream = db.saveAttachment @doc, fileData, (err, res) ->
             if err
                 console.log "[Attachment] err: " + JSON.stringify err
-                deleteFiles req, -> send 500
+                deleteFiles req, -> send error: err.error, 500
             else
-                deleteFiles req, -> send 201
+                deleteFiles req, -> send success: true, 201
 
         fs.createReadStream(file.path).pipe(stream)
 
@@ -99,9 +99,9 @@ action 'getAttachment', ->
 
     stream = db.getAttachment @doc.id, name, (err) ->
         if err and err.error = "not_found"
-            send 404
+            send error: err.error, 404
         else if err
-            send 500
+            send error: err.error, 500
         else
             send 200
 
@@ -120,9 +120,9 @@ action 'removeAttachment', ->
 
     db.removeAttachment @doc, name, (err, res) ->
         if err and err.error = "not_found"
-            send 404
+            send error: err.error, 404
         else if err
             console.log "[Attachment] err: " + JSON.stringify err
-            send 500
+            send error: err.error, 500
         else
-            send 204
+            send success: true, 204
