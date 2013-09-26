@@ -47,9 +47,9 @@ describe "Request handling tests", ->
 
     after helpers.closeApp
 
-    ###after (done) ->
+    after (done) ->
         db.destroy ->
-            db.create done###
+            db.create done
 
     describe "View creation", ->
         describe "Install an application which has access to every docs", ->
