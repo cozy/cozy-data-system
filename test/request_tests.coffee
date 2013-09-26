@@ -47,9 +47,9 @@ describe "Request handling tests", ->
 
     after helpers.closeApp
 
-    after (done) ->
+    ###after (done) ->
         db.destroy ->
-            db.create done
+            db.create done###
 
     describe "View creation", ->
         describe "Install an application which has access to every docs", ->
@@ -324,27 +324,14 @@ describe "Request handling tests", ->
     describe "Create fastly three requests (concurrency test)", ->
         before cleanRequest
 
-        it "When I create fastly three requests", (done) ->
-            async.parallel {
-                one: createAuthorRequestFunction('all')
-                two: createAuthorRequestFunction('byName')
-                three: createAuthorRequestFunction('byAuthor')
-            }, (err, results) ->
-                results.one[0].statusCode.should.eql 200
-                results.two[0].statusCode.should.eql 200
-                results.three[0].statusCode.should.eql 200
-                done()
+        
+        it "Then I create a doument with docType 'author' ", (done) ->
 
-        it "Then I got three requests in DB", (done) ->
-
-            db.get '_design/author', (err, res) ->
-                should.not.exist err
-                should.exist res
-
-                res.views.should.have.property 'all'
-                res.views.should.have.property 'byName'
-                res.views.should.have.property 'byAuthor'
-
+            data =
+                "name": "test"
+                "docType": "author"
+            client.post 'data/', data, (error, response, body) =>
+                should.not.exist error                
                 done()
 
     describe "When I call the doctype list", ->
@@ -354,7 +341,9 @@ describe "Request handling tests", ->
                 should.not.exist error
                 should.exist body
 
-                body.length.should.eql 1
-                body[0].should.eql 'author'
+                body.length.should.eql 2
+                body[0].should.eql 'Application'
+                body[1].should.eql 'author'
+
 
                 done()
