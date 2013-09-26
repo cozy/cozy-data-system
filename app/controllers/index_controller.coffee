@@ -81,7 +81,7 @@ action 'index', ->
             if err or res.statusCode != 200
                 send 500
             else
-                send resbody, res.statusCode
+                send {success: true, msg: resbody}, res.statusCode
 
     db.get params.id, (err, doc) ->
         if doc?
@@ -128,7 +128,7 @@ action 'remove', ->
             if err
                 send 500
             else
-                send resbody, res.statusCode
+                send {success: true, msg: resbody}, res.statusCode
 
     db.get params.id, (err, doc) ->
         permission doc.docType, () =>
@@ -146,4 +146,4 @@ action 'removeAll', ->
         if err
             send 500
         else
-            send resbody, res.statusCode
+            send {success: true, msg: resbody}, res.statusCode

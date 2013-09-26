@@ -110,7 +110,10 @@ action('index', function() {
       if (err || res.statusCode !== 200) {
         return send(500);
       } else {
-        return send(resbody, res.statusCode);
+        return send({
+          success: true,
+          msg: resbody
+        }, res.statusCode);
       }
     });
   };
@@ -174,7 +177,10 @@ action('remove', function() {
       if (err) {
         return send(500);
       } else {
-        return send(resbody, res.statusCode);
+        return send({
+          success: true,
+          msg: resbody
+        }, res.statusCode);
       }
     });
   };
@@ -198,7 +204,10 @@ action('removeAll', function() {
     if (err) {
       return send(500);
     } else {
-      return send(resbody, res.statusCode);
+      return send({
+        success: true,
+        msg: resbody
+      }, res.statusCode);
     }
   });
 });
