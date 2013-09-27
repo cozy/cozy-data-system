@@ -41,8 +41,9 @@ module.exports = (compound) ->
             ":#{db.connection.port} found."
         feed_start()
 
-    logError = ->
-        console.info "Error on database creation : #{err}"
+    logError = (err) ->
+        console.info "Error on database creation : "
+        console.info err
 
     logCreated = ->
         console.info "Database #{db.name} on" +
@@ -85,11 +86,11 @@ module.exports = (compound) ->
                 " #{db.connection.host}:#{db.connection.port} doesn't exist."
         db.create (err) ->
             if err
-                logError()
+                logError(err)
             else if (process.env.NODE_ENV is 'production')
                 addCozyAdmin (err) =>
                     if err
-                        logError()
+                        logError(err)
                     else
                         logCreated
             else
