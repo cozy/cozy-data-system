@@ -20,6 +20,7 @@ before 'permissions', ->
         else
             compound.app.feed.publish 'usage.application', appName
             next()
+, only: ['definition', 'remove', 'results', 'removeResults']
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
