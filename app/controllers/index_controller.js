@@ -115,7 +115,7 @@ action('index', function() {
           msg: resbody
         }, res.statusCode);
       }
-    });
+    }, false);
   };
   return db.get(params.id, function(err, doc) {
     var _this = this;
@@ -182,7 +182,7 @@ action('remove', function() {
           msg: resbody
         }, res.statusCode);
       }
-    });
+    }, false);
   };
   return db.get(params.id, function(err, doc) {
     var _this = this;
@@ -209,5 +209,5 @@ action('removeAll', function() {
         msg: resbody
       }, res.statusCode);
     }
-  });
+  }, false);
 });

@@ -25,8 +25,10 @@ exports.fakeServer = (json, code=200, callback=null) ->
             res.writeHead code, 'Content-Type': 'application/json'
             if callback?
                 data = JSON.parse body if body? and body.length > 0
-                callback req.url, data
-            res.end(JSON.stringify json)
+                result = callback req.url, data
+            resbody = if result then JSON.stringify result
+            else JSON.stringify json
+            res.end resbody
 
 
 exports.Subscriber = class Subscriber

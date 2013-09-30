@@ -82,6 +82,7 @@ action 'index', ->
                 send 500
             else
                 send {success: true, msg: resbody}, res.statusCode
+        , false # body = indexation succeeds, do not parse
 
     db.get params.id, (err, doc) ->
         if doc?
@@ -129,6 +130,7 @@ action 'remove', ->
                 send 500
             else
                 send {success: true, msg: resbody}, res.statusCode
+        , false # body is not JSON
 
     db.get params.id, (err, doc) ->
         permission doc.docType, () =>
@@ -147,3 +149,4 @@ action 'removeAll', ->
             send 500
         else
             send {success: true, msg: resbody}, res.statusCode
+    , false  # body is not JSON
