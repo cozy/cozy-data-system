@@ -24,8 +24,7 @@ describe "Doctype handling tests", ->
     before helpers.clearDB db
     before helpers.instantiateApp
 
-    after helpers.closeApp
-    after helpers.clearDB db
+    after helpers.after db
 
     describe "Create", ->
         describe "Install an application which has access to every docs", ->

@@ -43,8 +43,7 @@ describe 'Connectors - Bank / Accounts', ->
     after ->
         @indexerServer.close()
 
-    after helpers.closeApp
-    after helpers.clearDB db
+    after helpers.after db
 
 
     describe 'Bank accounts data retrieval', ->

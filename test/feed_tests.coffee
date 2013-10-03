@@ -25,8 +25,7 @@ describe "Feed tests", ->
         @axonSock.close()
         @axonSock = null
 
-    after helpers.closeApp
-    after helpers.clearDB db
+    after helpers.after db
 
     describe "Install application which can manage note", ->
 

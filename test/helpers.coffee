@@ -14,6 +14,7 @@ exports.closeApp = (done) ->
 
 exports.clearDB = (db) -> (done) ->
     @timeout 5000
+    console.log "Clear DB"
     db.destroy (err) ->
         console.log "Database destroyed"
         if err and err.error isnt 'not_found'
@@ -27,6 +28,11 @@ exports.clearDB = (db) -> (done) ->
                 console.log "db.create err : ", err if err
                 done err
         , 1000
+
+exports.after = (db) -> (done) ->
+    @app.compound.server.close()
+    done()
+    # exports.closeApp done
 
 exports.randomString = (length=32) ->
     string = ""

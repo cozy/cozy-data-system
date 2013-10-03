@@ -31,9 +31,7 @@ describe "Account handling tests", ->
         db.save '102', data, done
 
     before helpers.instantiateApp
-
-    after  helpers.closeApp
-    after  helpers.clearDB db
+    after helpers.after db
 
     describe "Operation of cryptography : ", ->
         describe "Encryption", ->

@@ -24,8 +24,7 @@ describe "Mail handling tests", ->
 
     before helpers.instantiateApp
 
-    after  helpers.closeApp
-    after  helpers.clearDB db
+    after helpers.after db
 
 
 

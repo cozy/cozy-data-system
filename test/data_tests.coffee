@@ -32,9 +32,8 @@ describe "Data handling tests", ->
 
     before helpers.instantiateApp
 
-    after helpers.closeApp
     after -> @indexer.close()
-    after helpers.clearDB db
+    after helpers.after db
 
     describe "Existence", ->
         describe "Check Existence of a doc that does not exist in database", ->

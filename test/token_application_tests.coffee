@@ -24,11 +24,8 @@ describe "Token of applications handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
     before helpers.clearDB db
-
     before helpers.instantiateApp
-
-    after helpers.closeApp
-    after helpers.clearDB db
+    after helpers.after db
 
     describe "Authentification", ->
         before cleanRequest

@@ -21,8 +21,7 @@ describe "Attachments", ->
         @nbOfFileInTmpFolder = files.length
         done()
 
-    after helpers.closeApp
-    after helpers.clearDB db
+    after helpers.after db
 
     describe "Add an attachment", ->
 

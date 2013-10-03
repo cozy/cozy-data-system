@@ -34,17 +34,12 @@ createAuthorRequestFunction = (name) ->
 
 describe "Request handling tests", ->
 
-    # Clear DB, create a new one, then init data for tests.
     before helpers.clearDB db
     before (done) ->
         docs = ({'type':'dumb_doc', 'num':num} for num in [0..100])
         db.save docs, done
-
-    # Start application before starting tests.
     before helpers.instantiateApp
-
-    after helpers.closeApp
-    after helpers.clearDB db
+    after helpers.after db
 
     describe "View creation", ->
         describe "Install an application which has access to every docs", ->

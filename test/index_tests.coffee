@@ -55,9 +55,8 @@ describe "Indexation", ->
         @indexer.listen 9092, done
 
 
-    after helpers.closeApp
     after -> @indexer.close()
-    after helpers.clearDB db
+    after helpers.after db
 
     describe "Install application which can manage note", ->
 
