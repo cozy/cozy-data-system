@@ -4,8 +4,13 @@ helpers = require('./helpers')
 
 Client = require('request-json').JsonClient
 client = new Client 'http://localhost:8888/'
+db = require('../helpers/db_connect_helper').db_connect()
 
 describe 'Connectors - Bank / Accounts', ->
+
+    before (done) ->
+        db.destroy ->
+            db.create done
 
     # Start application before starting tests.
     before helpers.instantiateApp
@@ -28,6 +33,10 @@ describe 'Connectors - Bank / Accounts', ->
 
     after helpers.closeApp
 
+    after (done) ->
+        db.destroy ->
+            db.create done
+
 
     describe 'Bank account data retrieval', ->
 
@@ -35,6 +44,7 @@ describe 'Connectors - Bank / Accounts', ->
             data =
                 login: 'me'
                 password: 'secret'
+            client.setBasicAuth "home", "token"
             client.post 'connectors/bank/bnp/', data, (err, res, body) =>
                 @res = res
                 @body = body

@@ -21,22 +21,57 @@ describe "Mail handling tests", ->
                     timezone: "Europe/Paris"
                     password: "password"
                     docType: "User"
-                db.save '102', data, (err, res, body) ->
-                    done()
+                db.save '102', data, done
 
     before helpers.instantiateApp
 
     after  helpers.closeApp
 
+    after (done) ->
+        db.destroy ->
+            db.create (err) ->
+                console.log err if err
+                done() 
+
+    
+
     describe "Send an email without an attributes", ->
 
-        describe "Send an email without email: ", ->        
+        describe "Install an application which has access to every docs", ->
+            before cleanRequest
+
+        it "When I send a request to post an application", (done) ->
+            data =
+                "name": "test"
+                "slug": "test"
+                "state": "installed"
+                "password": "token"
+                "permissions":
+                    "All":
+                        "description": "This application needs manage notes because ..."
+                "docType": "Application"
+            client.setBasicAuth "home", "token"
+            client.post 'data/', data, (err, res, body) =>
+                @body = body
+                @err = err
+                @res = res
+                done()
+
+            it "Then no error should be returned", ->
+                should.equal  @err, null
+
+            it "And HTTP status 201 should be returned", ->
+                @res.statusCode.should.equal 201
+
+
+        describe "Send an email without email: ", ->
 
             it "When I send a request to send email", (done) ->
                 data =
                     from: "Cozy-test <test@cozycloud.cc>"
                     subject: "Wrong test"
                     content: "This mail has a wrong email address"
+                client.setBasicAuth "test", "token"
                 client.post 'mail/', data, (err, res, body) =>
                     @err = err
                     @res = res
@@ -49,13 +84,14 @@ describe "Mail handling tests", ->
                     @body.error.should.be.equal 'Body has not all necessary ' +
                         'attributes'
 
-        describe "Send an email without from: ", ->        
+        describe "Send an email without from: ", ->
 
             it "When I send a request to send email", (done) ->
                 data =
                     to: "mail@cozycloud.cc"
                     subject: "Wrong test"
                     content: "This mail has a wrong email address"
+                client.setBasicAuth "test", "token"
                 client.post 'mail/', data, (err, res, body) =>
                     @err = err
                     @res = res
@@ -68,13 +104,14 @@ describe "Mail handling tests", ->
                     @body.error.should.be.equal 'Body has not all necessary ' +
                         'attributes'
 
-        describe "Send an email without subject: ", ->        
+        describe "Send an email without subject: ", ->
 
             it "When I send a request to send email", (done) ->
                 data =
                     to: "mail@cozycloud.cc"
                     from: "Cozy-test <test@cozycloud.cc>"
                     content: "This mail has a wrong email address"
+                client.setBasicAuth "test", "token"
                 client.post 'mail/', data, (err, res, body) =>
                     @err = err
                     @res = res
@@ -87,13 +124,14 @@ describe "Mail handling tests", ->
                     @body.error.should.be.equal 'Body has not all necessary ' +
                         'attributes'
 
-        describe "Send an email without content: ", ->        
+        describe "Send an email without content: ", ->
 
             it "When I send a request to send email", (done) ->
                 data =
                     to: "mail@cozycloud.cc"
                     from: "Cozy-test <test@cozycloud.cc>"
                     subject: "Wrong test"
+                client.setBasicAuth "test", "token"
                 client.post 'mail/', data, (err, res, body) =>
                     @err = err
                     @res = res
@@ -107,7 +145,7 @@ describe "Mail handling tests", ->
                         'attributes'
 
 
-    ###describe "Send an email with wrong mail: ", ->        
+    ###describe "Send an email with wrong mail: ", ->
 
         it "When I send a request to send email", (done) ->
             data =
@@ -124,10 +162,10 @@ describe "Mail handling tests", ->
         it "Then 500 sould be returned as error code", ->
                 @res.statusCode.should.be.equal 500
                 @body.error.should.be.exist
-                @body.error.name.should.be.equal 'RecipientError'  
+                @body.error.name.should.be.equal 'RecipientError'
 
 
-    describe "Send an email: ", ->        
+    describe "Send an email: ", ->
 
         it "When I send a request to send email", (done) ->
             data =
@@ -143,9 +181,9 @@ describe "Mail handling tests", ->
                 done()
 
         it "Then 200 sould be returned as code", ->
-            @res.statusCode.should.be.equal 200  
+            @res.statusCode.should.be.equal 200
 
-    describe "Send an email to several recipients: ", ->        
+    describe "Send an email to several recipients: ", ->
 
         it "When I send a request to send email", (done) ->
             data =
@@ -162,7 +200,7 @@ describe "Mail handling tests", ->
         it "Then 200 sould be returned as code", ->
             @res.statusCode.should.be.equal 200
 
-    describe "Send an email to user: ", ->        
+    describe "Send an email to user: ", ->
 
         it "When I send a request to send email", (done) ->
             data =
@@ -178,7 +216,7 @@ describe "Mail handling tests", ->
         it "Then 200 sould be returned as code", ->
             @res.statusCode.should.be.equal 200
 
-    describe "Send an email from user: ", ->        
+    describe "Send an email from user: ", ->
 
         it "When I send a request to send email", (done) ->
             data =

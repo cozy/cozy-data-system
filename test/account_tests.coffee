@@ -18,7 +18,7 @@ cleanRequest = ->
     delete @res
 
 
-describe "Data handling tests", ->
+describe "Account handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
@@ -35,6 +35,10 @@ describe "Data handling tests", ->
     before helpers.instantiateApp
 
     after  helpers.closeApp
+
+    after (done) ->
+        db.destroy ->
+            db.create done
 
     describe "Operation of cryptography : ", ->
         describe "Encryption", ->
@@ -75,6 +79,7 @@ describe "Data handling tests", ->
                     (done) ->
                 @cozyPwd = "password"
                 data = password: @cozyPwd
+                client.setBasicAuth "proxy", "token"
                 client.post 'accounts/password/', data, (err, res, body) =>
                     @res = res
                     done()

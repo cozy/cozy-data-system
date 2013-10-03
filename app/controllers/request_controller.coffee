@@ -20,7 +20,6 @@ before 'lock request', ->
     @lock = "#{params.type}"
     compound.app.locker.runIfUnlock @lock, =>
         compound.app.locker.addLock @lock
-
         next()
 , only: ['definition', 'remove']
 
@@ -39,18 +38,14 @@ after 'unlock request', ->
 action 'doctypes', ->
 
     query =
-        startkey: "_design/"
-        endkey:   "_design0"
-        include_docs: true
+        group: true
 
     out = []
 
-    db.all query, (err, res) ->
+    db.view "doctypes/all", query, (err, res) ->
         for row in res
-            if row.doc?.views?.all
-                out.push row.key.replace '_design/', ''
-
-        send out
+            out.push row.key
+        send 200, out
 
 
 # POST /request/:type/:req_name

@@ -28,6 +28,7 @@ createAuthorRequestFunction = (name) ->
             return
         view = {map:map.toString()}
 
+        client.setBasicAuth "test", "token"
         client.put "request/author/#{name}/", view, callback
 
 
@@ -46,7 +47,36 @@ describe "Request handling tests", ->
 
     after helpers.closeApp
 
+    after (done) ->
+        db.destroy ->
+            db.create done
+
     describe "View creation", ->
+        describe "Install an application which has access to every docs", ->
+
+        it "When I send a request to post an application", (done) ->
+            data =
+                "name": "test"
+                "slug": "test"
+                "state": "installed"
+                "password": "token"
+                "permissions":
+                    "All":
+                        "description": "This application needs manage notes because ..."
+                "docType": "Application"
+            client.setBasicAuth "home", "token"
+            client.post 'data/', data, (err, res, body) =>
+                @body = body
+                @err = err
+                @res = res
+                done()
+
+            it "Then no error should be returned", ->
+                should.equal  @err, null
+
+            it "And HTTP status 201 should be returned", ->
+                @res.statusCode.should.equal 201
+
         describe "Creation of the first view + design document creation", ->
             before cleanRequest
 
@@ -56,6 +86,7 @@ describe "Request handling tests", ->
                     return
                 @viewAll = {map:map.toString()}
 
+                client.setBasicAuth "test", "token"
                 client.put 'request/all/every_docs/', @viewAll, \
                         (error, response, body) =>
                     response.statusCode.should.equal 200
@@ -128,7 +159,7 @@ describe "Request handling tests", ->
                     done()
 
             it "Then I should have 101 documents returned", ->
-                @body.should.have.length 101
+                @body.should.have.length 102
 
         describe "Access to an existing view : even_num", (done) ->
             before cleanRequest
@@ -293,27 +324,14 @@ describe "Request handling tests", ->
     describe "Create fastly three requests (concurrency test)", ->
         before cleanRequest
 
-        it "When I create fastly three requests", (done) ->
-            async.parallel {
-                one: createAuthorRequestFunction('all')
-                two: createAuthorRequestFunction('byName')
-                three: createAuthorRequestFunction('byAuthor')
-            }, (err, results) ->
-                results.one[0].statusCode.should.eql 200
-                results.two[0].statusCode.should.eql 200
-                results.three[0].statusCode.should.eql 200
-                done()
+        
+        it "Then I create a doument with docType 'author' ", (done) ->
 
-        it "Then I got three requests in DB", (done) ->
-
-            db.get '_design/author', (err, res) ->
-                should.not.exist err
-                should.exist res
-
-                res.views.should.have.property 'all'
-                res.views.should.have.property 'byName'
-                res.views.should.have.property 'byAuthor'
-
+            data =
+                "name": "test"
+                "docType": "author"
+            client.post 'data/', data, (error, response, body) =>
+                should.not.exist error                
                 done()
 
     describe "When I call the doctype list", ->
@@ -323,7 +341,9 @@ describe "Request handling tests", ->
                 should.not.exist error
                 should.exist body
 
-                body.length.should.eql 1
-                body[0].should.eql 'author'
+                body.length.should.eql 2
+                body[0].should.eql 'Application'
+                body[1].should.eql 'author'
+
 
                 done()

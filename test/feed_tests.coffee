@@ -11,28 +11,54 @@ describe "Feed tests", ->
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
         db.destroy ->
-            db.create ->
-                done()
+            db.create done
     # Start application before starting tests.
     before helpers.instantiateApp
 
-    before ->
+    before (done) ->
         @subscriber = new helpers.Subscriber()
         @axonSock = axon.socket 'sub-emitter'
         @axonSock.on 'note.*', @subscriber.listener
-        @axonSock.connect 9105
+        @axonSock.connect 9105, done
 
     # Stop application after finishing tests.
 
-    after helpers.closeApp
-
     after ->
         @axonSock.close()
+        @axonSock = null
 
-    after (done)->
+    after helpers.closeApp
+
+    after (done) ->
         db.destroy ->
-            db.create ->
+            db.create (err) ->
+                console.log err if err
                 done()
+
+    describe "Install application which can manage note", ->
+
+        it "When I send a request to post an application", (done) ->
+            data =
+                "name": "test"
+                "slug": "test"
+                "state": "installed"
+                "password": "token"
+                "permissions":
+                    "Note":
+                        "description": "This application needs ..."
+                "docType": "Application"
+            client.setBasicAuth "home", "token"
+            client.post 'data/', data, (err, res, body) =>
+                @body = body
+                @err = err
+                @res = res
+                done()
+
+        it "Then no error should be returned", ->
+            should.equal  @err, null
+
+        it "And HTTP status 201 should be returned", ->
+            @res.statusCode.should.equal 201
 
     describe "Typed Create", ->
 
@@ -42,12 +68,12 @@ describe "Feed tests", ->
                 title: "title"
                 content: "content"
                 docType: "Note"
-
+            client.setBasicAuth "test", "token"
             client.post "data/", note, (error, response, body) =>
                 console.log error if error
                 @idT = body['_id']
 
-            @subscriber.wait done
+                @subscriber.wait done
 
         it "Then I receive a note.create on my subscriber", ->
             @subscriber.haveBeenCalled('create', @idT).should.be.ok

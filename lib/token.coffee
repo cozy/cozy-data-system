@@ -3,6 +3,9 @@ fs = require 'fs'
 permissions = {}
 tokens = {}
 
+productionOrTest = process.env.NODE_ENV is "production" or
+    process.env.NODE_ENV is "test"
+
 
 ## function checkToken (auth, tokens, callback)
 ## @auth {string} Field 'authorization' of request
@@ -18,16 +21,10 @@ checkToken = (auth, callback) ->
         password = auth.split(':')[1]
         # Check if application is well authenticated
         if password isnt undefined and tokens[username] is password
-            console.log("application " + username + " is authenticated")
             callback null, true, username
         else
-            console.log("Wrong authentication")
-            console.log("Token expected : " + tokens[username])
-            console.log("Token received : " + password)
             callback null, false, username
     else
-        console.log "Warning : application is not authenticated : no field " +
-            "authorization"
         callback null, false, null
 
 
@@ -38,30 +35,24 @@ checkToken = (auth, callback) ->
 ## Check if application can manage docType
 module.exports.checkDocType = (auth, docType, callback) ->
     # Check if application is authenticated
-    if process.env.NODE_ENV is "production"
+    if productionOrTest
         checkToken auth, (err, isAuthenticated, name) =>
             if isAuthenticated
                 if docType?
                     docType = docType.toLowerCase()
                     # Check if application can manage docType
                     if permissions[name][docType]?
-                        console.log "#{name} is authorized to manage #{docType}"
                         callback null, name, true
                     else if permissions[name]["all"]?
-                        console.log "#{name} is authorized to manage all " +
-                            "docTypes so, also #{docType} "
                         callback null, name, true
                     else
-                        console.log "#{name} is NOT authorized to manage " +
-                            "#{docType}"
                         callback null, name, false
                 else
-                    console.log "document hasn't docType"
                     callback null, name, true
             else
-                callback null, false
+                callback null, false, false
     else
-        callback null, null, null
+        callback null, true, true
 
 
 ## function checkProxy (auth, callback)
@@ -70,8 +61,8 @@ module.exports.checkDocType = (auth, docType, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Check if application is proxy
 ## Useful for register and login requests
-module.exports.checkProxy = (auth, callback) ->
-    if process.env.NODE_ENV is "production"
+module.exports.checkProxyHome = (auth, callback) ->
+    if productionOrTest
         if auth isnt "undefined" and auth?
             # Recover username and password in field authorization
             auth = auth.substr(5, auth.length - 1)
@@ -80,24 +71,16 @@ module.exports.checkProxy = (auth, callback) ->
             password = auth.split(':')[1]
             # Check if application is cozy-proxy
             if password isnt undefined and tokens[username] is password
-                if username is "proxy"
-                    console.log "proxy is authenticated"
+                if username is "proxy" or username is "home"
                     callback null, true
                 else
-                    console.log "application " + username +
-                        " is authenticated but isn't authorized"
                     callback null, false
             else
-                console.log("Wrong authentication")
-                console.log("Token expected : " + tokens[username])
-                console.log("Token received : " + password)
                 callback null, false
         else
-            console.log "Warning : application is not authenticated : no " +
-                "field authorization"
             callback null, false
     else
-        callback null, null
+        callback null, true
 
 
 ## function updatePermissons (body, callback)
@@ -108,13 +91,14 @@ module.exports.checkProxy = (auth, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Update application permissions and token
 module.exports.updatePermissions = (body, callback) ->
-    if process.env.NODE_ENV is "production"
+    name = body.slug
+    if productionOrTest
         if body.password?
-            tokens[body.name] = body.password
-        permissions[body.name] = {}
+            tokens[name] = body.password
+        permissions[name] = {}
         if body.permissions?
             for docType, description of body.permissions
-                permissions[body.name][docType.toLowerCase()] = description
+                permissions[name][docType.toLowerCase()] = description
 
 
 ## function initHomeProxy (callback)
@@ -137,6 +121,7 @@ initHomeProxy = (callback) ->
     tokens['proxy'] = token
     permissions.proxy =
         "user": "authorized"
+        "cozyinstance": "authorized"
     callback null
 
 
@@ -145,14 +130,15 @@ initHomeProxy = (callback) ->
 ## @callback {function} Continuation to pass control back to when complete
 ## Initialize tokens and permissions for application
 initApplication = (appli, callback) ->
+    name = appli.slug
     if appli.state is "installed"
-        tokens[appli.name] = appli.password
+        tokens[name] = appli.password
         if appli.permissions? and appli.permissions isnt null
-            permissions[appli.name] = {}
+            permissions[name] = {}
             for docType, description of appli.permissions
                 docType = docType.toLowerCase()
-                permissions[appli.name][docType] = description
-            callback null
+                permissions[name][docType] = description
+    callback null
 
 
 ## function init (callback)
@@ -160,7 +146,7 @@ initApplication = (appli, callback) ->
 ## Initialize tokens which contains applications and their tokens
 module.exports.init = (callback) ->
     # Read shared token
-    if process.env.NODE_ENV is "production"
+    if productionOrTest
         initHomeProxy () ->
             # Add token and permissions for other started applications
             db.view 'application/all', (err, res) ->
