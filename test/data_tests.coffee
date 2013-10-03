@@ -26,14 +26,17 @@ describe "Data handling tests", ->
             db.create ->
                 db.save '321', value:"val", done
 
-    before ->
+    before (done) ->
         client.setBasicAuth "home", "token"
+        @indexer = helpers.fakeServer 'deleted', 204
+        @indexer.listen 9092, done
 
     before helpers.instantiateApp
 
     after helpers.closeApp
 
     after (done) ->
+        @indexer.close()
         db.destroy ->
             db.create (err) ->
                 console.log err if err
