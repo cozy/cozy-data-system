@@ -11,7 +11,11 @@ checkDocType = require('./lib/token').checkDocType;
 
 updatePermissions = require('./lib/token').updatePermissions;
 
-client = new Client("http://localhost:9102/");
+if (process.env.NODE_ENV === "test") {
+  client = new Client("http://localhost:9092/");
+} else {
+  client = new Client("http://localhost:9102/");
+}
 
 db = require('./helpers/db_connect_helper').db_connect();
 

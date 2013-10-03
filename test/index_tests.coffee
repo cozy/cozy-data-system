@@ -37,12 +37,9 @@ describe "Indexation", ->
 
     # Clear DB, create a new one, then init data for tests.
     before (done) ->
-        indexer = new Client("http://localhost:9102/")
-        indexer.del "clear-all/", (err, response) ->
-            console.log err if err
-            db.destroy ->
-                db.create ->
-                    done()
+        db.destroy ->
+            db.create ->
+                done()
 
     before helpers.instantiateApp
 
@@ -53,7 +50,7 @@ describe "Indexation", ->
             db.create (err) ->
                 console.log err if err
                 done()
-                
+
     describe "Install application which can manage note", ->
 
         it "When I send a request to post an application", (done) ->

@@ -3,8 +3,6 @@ load 'application'
 git = require('git-rev')
 Client = require("request-json").JsonClient
 DocType = require './lib/doctype'
-
-client = new Client "http://localhost:9102/"
 docTypeManager = new DocType()
 db = require('./helpers/db_connect_helper').db_connect()
 
@@ -35,11 +33,11 @@ docTypeExist = (name, callback) ->
             docType = docTypes.pop()
             id = docType.value._id
             db.get id, (err, res) =>
-                if err 
+                if err
                     callback err
                 else if res.name.toLowerCase() is name
                     callback null, true
-                else 
+                else
                     findDocType name, docTypes, callback
         else
             callback null, false
@@ -51,7 +49,7 @@ docTypeExist = (name, callback) ->
         else
             findDocType name, docTypes, (err, exist) =>
                 if err
-                    railway.logger.write "[docTypeExist] err: " + 
+                    railway.logger.write "[docTypeExist] err: " +
                             JSON.stringify err
                     send 500
                 else
@@ -72,7 +70,7 @@ action 'create', ->
             else
                 body.docType = "doctype"
                 if params.id
-                    db.get params.id, (err, doc) -> 
+                    db.get params.id, (err, doc) ->
                         if doc
                             send error: "The document exists", 409
                         else
@@ -84,7 +82,7 @@ action 'create', ->
                 else
                     db.save body, (err, res) ->
                         if err
-                            railway.logger.write "[Create] err: " + 
+                            railway.logger.write "[Create] err: " +
                                     JSON.stringify err
                             send error: err.message, 500
                         else
@@ -103,6 +101,4 @@ action 'delete', ->
             doctype = @doc.docType?.toLowerCase()
             doctype ?= 'null'
             app.feed.publish "#{doctype}.delete", @doc.id
-            # Doc is removed from indexation
-            client.del "index/#{params.id}/", (err, res, resbody) ->
-                send success: true, 204
+            send success: true, 204
