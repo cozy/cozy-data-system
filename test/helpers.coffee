@@ -15,12 +15,15 @@ exports.closeApp = (done) ->
 exports.clearDB = (db) -> (done) ->
     @timeout 5000
     db.destroy (err) ->
+        console.log "Database destroyed"
         if err and err.error isnt 'not_found'
             console.log "db.destroy err : ", err
             return done err
 
         setTimeout ->
+            console.log "Expecting a little ..."
             db.create (err) ->
+                console.log "Database created"
                 console.log "db.create err : ", err if err
                 done err
         , 1000
