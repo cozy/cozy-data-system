@@ -7,5 +7,9 @@ services:
 env:
     global:
         - NODE_ENV=test
+    matrix:
+        - TEST_NB=1
+        - TEST_NB=2
+        - TEST_NB=3
 before_install:
     - npm install coffee-script -g
