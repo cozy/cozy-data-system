@@ -35,21 +35,16 @@ createAuthorRequestFunction = (name) ->
 describe "Request handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
+    before helpers.clearDB db
     before (done) ->
-        db.destroy ->
-            db.create ->
-                docs = ({'type':'dumb_doc', 'num':num} for num in [0..100])
-                db.save docs, ->
-                    done()
+        docs = ({'type':'dumb_doc', 'num':num} for num in [0..100])
+        db.save docs, done
 
     # Start application before starting tests.
     before helpers.instantiateApp
 
     after helpers.closeApp
-
-    after (done) ->
-        db.destroy ->
-            db.create done
+    after helpers.clearDB db
 
     describe "View creation", ->
         describe "Install an application which has access to every docs", ->
@@ -324,14 +319,14 @@ describe "Request handling tests", ->
     describe "Create fastly three requests (concurrency test)", ->
         before cleanRequest
 
-        
+
         it "Then I create a doument with docType 'author' ", (done) ->
 
             data =
                 "name": "test"
                 "docType": "author"
             client.post 'data/', data, (error, response, body) =>
-                should.not.exist error                
+                should.not.exist error
                 done()
 
     describe "When I call the doctype list", ->

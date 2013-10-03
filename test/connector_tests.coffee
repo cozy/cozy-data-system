@@ -8,11 +8,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 
 describe 'Connectors - Bank / Accounts', ->
 
-    before (done) ->
-        db.destroy ->
-            db.create done
-
-    # Start application before starting tests.
+    before helpers.clearDB db
     before helpers.instantiateApp
 
     before ->
@@ -32,10 +28,7 @@ describe 'Connectors - Bank / Accounts', ->
         @indexerServer.close()
 
     after helpers.closeApp
-
-    after (done) ->
-        db.destroy ->
-            db.create done
+    after helpers.clearDB db
 
 
     describe 'Bank account data retrieval', ->

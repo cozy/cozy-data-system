@@ -21,14 +21,11 @@ randomString = (length=32) ->
 describe "Doctype handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
-    before (done) ->
-        db.destroy ->
-            db.create ->
-                done()
-
+    before helpers.clearDB db
     before helpers.instantiateApp
 
     after helpers.closeApp
+    after helpers.clearDB db
 
     describe "Create", ->
         describe "Install an application which has access to every docs", ->

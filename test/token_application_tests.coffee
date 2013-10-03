@@ -23,16 +23,12 @@ cleanRequest = ->
 describe "Token of applications handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
-    before (done) ->
-        db.destroy ->
-            db.create ->
-                done()
+    before helpers.clearDB db
 
     before helpers.instantiateApp
 
     after helpers.closeApp
-
-
+    after helpers.clearDB db
 
     describe "Authentification", ->
         before cleanRequest

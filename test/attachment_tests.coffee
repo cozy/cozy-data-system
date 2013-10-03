@@ -7,10 +7,9 @@ db = require('../helpers/db_connect_helper').db_connect()
 describe "Attachments", ->
 
     # Clear DB, create a new one, then init data for tests.
+    before helpers.clearDB db
     before (done) ->
-        db.destroy ->
-            db.create ->
-                db.save '321', value: "val", done
+        db.save '321', value: "val", done
 
     before helpers.instantiateApp
 
@@ -23,10 +22,7 @@ describe "Attachments", ->
         done()
 
     after helpers.closeApp
-
-    after (done) ->
-        db.destroy ->
-            db.create done
+    after helpers.clearDB db
 
     describe "Add an attachment", ->
 

@@ -21,26 +21,20 @@ randomString = (length=32) ->
 describe "Data handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
+    before helpers.clearDB db
     before (done) ->
-        db.destroy ->
-            db.create ->
-                db.save '321', value:"val", done
+        db.save '321', value:"val", done
 
     before (done) ->
         client.setBasicAuth "home", "token"
-        @indexer = helpers.fakeServer 'deleted', 204
-        @indexer.listen 9092, done
+        indexer = helpers.fakeServer 'deleted', 204
+        @indexer = indexer.listen 9092, done
 
     before helpers.instantiateApp
 
     after helpers.closeApp
-
-    after (done) ->
-        @indexer.close()
-        db.destroy ->
-            db.create (err) ->
-                console.log err if err
-                done()
+    after -> @indexer.close()
+    after helpers.clearDB db
 
     describe "Existence", ->
         describe "Check Existence of a doc that does not exist in database", ->

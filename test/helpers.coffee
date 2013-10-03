@@ -11,6 +11,19 @@ exports.closeApp = (done) ->
     @app.compound.server.close()
     done()
 
+exports.clearDB = (db) -> (done) ->
+    @timeout 5000
+    db.destroy (err) ->
+        if err and err.error isnt 'not_found'
+            console.log "db.destroy err : ", err
+            return done err
+
+        setTimeout ->
+            db.create (err) ->
+                console.log "db.create err : ", err if err
+                done err
+        , 1000
+
 exports.randomString = (length=32) ->
     string = ""
     string += Math.random().toString(36).substr(2) while string.length < length
