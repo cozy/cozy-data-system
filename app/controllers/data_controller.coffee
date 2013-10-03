@@ -53,10 +53,10 @@ before 'permissions_param', ->
     checkDocType auth, body.docType, (err, appName, isAuthorized) =>
         if not appName
             err = new Error("Application is not authenticated")
-            send error: err, 401
+            send error: err.message, 401
         else if not isAuthorized
             err = new Error("Application is not authorized")
-            send error: err, 403
+            send error: err.message, 403
         else
             compound.app.feed.publish 'usage.application', appName
             next()
@@ -70,10 +70,10 @@ before 'permissions', ->
     checkDocType auth, @doc.docType, (err, appName, isAuthorized) =>
         if not appName
             err = new Error("Application is not authenticated")
-            send error: err, 401
+            send error: err.message, 401
         else if not isAuthorized
             err = new Error("Application is not authorized")
-            send error: err, 403
+            send error: err.message, 403
         else
             compound.app.feed.publish 'usage.application', appName
             next()

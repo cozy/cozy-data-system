@@ -75,12 +75,12 @@ before('permissions_param', function() {
     if (!appName) {
       err = new Error("Application is not authenticated");
       return send({
-        error: err
+        error: err.message
       }, 401);
     } else if (!isAuthorized) {
       err = new Error("Application is not authorized");
       return send({
-        error: err
+        error: err.message
       }, 403);
     } else {
       compound.app.feed.publish('usage.application', appName);
@@ -100,12 +100,12 @@ before('permissions', function() {
     if (!appName) {
       err = new Error("Application is not authenticated");
       return send({
-        error: err
+        error: err.message
       }, 401);
     } else if (!isAuthorized) {
       err = new Error("Application is not authorized");
       return send({
-        error: err
+        error: err.message
       }, 403);
     } else {
       compound.app.feed.publish('usage.application', appName);
