@@ -40,6 +40,7 @@ module.exports = (compound) ->
         console.info "Database #{db.name} on #{db.connection.host}" +
             ":#{db.connection.port} found."
         feed_start()
+        request_create()
 
     logError = (err) ->
         console.info "Error on database creation : "
@@ -49,18 +50,15 @@ module.exports = (compound) ->
         console.info "Database #{db.name} on" +
             " #{db.connection.host}:#{db.connection.port} created."
         feed_start()
+        request_create()
+
 
     ### Check existence of cozy database or create it ###
-
-    app.feed = new Feed(app)
-
-
     db_ensure = ->
         db.exists (err, exists) ->
             if err
                 compound.logger.write "Error:", err
             else if exists
-                request_create()
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
                     couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
@@ -78,7 +76,6 @@ module.exports = (compound) ->
                 else
                     logFound()
             else
-                request_create()
                 db_create()
 
     db_create = ->
@@ -92,9 +89,9 @@ module.exports = (compound) ->
                     if err
                         logError(err)
                     else
-                        logCreated
+                        logCreated()
             else
-                logCreated
+                logCreated()
 
     # this request is used to retrieved all the doctypes in the DS
     request_create = ->
@@ -114,6 +111,7 @@ module.exports = (compound) ->
         # this event is used in test to wait for db initialization
         # with compound 1.1.5-21+, we should make this initializer async
 
+    app.feed = new Feed(app)
     db_ensure()
     initTokens (tokens, permissions) =>
 
