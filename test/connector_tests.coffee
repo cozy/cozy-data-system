@@ -11,18 +11,34 @@ describe 'Connectors - Bank / Accounts', ->
     before helpers.clearDB db
     before helpers.instantiateApp
 
-    before ->
-        data = [
+    before (done) ->
+        accounts = [
             { label: 'compte courant', balance: '1000' }
             { label: 'livret A', balance: '2000' }
         ]
-        indexer = fakeServer data, 200, (url, body) ->
+        operations = [
+            account: 'livret A'
+            label: 'remise cheque'
+            amount: '50.00'
+            date: '2012-12-31T00:00:00Z'
+        ,
+            account: 'livret A'
+            label: 'achat supermarche'
+            amount: '-100.00'
+            date: '2012-12-31T00:00:00Z'
+        ]
+        indexer = fakeServer null, 200, (url, body) ->
 
             if url is '/connectors/bank/bnp/'
                 should.exist body.login
                 should.exist body.password
+                return accounts
+            if url is '/connectors/bank/bnp/history/'
+                should.exist body.login
+                should.exist body.password
+                return operations
 
-        @indexerServer = indexer.listen 9092
+        @indexerServer = indexer.listen 9092, done
 
     after ->
         @indexerServer.close()
@@ -31,7 +47,7 @@ describe 'Connectors - Bank / Accounts', ->
     after helpers.clearDB db
 
 
-    describe 'Bank account data retrieval', ->
+    describe 'Bank accounts data retrieval', ->
 
         it 'When I send a request for my bank account data', (done) ->
             data =
@@ -51,37 +67,8 @@ describe 'Connectors - Bank / Accounts', ->
             @body[1].label.should.equal 'livret A'
             @body[1].balance.should.equal '2000'
 
-describe 'Connectors - Bank History', ->
 
-    # Start application before starting tests.
-    before helpers.instantiateApp
-
-    before ->
-        data = [
-            account: 'livret A'
-            label: 'remise cheque'
-            amount: '50.00'
-            date: '2012-12-31T00:00:00Z'
-        ,
-            account: 'livret A'
-            label: 'achat supermarche'
-            amount: '-100.00'
-            date: '2012-12-31T00:00:00Z'
-        ]
-        indexer = fakeServer data, 200, (url, body) ->
-            if url is '/connectors/bank/bnp/history/'
-                should.exist body.login
-                should.exist body.password
-
-        @indexerServer = indexer.listen 9092
-
-    after ->
-        @indexerServer.close()
-
-    after helpers.closeApp
-
-
-    describe 'Bank account data retrieval', ->
+    describe 'Bank operations data retrieval', ->
 
         it 'When I send a request for my bank account data', (done) ->
             data =
