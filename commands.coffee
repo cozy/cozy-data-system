@@ -1,9 +1,12 @@
 Client = require("request-json").JsonClient
+path = require 'path'
+fs = require 'fs'
 
 switch  process.argv[2]
     when 'test-install'
-        permFile = process.argv[3] or '../package.json'
-        packagePath = path.join process.cwd(), process.argv[3]
+        slug = process.argv[3]
+        permFile = process.argv[4] or '../package.json'
+        packagePath = path.join process.cwd(), permFile
 
         try
             packageData = JSON.parse(fs.readFileSync(packagePath, 'utf8'))
@@ -19,12 +22,12 @@ switch  process.argv[2]
             name: slug
             password: 'apptoken'
             permissions: {}
-            port: port
+            port: 42
 
         for doctype, perm of packageData['cozy-permissions']
             data.permissions[doctype.toLowerCase()] = perm
 
-        client = new Client dataSystemUrl
+        client = new Client "http://localhost:9101/"
         client.setBasicAuth 'home', 'token'
         client.post "data/", data, (err, res, body) ->
             if err
