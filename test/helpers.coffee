@@ -13,7 +13,7 @@ exports.closeApp = (done) ->
     done()
 
 exports.clearDB = (db) -> (done) ->
-    @timeout 5000
+    @timeout? 5000
     console.log "Clear DB"
     db.destroy (err) ->
         console.log "Database destroyed"

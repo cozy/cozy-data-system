@@ -32,12 +32,25 @@ switch  process.argv[2]
         client.post "data/", data, (err, res, body) ->
             if err
                 console.log "Cannot create app"
-                console.log err.stack
+                console.log err.stack or err
                 process.exit 3
 
             console.log "App created"
             process.exit 0
 
+    when 'cleanup-db'
+        helpers   = require './test/helpers'
+        db_helper = require './helpers/db_connect_helper'
+        db = db_helper.db_connect()
+        cleanUpFn = helpers.clearDB db
+        cleanUpFn (err) ->
+            if err
+                console.log "An error occured"
+                console.log err.stack or err
+                process.exit 1
+            else
+                process.exit 0
+
     else
-        console.log "Wrong commang"
+        console.log "Wrong command"
         process.exit 1
