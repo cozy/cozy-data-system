@@ -345,13 +345,11 @@ describe "Request handling tests", ->
                 done()    
       
         it "When I send a request to delete view even_num", (done) ->
-            client.setBasicAuth "test2", "token2"
             client.del "request/all/even_num/", (error, response, body) =>
                 response.statusCode.should.equal 204
                 done()
 
         it "And I send a request to access view even_num", (done) ->
-            client.setBasicAuth "test2", "token2"
             client.post "request/all/even_num/", {},  \
                         (error, response, body) =>
                 @response = response
@@ -365,18 +363,18 @@ describe "Request handling tests", ->
 
         it "When I send a request to delete view even_num", (done) -> 
             client.setBasicAuth "test", "token"
-            client.del "request/all/even_num/", (error, response, body) =>
+            client.del "request/all/every_docs/", (error, response, body) =>
                 response.statusCode.should.equal 204
                 done()
 
         it "And I send a request to access view even_num", (done) ->
-            client.post "request/all/even_num/", {},  \
+            client.post "request/all/every_docs/", {},  \
                         (error, response, body) =>
                 @response = response
                 done()
 
-        it "Then error 404 should be returned", ->
-            @response.statusCode.should.equal 404
+        it "Then error 200 should be returned", ->
+            @response.statusCode.should.equal 200
 
 
     describe "Create fastly three requests (concurrency test)", ->

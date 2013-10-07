@@ -98,7 +98,8 @@ action('results', function() {
 });
 
 action('removeResults', function() {
-  var delFunc, removeAllDocs, removeFunc;
+  var delFunc, removeAllDocs, removeFunc,
+    _this = this;
 
   removeFunc = function(res, callback) {
     return db.remove(res.value._id, res.value._rev, callback);
@@ -116,11 +117,10 @@ action('removeResults', function() {
     });
   };
   delFunc = function() {
-    var query,
-      _this = this;
+    var query;
 
     query = JSON.parse(JSON.stringify(body));
-    return request.get(app, params, function(path) {
+    return request.get(_this.appName, params, function(path) {
       path = ("" + params.type + "/") + path;
       return db.view(path, query, function(err, res) {
         if (err) {
@@ -194,9 +194,10 @@ action('definition', function() {
 });
 
 action('remove', function() {
+  var _this = this;
+
   return db.get("_design/" + params.type, function(err, res) {
-    var views,
-      _this = this;
+    var views;
 
     if (err && err.error === 'not_found') {
       return send({
@@ -209,13 +210,13 @@ action('remove', function() {
       }, 500);
     } else {
       views = res.views;
-      return request.get(this.appName, params, function(path, conflict) {
-        if (path === ("" + params.type + "/" + params.req_name)) {
+      return request.get(_this.appName, params, function(path) {
+        if (path === ("" + params.req_name)) {
           return send({
             success: true
           }, 204);
         } else {
-          delete views["" + params.type + "/" + path];
+          delete views["" + path];
           return db.merge("_design/" + params.type, {
             views: views
           }, function(err, res) {
