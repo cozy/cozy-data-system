@@ -4,6 +4,7 @@ Client = require("request-json").JsonClient
 couchUrl = "http://localhost:5984/"
 couchClient = new Client couchUrl
 initTokens = require('../../lib/token').init
+request = require('../../lib/request')
 
 
 module.exports = (compound) ->
@@ -114,4 +115,5 @@ module.exports = (compound) ->
     app.feed = new Feed(app)
     db_ensure()
     initTokens (tokens, permissions) =>
+        request.init (err) =>
 

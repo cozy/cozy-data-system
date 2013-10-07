@@ -3,6 +3,7 @@ load 'application'
 async = require "async"
 db = require('./helpers/db_connect_helper').db_connect()
 checkDocType = require('./lib/token').checkDocType
+request = require('./lib/request')
 
 
 # Before and after methods
@@ -11,9 +12,16 @@ checkDocType = require('./lib/token').checkDocType
 before 'permissions', ->
     auth = req.header('authorization')
     checkDocType auth, params.type, (err, appName, isAuthorized) =>
-        @appName = appName
-        compound.app.feed.publish 'usage.application', appName
-        next()
+        if not appName
+            err = new Error("Application is not authenticated")
+            send error: err, 401
+        else if not isAuthorized
+            err = new Error("Application is not authorized")
+            send error: err, 403
+        else
+            @appName = appName
+            compound.app.feed.publish 'usage.application', appName
+            next()
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
@@ -50,17 +58,18 @@ action 'doctypes', ->
 
 # POST /request/:type/:req_name
 action 'results', ->
-    db.view "#{params.type}/#{@appName}-#{params.req_name}", body, (err, res) ->
-        if err
-            if err.error is "not_found"
-                send error: "not found", 404
+    request.get @appName, params, (path) =>
+        db.view "#{params.type}/" + path, body, (err, res) ->
+            if err
+                if err.error is "not_found"
+                    send error: "not found", 404
+                else
+                    console.log "[Results] err: " + JSON.stringify err
+                    send error: err.message, 500
             else
-                console.log "[Results] err: " + JSON.stringify err
-                send error: err.message, 500
-        else
-            res.forEach (value) ->
-                delete value._rev # CouchDB specific, user don't need it
-            send res
+                res.forEach (value) ->
+                    delete value._rev # CouchDB specific, user don't need it
+                send res
 
 # PUT /request/:type/:req_name/destroy
 action 'removeResults', ->
@@ -74,26 +83,26 @@ action 'removeResults', ->
             else
                 delFunc()
 
-    delFunc = ->
+    delFunc = =>
         # db.view seems to alter the options object
         # cloning the object before each query prevents that
         query = JSON.parse JSON.stringify body
-        path = "#{params.type}/#{@appName}-#{params.req_name}"
-        db.view path, query, (err, res) ->
-            if err
-                send error: "not found", 404
-            else
-                if res.length > 0
-                    removeAllDocs(res)
+        request.get @appName, params, (path) =>
+            path = "#{params.type}/" + path
+            db.view path, query, (err, res) ->
+                if err
+                    send error: "not found", 404
                 else
-                    send success: true, 204
+                    if res.length > 0
+                        removeAllDocs(res)
+                    else
+                        send success: true, 204
     delFunc()
 
 # PUT /request/:type/:req_name
 action 'definition', ->
     # no need to precise language because it's javascript
     db.get "_design/#{params.type}", (err, res) =>
-
         if err && err.error is 'not_found'
             design_doc = {}
             design_doc[params.req_name] = body
@@ -109,27 +118,32 @@ action 'definition', ->
 
         else
             views = res.views
-            views["#{@appName}-#{params.req_name}"] = body
-            db.merge "_design/#{params.type}", {views:views}, (err, res) ->
-                if err
-                    console.log "[Definition] err: " + JSON.stringify err
-                    send error: true, msg: err.message, 500
-                else
-                    send success: true, 200
+            request.create @appName, params, views, body, (err, path) =>
+                views[path] = body
+                db.merge "_design/#{params.type}", {views:views}, (err, res) ->
+                    if err
+                        console.log "[Definition] err: " + JSON.stringify err
+                        send error: true, msg: err.message, 500
+                    else
+                        send success: true, 200
 
 # DELETE /request/:type/:req_name
 action 'remove', ->
-    db.get "_design/#{params.type}", (err, res) ->
+    db.get "_design/#{params.type}", (err, res) =>
         if err and err.error is 'not_found'
             send error: "not found", 404
         else if err
             send error: true, msg: err.message, 500
         else
             views = res.views
-            delete views["#{@appName}-#{params.req_name}"]
-            db.merge "_design/#{params.type}", {views:views}, (err, res) ->
-                if err
-                    console.log "[Definition] err: " + JSON.stringify err
-                    send error: true, msg: err.message, 500
-                else
+            request.get @appName, params, (path) =>
+                if path is "#{params.req_name}"
                     send success: true, 204
+                else
+                    delete views["#{path}"]
+                    db.merge "_design/#{params.type}", {views:views}, (err, res) ->
+                        if err
+                            console.log "[Definition] err: " + JSON.stringify err
+                            send error: true, msg: err.message, 500
+                        else
+                            send success: true, 204
