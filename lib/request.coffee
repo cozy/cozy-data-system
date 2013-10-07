@@ -8,6 +8,8 @@ randomString = (length) ->
         string = string + Math.random().toString(36).substr(2)
     return string.substr 0, length
 
+productionOrTest = process.env.NODE_ENV is "production" or
+    process.env.NODE_ENV is "test"
 
 ## function create (app, req, views, newView, callback)
 ## @app {String} application name
@@ -18,7 +20,7 @@ randomString = (length) ->
 ## Store new request name in case of conflict
 ## Callback new request name
 module.exports.create = (app, req, views, newView, callback) => 
-    if process.env.NODE_ENV is "production"
+    if productionOrTest
         if views[req.req_name]? and 
                 JSON.stringify(views[req.req_name]) isnt JSON.stringify(newView)
             path = "#{app}-#{req.req_name}"
@@ -38,8 +40,7 @@ module.exports.create = (app, req, views, newView, callback) =>
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback correct request name
 module.exports.get = (app, req, callback) =>
-    if process.env.NODE_ENV is "production" and
-            request[app]?["#{req.type}/#{req.req_name}"]?
+    if productionOrTest and request[app]?["#{req.type}/#{req.req_name}"]?
         callback request[app]["#{req.type}/#{req.req_name}"]
     else
         callback "#{req.req_name}"
@@ -90,7 +91,7 @@ recoverDesignDocs = (callback) =>
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize request
 module.exports.init = (callback) => 
-    if process.env.NODE_ENV is "production"
+    if productionOrTest
         recoverApp (apps) =>
             recoverDesignDocs (docs) =>
                 for app in apps
