@@ -51,9 +51,12 @@ action 'doctypes', ->
     out = []
 
     db.view "doctypes/all", query, (err, res) ->
-        for row in res
-            out.push row.key
-        send 200, out
+        if err or (res? and res.statusCode isnt 200)
+            send 500, err: JSON.stringify err
+        else
+            for row in res
+                out.push row.key
+            send 200, out
 
 
 # POST /request/:type/:req_name
