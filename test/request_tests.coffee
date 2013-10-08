@@ -67,6 +67,29 @@ describe "Request handling tests", ->
             it "And HTTP status 201 should be returned", ->
                 @res.statusCode.should.equal 201
 
+        it "When I send a request to post a second application", (done) ->
+            data =
+                "name": "test2"
+                "slug": "test2"
+                "state": "installed"
+                "password": "token2"
+                "permissions":
+                    "All":
+                        "description": "This application needs manage notes because ..."
+                "docType": "Application"
+            client.setBasicAuth "home", "token"
+            client.post 'data/', data, (err, res, body) =>
+                @body = body
+                @err = err
+                @res = res
+                done()
+
+            it "Then no error should be returned", ->
+                should.equal  @err, null
+
+            it "And HTTP status 201 should be returned", ->
+                @res.statusCode.should.equal 201
+
         describe "Creation of the first view + design document creation", ->
             before cleanRequest
 
@@ -148,8 +171,8 @@ describe "Request handling tests", ->
                     @body = body
                     done()
 
-            it "Then I should have 101 documents returned", ->
-                @body.should.have.length 102
+            it "Then I should have 103 documents returned", ->
+                @body.should.have.length 103
 
         describe "Access to an existing view : even_num", (done) ->
             before cleanRequest
@@ -294,9 +317,23 @@ describe "Request handling tests", ->
                     @body.should.have.length 50
                     done()
 
-    describe "Deletion of an existing view", ->
+
+
+    describe "Deletion of an existing view with conflict", ->
         before cleanRequest
 
+        it "When I send a request to create view even_num", (done) ->
+            map = (doc) ->
+                emit 1, doc if (1 && (doc.num % 2) is 0)
+                return
+            @viewEven = {map:map.toString()}
+
+            client.setBasicAuth "test2", "token2"
+            client.put 'request/all/even_num/', @viewEven, \
+                    (error, response, body) =>
+                response.statusCode.should.equal 200
+                done()    
+      
         it "When I send a request to delete view even_num", (done) ->
             client.del "request/all/even_num/", (error, response, body) =>
                 response.statusCode.should.equal 204
@@ -310,6 +347,25 @@ describe "Request handling tests", ->
 
         it "Then error 404 should be returned", ->
             @response.statusCode.should.equal 404
+
+    describe "Deletion of an existing view without conflict", ->
+        before cleanRequest
+
+        it "When I send a request to delete view even_num", (done) -> 
+            client.setBasicAuth "test", "token"
+            client.del "request/all/every_docs/", (error, response, body) =>
+                response.statusCode.should.equal 204
+                done()
+
+        it "And I send a request to access view even_num", (done) ->
+            client.post "request/all/every_docs/", {},  \
+                        (error, response, body) =>
+                @response = response
+                done()
+
+        it "Then error 200 should be returned", ->
+            @response.statusCode.should.equal 200
+
 
     describe "Create fastly three requests (concurrency test)", ->
         before cleanRequest
