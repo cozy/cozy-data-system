@@ -5,7 +5,11 @@ Client = require("request-json").JsonClient
 
 checkDocType = require('./lib/token').checkDocType
 updatePermissions = require('./lib/token').updatePermissions
-client = new Client "http://localhost:9102/"
+if process.env.NODE_ENV is "test"
+    client = new Client "http://localhost:9092/"
+else
+    client = new Client "http://localhost:9102/"
+
 db = require('./helpers/db_connect_helper').db_connect()
 
 
@@ -49,10 +53,10 @@ before 'permissions_param', ->
     checkDocType auth, body.docType, (err, appName, isAuthorized) =>
         if not appName
             err = new Error("Application is not authenticated")
-            send error: err, 401
+            send error: err.message, 401
         else if not isAuthorized
             err = new Error("Application is not authorized")
-            send error: err, 403
+            send error: err.message, 403
         else
             compound.app.feed.publish 'usage.application', appName
             next()
@@ -66,10 +70,10 @@ before 'permissions', ->
     checkDocType auth, @doc.docType, (err, appName, isAuthorized) =>
         if not appName
             err = new Error("Application is not authenticated")
-            send error: err, 401
+            send error: err.message, 401
         else if not isAuthorized
             err = new Error("Application is not authorized")
-            send error: err, 403
+            send error: err.message, 403
         else
             compound.app.feed.publish 'usage.application', appName
             next()

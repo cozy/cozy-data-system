@@ -24,36 +24,40 @@ createNoteFunction = (title, content) ->
 
         client.setBasicAuth "test", "token"
         client.post "data/", note, (error, response, body) ->
-            console.log error if error
+            return callback error if error
             dragonNoteId = body._id if title is "Note 02"
 
-            client.post "data/index/#{body._id}",
-                fields: ["title", "content"]
-                , (error, response, body) ->
-                callback error, body
+            client.post "data/index/#{body._id}", fields: ["title", "content"]
+            , (error, response, resbody) ->
+                response.statusCode.should.equal 200
+                resbody.msg.should.equal "indexation succeeds"
+                callback error
 
 
 describe "Indexation", ->
 
     # Clear DB, create a new one, then init data for tests.
-    before (done) ->
-        indexer = new Client("http://localhost:9102/")
-        indexer.del "clear-all/", (err, response) ->
-            console.log err if err
-            db.destroy ->
-                db.create ->
-                    done()
+    before helpers.clearDB db
 
     before helpers.instantiateApp
 
-    after helpers.closeApp
+    before (done) ->
+        @indexer = fakeServer null, 200, (url, body) ->
+            if url is '/index/'
+                should.exist body.fields
+                should.exist body.doc
+                should.exist body.doc.docType
+                return 'indexation succeeds'
+            if url is '/search/'
+                should.exist body.query
+                body.query.should.equal "dragons"
+                return ids: [dragonNoteId]
+        @indexer.listen 9092, done
 
-    after (done) ->
-        db.destroy ->
-            db.create (err) ->
-                console.log err if err
-                done()
-                
+
+    after -> @indexer.close()
+    after helpers.after db
+
     describe "Install application which can manage note", ->
 
         it "When I send a request to post an application", (done) ->
@@ -86,26 +90,13 @@ describe "Indexation", ->
                 createNoteFunction "Note 02", "great dragons are coming"
                 createNoteFunction "Note 03", "small hobbits are afraid"
                 createNoteFunction "Note 04", "such as humans"
-            ], =>
-                done()
+            ], done
 
         it "When I send a request to search the notes with dragons", (done) ->
-            data = ids: [dragonNoteId]
-            indexer = fakeServer data, 200, (url, body) ->
-                if url is '/index/'
-                    should.exist body.fields
-                    should.exist body.doc
-                    should.exist body.doc.docType
-                if url is '/search'
-                    should.exist body.query
-                    body.query.should.equal "dragons"
-
-            indexer.listen 9092
-
-            client.post "data/search/note", { query: "dragons" }, \
-                    (error, response, body) =>
+            client.post "data/search/note", { query: "dragons" }
+            , (error, response, body) =>
+                return done error if error
                 @result = body
-                indexer.close()
                 done()
 
         it "Then result is the second note I created", ->
@@ -121,6 +112,7 @@ describe "Indexation", ->
 
             client.setBasicAuth "test", "token"
             client.post "data/index/923", data, (error, response, body) =>
+                should.exist error
                 @response = response
                 done()
 

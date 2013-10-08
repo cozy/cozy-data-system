@@ -8,7 +8,6 @@ User = require './lib/user'
 randomString = require('./lib/random').randomString
 
 accountManager = new Account()
-client = new Client("http://localhost:9102/")
 
 checkProxyHome = require('./lib/token').checkProxyHome
 checkDocType = require('./lib/token').checkDocType

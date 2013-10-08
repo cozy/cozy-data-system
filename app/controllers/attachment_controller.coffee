@@ -92,7 +92,7 @@ action 'addAttachment', ->
                 console.log "[Attachment] err: " + JSON.stringify err
                 deleteFiles req, -> send error: err.error, 500
             else
-                deleteFiles req, -> send success: true, 201
+                deleteFiles req, -> send success: true, msg: 'created', 201
 
         fs.createReadStream(file.path).pipe(stream)
 
@@ -134,4 +134,4 @@ action 'removeAttachment', ->
             console.log "[Attachment] err: " + JSON.stringify err
             send error: err.error, 500
         else
-            send success: true, 204
+            send success: true, msg: 'deleted', 204

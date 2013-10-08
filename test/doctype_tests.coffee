@@ -21,35 +21,31 @@ randomString = (length=32) ->
 describe "Doctype handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
-    before (done) ->
-        db.destroy ->
-            db.create ->
-                done()
-
+    before helpers.clearDB db
     before helpers.instantiateApp
 
-    after helpers.closeApp
+    after helpers.after db
 
     describe "Create", ->
         describe "Install an application which has access to every docs", ->
             before cleanRequest
 
-        it "When I send a request to post an application", (done) ->
-            data =
-                "name": "test"
-                "slug": "test"
-                "state": "installed"
-                "password": "token"
-                "permissions":
-                    "All":
-                        "description": "This application needs manage notes because ..."
-                "docType": "Application"
-            client.setBasicAuth "home", "token"
-            client.post 'data/', data, (err, res, body) =>
-                @body = body
-                @err = err
-                @res = res
-                done()
+            it "When I send a request to post an application", (done) ->
+                data =
+                    "name": "test"
+                    "slug": "test"
+                    "state": "installed"
+                    "password": "token"
+                    "permissions":
+                        "All":
+                            "description": "This application needs manage notes because ..."
+                    "docType": "Application"
+                client.setBasicAuth "home", "token"
+                client.post 'data/', data, (err, res, body) =>
+                    @body = body
+                    @err = err
+                    @res = res
+                    done()
 
             it "Then no error should be returned", ->
                 should.equal  @err, null

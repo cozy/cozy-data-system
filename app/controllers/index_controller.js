@@ -110,9 +110,12 @@ action('index', function() {
       if (err || res.statusCode !== 200) {
         return send(500);
       } else {
-        return send(resbody, res.statusCode);
+        return send({
+          success: true,
+          msg: resbody
+        }, res.statusCode);
       }
-    });
+    }, false);
   };
   return db.get(params.id, function(err, doc) {
     var _this = this;
@@ -174,9 +177,12 @@ action('remove', function() {
       if (err) {
         return send(500);
       } else {
-        return send(resbody, res.statusCode);
+        return send({
+          success: true,
+          msg: resbody
+        }, res.statusCode);
       }
-    });
+    }, false);
   };
   return db.get(params.id, function(err, doc) {
     var _this = this;
@@ -198,7 +204,10 @@ action('removeAll', function() {
     if (err) {
       return send(500);
     } else {
-      return send(resbody, res.statusCode);
+      return send({
+        success: true,
+        msg: resbody
+      }, res.statusCode);
     }
-  });
+  }, false);
 });

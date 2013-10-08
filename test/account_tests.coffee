@@ -21,24 +21,17 @@ cleanRequest = ->
 describe "Account handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
+    before helpers.clearDB db
     before (done) ->
-        db.destroy ->
-            db.create ->
-                data =
-                    email: "user@CozyCloud.CC"
-                    timezone: "Europe/Paris"
-                    password: "password"
-                    docType: "User"
-                db.save '102', data, (err, res, body) ->
-                    done()
+        data =
+            email: "user@CozyCloud.CC"
+            timezone: "Europe/Paris"
+            password: "password"
+            docType: "User"
+        db.save '102', data, done
 
     before helpers.instantiateApp
-
-    after  helpers.closeApp
-
-    after (done) ->
-        db.destroy ->
-            db.create done
+    after helpers.after db
 
     describe "Operation of cryptography : ", ->
         describe "Encryption", ->

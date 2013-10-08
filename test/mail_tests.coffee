@@ -13,27 +13,20 @@ cleanRequest = ->
 describe "Mail handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
+    before helpers.clearDB db
     before (done) ->
-        db.destroy ->
-            db.create ->
-                data =
-                    email: "user@cozycloud.cc"
-                    timezone: "Europe/Paris"
-                    password: "password"
-                    docType: "User"
-                db.save '102', data, done
+        data =
+            email: "user@cozycloud.cc"
+            timezone: "Europe/Paris"
+            password: "password"
+            docType: "User"
+        db.save '102', data, done
 
     before helpers.instantiateApp
 
-    after  helpers.closeApp
+    after helpers.after db
 
-    after (done) ->
-        db.destroy ->
-            db.create (err) ->
-                console.log err if err
-                done() 
 
-    
 
     describe "Send an email without an attributes", ->
 

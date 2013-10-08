@@ -11,7 +11,11 @@ checkDocType = require('./lib/token').checkDocType;
 
 updatePermissions = require('./lib/token').updatePermissions;
 
-client = new Client("http://localhost:9102/");
+if (process.env.NODE_ENV === "test") {
+  client = new Client("http://localhost:9092/");
+} else {
+  client = new Client("http://localhost:9102/");
+}
 
 db = require('./helpers/db_connect_helper').db_connect();
 
@@ -71,12 +75,12 @@ before('permissions_param', function() {
     if (!appName) {
       err = new Error("Application is not authenticated");
       return send({
-        error: err
+        error: err.message
       }, 401);
     } else if (!isAuthorized) {
       err = new Error("Application is not authorized");
       return send({
-        error: err
+        error: err.message
       }, 403);
     } else {
       compound.app.feed.publish('usage.application', appName);
@@ -96,12 +100,12 @@ before('permissions', function() {
     if (!appName) {
       err = new Error("Application is not authenticated");
       return send({
-        error: err
+        error: err.message
       }, 401);
     } else if (!isAuthorized) {
       err = new Error("Application is not authorized");
       return send({
-        error: err
+        error: err.message
       }, 403);
     } else {
       compound.app.feed.publish('usage.application', appName);

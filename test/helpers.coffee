@@ -4,12 +4,35 @@ instantiateApp = require '../server'
 exports.instantiateApp = (done) ->
     @timeout 5000
     @app = instantiateApp()
-    @app.listen 8888, '0.0.0.0', done
+    @app.listen 8888, '0.0.0.0'
+    @app.on 'db ready', -> done()
 
 
 exports.closeApp = (done) ->
     @app.compound.server.close()
     done()
+
+exports.clearDB = (db) -> (done) ->
+    @timeout? 5000
+    console.log "Clear DB"
+    db.destroy (err) ->
+        console.log "Database destroyed"
+        if err and err.error isnt 'not_found'
+            console.log "db.destroy err : ", err
+            return done err
+
+        setTimeout ->
+            console.log "Expecting a little ..."
+            db.create (err) ->
+                console.log "Database created"
+                console.log "db.create err : ", err if err
+                done err
+        , 1000
+
+exports.after = (db) -> (done) ->
+    @app.compound.server.close()
+    done()
+    # exports.closeApp done
 
 exports.randomString = (length=32) ->
     string = ""
@@ -25,8 +48,10 @@ exports.fakeServer = (json, code=200, callback=null) ->
             res.writeHead code, 'Content-Type': 'application/json'
             if callback?
                 data = JSON.parse body if body? and body.length > 0
-                callback req.url, data
-            res.end(JSON.stringify json)
+                result = callback req.url, data
+            resbody = if result then JSON.stringify result
+            else JSON.stringify json
+            res.end resbody
 
 
 exports.Subscriber = class Subscriber

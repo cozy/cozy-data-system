@@ -9,9 +9,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 describe "Feed tests", ->
 
     # Clear DB, create a new one, then init data for tests.
-    before (done) ->
-        db.destroy ->
-            db.create done
+    before helpers.clearDB db
     # Start application before starting tests.
     before helpers.instantiateApp
 
@@ -27,13 +25,7 @@ describe "Feed tests", ->
         @axonSock.close()
         @axonSock = null
 
-    after helpers.closeApp
-
-    after (done) ->
-        db.destroy ->
-            db.create (err) ->
-                console.log err if err
-                done()
+    after helpers.after db
 
     describe "Install application which can manage note", ->
 

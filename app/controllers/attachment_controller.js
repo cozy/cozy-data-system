@@ -137,7 +137,8 @@ action('addAttachment', function() {
       } else {
         return deleteFiles(req, function() {
           return send({
-            success: true
+            success: true,
+            msg: 'created'
           }, 201);
         });
       }
@@ -194,7 +195,8 @@ action('removeAttachment', function() {
       }, 500);
     } else {
       return send({
-        success: true
+        success: true,
+        msg: 'deleted'
       }, 204);
     }
   });
