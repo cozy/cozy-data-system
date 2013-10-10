@@ -31,12 +31,15 @@ exports.routes = (map) ->
     map.delete '/data/:id/attachments/:name', 'attachment#removeAttachment'
 
     # Request handling
-
     map.get '/doctypes', 'request#doctypes'
     map.post '/request/:type/:req_name/', 'request#results'
     map.put '/request/:type/:req_name/destroy/', 'request#removeResults'
     map.put '/request/:type/:req_name/', 'request#definition'
     map.delete '/request/:type/:req_name/', 'request#remove'
+
+    # Filter handling
+    map.put '/filter/:req_name/', 'filter#definition'
+    map.delete '/filter/:req_name/', 'filter#remove'
 
     #Account management
     map.post '/accounts/password/', 'account#initializeKeys'
