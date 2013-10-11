@@ -58,16 +58,14 @@ action('doctypes', function() {
   };
   out = [];
   return db.view("doctypes/all", query, function(err, res) {
-    var row, _i, _len;
-    if (err || ((res != null) && res.statusCode !== 200)) {
+    if (err) {
       return send(500, {
         err: JSON.stringify(err)
       });
     } else {
-      for (_i = 0, _len = res.length; _i < _len; _i++) {
-        row = res[_i];
-        out.push(row.key);
-      }
+      res.forEach(function(key, row, id) {
+        return out.push(key);
+      });
       return send(200, out);
     }
   });
