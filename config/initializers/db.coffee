@@ -99,7 +99,7 @@ module.exports = (compound) ->
         db.save('_design/doctypes', {
             all: {
                 map: (doc) ->
-                    if(doc.docType isnt null)
+                    if(doc.docType)
                         emit doc.docType, null
                 reduce: (key, values) -> # use to make a "distinct"
                     return true
