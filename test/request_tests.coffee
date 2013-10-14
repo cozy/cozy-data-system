@@ -332,8 +332,8 @@ describe "Request handling tests", ->
             client.put 'request/all/even_num/', @viewEven, \
                     (error, response, body) =>
                 response.statusCode.should.equal 200
-                done()    
-      
+                done()
+
         it "When I send a request to delete view even_num", (done) ->
             client.del "request/all/even_num/", (error, response, body) =>
                 response.statusCode.should.equal 204
@@ -351,7 +351,7 @@ describe "Request handling tests", ->
     describe "Deletion of an existing view without conflict", ->
         before cleanRequest
 
-        it "When I send a request to delete view even_num", (done) -> 
+        it "When I send a request to delete view even_num", (done) ->
             client.setBasicAuth "test", "token"
             client.del "request/all/every_docs/", (error, response, body) =>
                 response.statusCode.should.equal 204
@@ -385,11 +385,12 @@ describe "Request handling tests", ->
 
             client.get 'doctypes', (error, response, body) ->
                 should.not.exist error
-                should.exist body
+                should.exist response
+                response.should.have.property 'statusCode'
+                response.statusCode.should.equal 200
 
+                should.exist body
                 body.length.should.eql 2
                 body[0].should.eql 'Application'
                 body[1].should.eql 'author'
-
-
                 done()

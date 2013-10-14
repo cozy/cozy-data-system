@@ -51,9 +51,13 @@ action 'doctypes', ->
     out = []
 
     db.view "doctypes/all", query, (err, res) ->
-        for row in res
-            out.push row.key
-        send 200, out
+
+        if err
+            send 500, err: JSON.stringify err
+        else
+            res.forEach (key, row, id) ->
+                out.push key
+            send 200, out
 
 
 # POST /request/:type/:req_name
@@ -79,7 +83,7 @@ action 'removeResults', ->
     removeAllDocs = (res) ->
         async.forEachSeries res, removeFunc, (err) ->
             if err
-                send error: true, msg: err.message, 500
+                send error: err.message, 500
             else
                 delFunc()
 
@@ -109,12 +113,12 @@ action 'definition', ->
             db.save "_design/#{params.type}", design_doc, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    send error: true, msg: err.message, 500
+                    send error: err.message, 500
                 else
                     send success: true, 200
 
         else if err
-            send error: true, msg: err.message, 500
+            send error: err.message, 500
 
         else
             views = res.views
@@ -123,7 +127,7 @@ action 'definition', ->
                 db.merge "_design/#{params.type}", {views:views}, (err, res) ->
                     if err
                         console.log "[Definition] err: " + JSON.stringify err
-                        send error: true, msg: err.message, 500
+                        send error: err.message, 500
                     else
                         send success: true, 200
 
@@ -133,7 +137,7 @@ action 'remove', ->
         if err and err.error is 'not_found'
             send error: "not found", 404
         else if err
-            send error: true, msg: err.message, 500
+            send error: err.message, 500
         else
             views = res.views
             request.get @appName, params, (path) =>
@@ -144,6 +148,6 @@ action 'remove', ->
                     db.merge "_design/#{params.type}", {views:views}, (err, res) ->
                         if err
                             console.log "[Definition] err: " + JSON.stringify err
-                            send error: true, msg: err.message, 500
+                            send error: err.message, 500
                         else
                             send success: true, 204
