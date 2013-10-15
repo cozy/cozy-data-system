@@ -41,9 +41,13 @@ action('bank', function() {
     path = "connectors/bank/" + params.name + "/";
     return client.post(path, body, function(err, res, resBody) {
       if (err) {
-        return send(500);
+        return send({
+          error: err
+        }, 500);
       } else if (res == null) {
-        return send(500);
+        return send({
+          error: "Res not found"
+        }, 500);
       } else if (res.statusCode !== 200) {
         return send(resBody, res.statusCode);
       } else {
@@ -51,7 +55,9 @@ action('bank', function() {
       }
     });
   } else {
-    return send("Credentials are not sent.", 400);
+    return send({
+      error: "Credentials are not sent."
+    }, 400);
   }
 });
 
@@ -61,9 +67,13 @@ action('bankHistory', function() {
     path = "connectors/bank/" + params.name + "/history/";
     return client.post(path, body, function(err, res, resBody) {
       if (err) {
-        return send(500);
+        return send({
+          error: err
+        }, 500);
       } else if (res == null) {
-        return send(500);
+        return send({
+          error: "Res not found"
+        }, 500);
       } else if (res.statusCode !== 200) {
         return send(resBody, res.statusCode);
       } else {
@@ -71,6 +81,8 @@ action('bankHistory', function() {
       }
     });
   } else {
-    return send("Credentials are not sent.", 400);
+    return send({
+      error: "Credentials are not sent."
+    }, 400);
   }
 });
