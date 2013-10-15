@@ -35,27 +35,27 @@ action 'bank', ->
         path = "connectors/bank/#{params.name}/"
         client.post path, body, (err, res, resBody) ->
             if err
-                send 500
+                send error: err, 500
             else if not res?
-                send 500
+                send error: "Res not found", 500
             else if res.statusCode isnt 200
                 send resBody, res.statusCode
             else
                 send resBody
     else
-        send "Credentials are not sent.", 400
+        send error: "Credentials are not sent.", 400
 
 action 'bankHistory', ->
     if body.login? and body.password?
         path = "connectors/bank/#{params.name}/history/"
         client.post path, body, (err, res, resBody) ->
             if err
-                send 500
+                send error: err, 500
             else if not res?
-                send 500
+                send error: "Res not found", 500
             else if res.statusCode isnt 200
                 send resBody, res.statusCode
             else
                 send resBody
     else
-        send "Credentials are not sent.", 400
+        send error: "Credentials are not sent.", 400
