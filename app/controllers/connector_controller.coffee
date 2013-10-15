@@ -8,24 +8,6 @@ if process.env.NODE_ENV is "test"
 else
     client = new Client("http://localhost:9102/")
 
-
-## Before and after methods
-
-# Check if application is authorized to manipulate connectors doocType
-before 'permissions', ->
-    auth = req.header('authorization')
-    checkPermissions auth, body.docType, (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error("Application is not authenticated")
-            send error: err, 401
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            send error: err, 403
-        else
-            compound.app.feed.publish 'usage.application', appName
-            next()
-
-
 ## Actions
 
 # POST /connectors/bank/:name
