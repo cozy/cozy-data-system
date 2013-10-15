@@ -13,28 +13,6 @@ if (process.env.NODE_ENV === "test") {
   client = new Client("http://localhost:9102/");
 }
 
-before('permissions', function() {
-  var auth,
-    _this = this;
-  auth = req.header('authorization');
-  return checkPermissions(auth, body.docType, function(err, appName, isAuthorized) {
-    if (!appName) {
-      err = new Error("Application is not authenticated");
-      return send({
-        error: err
-      }, 401);
-    } else if (!isAuthorized) {
-      err = new Error("Application is not authorized");
-      return send({
-        error: err
-      }, 403);
-    } else {
-      compound.app.feed.publish('usage.application', appName);
-      return next();
-    }
-  });
-});
-
 action('bank', function() {
   var path;
   if ((body.login != null) && (body.password != null)) {
