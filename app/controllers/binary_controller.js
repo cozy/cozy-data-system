@@ -104,24 +104,19 @@ before('permissions', function() {
       return next();
     }
   });
-}, {
-  only: ['addAttachment', 'getAttachment', 'removeAttachment']
 });
 
 action('addAttachment', function() {
-  var file, fileData, name, stream;
-  if (req.files["file"] != null) {
-    file = req.files["file"];
-    if (body.name != null) {
-      name = body.name;
-    } else {
-      name = file.name;
-    }
+  var attach, binary, file, name, _ref,
+    _this = this;
+  attach = function(binary, name, file, doc) {
+    var fileData, stream;
     fileData = {
       name: name,
       "content-type": file.type
     };
-    stream = db.saveAttachment(this.doc, fileData, function(err, res) {
+    stream = db.saveAttachment(binary, fileData, function(err, res) {
+      var bin, newBin;
       if (err) {
         console.log("[Attachment] err: " + JSON.stringify(err));
         return deleteFiles(req, function() {
@@ -130,15 +125,57 @@ action('addAttachment', function() {
           }, 500);
         });
       } else {
-        return deleteFiles(req, function() {
-          return send({
-            success: true,
-            msg: 'created'
-          }, 201);
+        bin = {
+          id: res.id,
+          rev: res.rev
+        };
+        if (doc.binary) {
+          newBin = doc.binary;
+        } else {
+          newBin = {};
+        }
+        newBin[name] = bin;
+        return db.merge(doc._id, {
+          binary: newBin
+        }, function(err, res) {
+          return deleteFiles(req, function() {
+            return send({
+              success: true,
+              msg: 'created'
+            }, 201);
+          });
+          /*db.view 'doc/byBinary', key: res.id, (err, res) =>
+              console.log err if err
+              if res.length > 1
+                  for doc in res
+                      db.merge doc._id, binary, (err, res) =>
+                          console.log err if err
+          */
+
         });
       }
     });
     return fs.createReadStream(file.path).pipe(stream);
+  };
+  if (req.files["file"] != null) {
+    file = req.files["file"];
+    if (body.name != null) {
+      name = body.name;
+    } else {
+      name = file.name;
+    }
+    if (((_ref = this.doc.binary) != null ? _ref[name] : void 0) != null) {
+      return db.get(this.doc.binary[name].id, function(err, binary) {
+        return attach(binary, name, file, _this.doc);
+      });
+    } else {
+      binary = {
+        docType: "Binary"
+      };
+      return db.save(binary, function(err, binary) {
+        return attach(binary, name, file, _this.doc);
+      });
+    }
   } else {
     console.log("no doc for attachment");
     return send({
@@ -151,46 +188,67 @@ action('addAttachment', function() {
 action('getAttachment', function() {
   var name, stream;
   name = params.name;
-  stream = db.getAttachment(this.doc.id, name, function(err) {
-    if (err && (err.error = "not_found")) {
-      return send({
-        error: err.error
-      }, 404);
-    } else if (err) {
-      return send({
-        error: err.error
-      }, 500);
-    } else {
-      return send(200);
+  if (this.doc.binary && this.doc.binary[name]) {
+    stream = db.getAttachment(this.doc.binary[name].id, name, function(err) {
+      if (err && (err.error = "not_found")) {
+        return send({
+          error: err.error
+        }, 404);
+      } else if (err) {
+        return send({
+          error: err.error
+        }, 500);
+      } else {
+        return send(200);
+      }
+    });
+    if (req.headers['range'] != null) {
+      stream.setHeader('range', req.headers['range']);
     }
-  });
-  if (req.headers['range'] != null) {
-    stream.setHeader('range', req.headers['range']);
+    stream.pipe(res);
+    return res.on('close', function() {
+      return stream.abort();
+    });
+  } else {
+    return send({
+      error: 'not_found'
+    }, 404);
   }
-  stream.pipe(res);
-  return res.on('close', function() {
-    return stream.abort();
-  });
 });
 
 action('removeAttachment', function() {
-  var name;
+  var id, name;
   name = params.name;
-  return db.removeAttachment(this.doc, name, function(err, res) {
-    if (err && (err.error = "not_found")) {
-      return send({
-        error: err.error
-      }, 404);
-    } else if (err) {
-      console.log("[Attachment] err: " + JSON.stringify(err));
-      return send({
-        error: err.error
-      }, 500);
-    } else {
-      return send({
-        success: true,
-        msg: 'deleted'
-      }, 204);
+  if (this.doc.binary && this.doc.binary[name]) {
+    id = this.doc.binary[name].id;
+    delete this.doc.binary[name];
+    if (this.doc.binary.length === 0) {
+      delete this.doc.binary;
     }
-  });
+    return db.save(this.doc, function(err, res) {
+      return db.get(id, function(err, binary) {
+        return db.remove(binary.id, binary.rev, function(err, res) {
+          if (err && (err.error = "not_found")) {
+            return send({
+              error: err.error
+            }, 404);
+          } else if (err) {
+            console.log("[Attachment] err: " + JSON.stringify(err));
+            return send({
+              error: err.error
+            }, 500);
+          } else {
+            return send({
+              success: true,
+              msg: 'deleted'
+            }, 204);
+          }
+        });
+      });
+    });
+  } else {
+    return send({
+      error: 'not_found'
+    }, 404);
+  }
 });

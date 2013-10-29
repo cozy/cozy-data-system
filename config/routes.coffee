@@ -29,6 +29,9 @@ exports.routes = (map) ->
     map.post '/data/:id/attachments/', 'attachment#addAttachment'
     map.get '/data/:id/attachments/:name', 'attachment#getAttachment'
     map.delete '/data/:id/attachments/:name', 'attachment#removeAttachment'
+    map.post '/data/:id/binaries/', 'binary#addAttachment'
+    map.get '/data/:id/binaries/:name', 'binary#getAttachment'
+    map.delete '/data/:id/binaries/:name', 'binary#removeAttachment'
 
     # Request handling
     map.get '/doctypes', 'request#doctypes'
@@ -40,6 +43,10 @@ exports.routes = (map) ->
     # Filter handling
     map.put '/filter/:req_name/', 'filter#definition'
     map.delete '/filter/:req_name/', 'filter#remove'
+
+    # Device hangling
+    map.post '/device', 'device#create'
+    map.delete '/device/:id/', 'device#remove'
 
     #Account management
     map.post '/accounts/password/', 'account#initializeKeys'
