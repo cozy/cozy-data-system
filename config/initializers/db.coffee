@@ -126,7 +126,7 @@ module.exports = (compound) ->
                     if(doc.docType)
                         emit doc.docType, null
                 reduce: (key, values) -> # use to make a "distinct"
-                    null
+                    return true
             }
         });
 

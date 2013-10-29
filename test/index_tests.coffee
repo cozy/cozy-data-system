@@ -29,8 +29,13 @@ createNoteFunction = (title, content) ->
 
             client.post "data/index/#{body._id}", fields: ["title", "content"]
             , (error, response, resbody) ->
+                should.not.exist error
+                should.exist response
+                should.exist resbody
+                response.should.have.property 'statusCode'
                 response.statusCode.should.equal 200
-                resbody.msg.should.equal "indexation succeeds"
+                resbody.should.have.property "success"
+                resbody.success.should.be.ok
                 callback error
 
 
@@ -106,15 +111,19 @@ describe "Indexation", ->
 
     describe "Fail indexing", ->
 
-        it "When I index a document that does not exist", (done) ->
+        it "When I index a document that does not exist", (done) =>
             data =
                 fields: ["title", "content"]
 
             client.setBasicAuth "test", "token"
             client.post "data/index/923", data, (error, response, body) =>
-                should.exist error
+
+                should.exist response
+                should.exist body
+                body.should.have.property 'error'
                 @response = response
                 done()
 
-        it "Then it returns a 404 error", ->
+        it "Then it returns a 404 error", =>
+            @response.should.have.property 'statusCode'
             @response.statusCode.should.equal 404

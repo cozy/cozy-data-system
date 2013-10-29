@@ -30,13 +30,9 @@ Once datasystem is installed, run it with:
 To set it up inside your cozy instance:
 
     # Get cozy monitor
-    git clone git://github.com/mycozycloud/cozy-setup.git
-    cd cozy-setup
-    npm install
+    npm install cozy-monitor -g
+    cozy-monitor install data-system
 
-    # Then install data system:
-    coffee monitor install data-system
-    
 ## Tests
 
 [![Build

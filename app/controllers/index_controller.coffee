@@ -79,9 +79,9 @@ action 'index', ->
             fields: body.fields
         client.post "index/", data, (err, res, resbody) ->
             if err or res.statusCode != 200
-                send 500
+                send error: JSON.stringify err, 500
             else
-                send {success: true, msg: resbody}, res.statusCode
+                send success: true, 200
         , false # body = indexation succeeds, do not parse
 
     db.get params.id, (err, doc) ->
@@ -89,7 +89,7 @@ action 'index', ->
             permission doc.docType, () =>
                 indexDoc(doc)
         else
-            send 404
+            send error: "not found", 404
 
 
 # POST /data/search/
@@ -101,15 +101,15 @@ action 'search', ->
 
     client.post "search/", data, (err, res, resbody) ->
         if err
-            send 500
+            send error: err.message, 500
         else if not res?
-            send 500
+            send error: err.message, 500
         else if res.statusCode != 200
             send resbody, res.statusCode
         else
             db.get resbody.ids, (err, docs) ->
                 if err
-                    send 500
+                    send error: err.message, 500
                 else
                     results = []
                     for doc in docs
@@ -126,19 +126,19 @@ action 'search', ->
 action 'remove', ->
     removeIndex = ->
         client.del "index/#{params.id}/", (err, res, resbody) ->
-            if err
-                send 500
+            if err?
+                send error: err.message, 500
             else
-                send {success: true, msg: resbody}, res.statusCode
+                send success: true, 200
         , false # body is not JSON
 
     db.get params.id, (err, doc) ->
-        permission doc.docType, () =>
+        permission doc.docType, ->
             if doc?
-                permission doc.docType, () =>
-                    removeIndex(doc)
+                permission doc.docType, ->
+                    removeIndex doc
             else
-                send 404
+                send err: "not found", 404
 
 
 # DELETE /data/index/clear-all/
@@ -146,7 +146,7 @@ action 'remove', ->
 action 'removeAll', ->
     client.del "clear-all/", (err, res, resbody) ->
         if err
-            send 500
+            send error: err.message, 500
         else
-            send {success: true, msg: resbody}, res.statusCode
+            send {success: true}, 200
     , false  # body is not JSON

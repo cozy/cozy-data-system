@@ -102,12 +102,13 @@ action('index', function() {
     };
     return client.post("index/", data, function(err, res, resbody) {
       if (err || res.statusCode !== 200) {
-        return send(500);
+        return send({
+          error: JSON.stringify(err, 500)
+        });
       } else {
         return send({
-          success: true,
-          msg: resbody
-        }, res.statusCode);
+          success: true
+        }, 200);
       }
     }, false);
   };
@@ -118,7 +119,9 @@ action('index', function() {
         return indexDoc(doc);
       });
     } else {
-      return send(404);
+      return send({
+        error: "not found"
+      }, 404);
     }
   });
 });
@@ -131,16 +134,22 @@ action('search', function() {
   };
   return client.post("search/", data, function(err, res, resbody) {
     if (err) {
-      return send(500);
+      return send({
+        error: err.message
+      }, 500);
     } else if (res == null) {
-      return send(500);
+      return send({
+        error: err.message
+      }, 500);
     } else if (res.statusCode !== 200) {
       return send(resbody, res.statusCode);
     } else {
       return db.get(resbody.ids, function(err, docs) {
         var doc, resDoc, results, _i, _len;
         if (err) {
-          return send(500);
+          return send({
+            error: err.message
+          }, 500);
         } else {
           results = [];
           for (_i = 0, _len = docs.length; _i < _len; _i++) {
@@ -164,25 +173,27 @@ action('remove', function() {
   var removeIndex;
   removeIndex = function() {
     return client.del("index/" + params.id + "/", function(err, res, resbody) {
-      if (err) {
-        return send(500);
+      if (err != null) {
+        return send({
+          error: err.message
+        }, 500);
       } else {
         return send({
-          success: true,
-          msg: resbody
-        }, res.statusCode);
+          success: true
+        }, 200);
       }
     }, false);
   };
   return db.get(params.id, function(err, doc) {
-    var _this = this;
     return permission(doc.docType, function() {
       if (doc != null) {
         return permission(doc.docType, function() {
           return removeIndex(doc);
         });
       } else {
-        return send(404);
+        return send({
+          err: "not found"
+        }, 404);
       }
     });
   });
@@ -191,12 +202,13 @@ action('remove', function() {
 action('removeAll', function() {
   return client.del("clear-all/", function(err, res, resbody) {
     if (err) {
-      return send(500);
+      return send({
+        error: err.message
+      }, 500);
     } else {
       return send({
-        success: true,
-        msg: resbody
-      }, res.statusCode);
+        success: true
+      }, 200);
     }
   }, false);
 });

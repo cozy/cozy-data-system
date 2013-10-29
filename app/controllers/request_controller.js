@@ -58,12 +58,16 @@ action('doctypes', function() {
   };
   out = [];
   return db.view("doctypes/all", query, function(err, res) {
-    var row, _i, _len;
-    for (_i = 0, _len = res.length; _i < _len; _i++) {
-      row = res[_i];
-      out.push(row.key);
+    if (err) {
+      return send(500, {
+        err: JSON.stringify(err)
+      });
+    } else {
+      res.forEach(function(key, row, id) {
+        return out.push(key);
+      });
+      return send(200, out);
     }
-    return send(200, out);
   });
 });
 
@@ -102,8 +106,7 @@ action('removeResults', function() {
     return async.forEachSeries(res, removeFunc, function(err) {
       if (err) {
         return send({
-          error: true,
-          msg: err.message
+          error: err.message
         }, 500);
       } else {
         return delFunc();
@@ -146,8 +149,7 @@ action('definition', function() {
         if (err) {
           console.log("[Definition] err: " + JSON.stringify(err));
           return send({
-            error: true,
-            msg: err.message
+            error: err.message
           }, 500);
         } else {
           return send({
@@ -157,8 +159,7 @@ action('definition', function() {
       });
     } else if (err) {
       return send({
-        error: true,
-        msg: err.message
+        error: err.message
       }, 500);
     } else {
       views = res.views;
@@ -170,8 +171,7 @@ action('definition', function() {
           if (err) {
             console.log("[Definition] err: " + JSON.stringify(err));
             return send({
-              error: true,
-              msg: err.message
+              error: err.message
             }, 500);
           } else {
             return send({
@@ -194,8 +194,7 @@ action('remove', function() {
       }, 404);
     } else if (err) {
       return send({
-        error: true,
-        msg: err.message
+        error: err.message
       }, 500);
     } else {
       views = res.views;
@@ -212,8 +211,7 @@ action('remove', function() {
             if (err) {
               console.log("[Definition] err: " + JSON.stringify(err));
               return send({
-                error: true,
-                msg: err.message
+                error: err.message
               }, 500);
             } else {
               return send({

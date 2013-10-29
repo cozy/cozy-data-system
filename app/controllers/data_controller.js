@@ -136,6 +136,10 @@ action('exist', function() {
       return send({
         "exist": false
       });
+    } else {
+      return send(500, {
+        error: JSON.stringify(err)
+      });
     }
   });
 });

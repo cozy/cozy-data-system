@@ -59,7 +59,7 @@ before('get doc', function() {
       app.locker.removeLock(_this.lock);
       return deleteFiles(req, function() {
         return send({
-          error: err.error
+          error: "not found"
         }, 404);
       });
     } else if (err) {
@@ -132,8 +132,7 @@ action('addAttachment', function() {
       } else {
         return deleteFiles(req, function() {
           return send({
-            success: true,
-            msg: 'created'
+            success: true
           }, 201);
         });
       }
@@ -142,8 +141,7 @@ action('addAttachment', function() {
   } else {
     console.log("no doc for attachment");
     return send({
-      error: true,
-      msg: "No file send"
+      error: "No file sent"
     }, 400);
   }
 });
@@ -154,14 +152,16 @@ action('getAttachment', function() {
   stream = db.getAttachment(this.doc.id, name, function(err) {
     if (err && (err.error = "not_found")) {
       return send({
-        error: err.error
+        error: "not found"
       }, 404);
     } else if (err) {
       return send({
         error: err.error
       }, 500);
     } else {
-      return send(200);
+      return send({
+        success: true
+      }, 200);
     }
   });
   if (req.headers['range'] != null) {
@@ -179,7 +179,7 @@ action('removeAttachment', function() {
   return db.removeAttachment(this.doc, name, function(err, res) {
     if (err && (err.error = "not_found")) {
       return send({
-        error: err.error
+        error: "not found"
       }, 404);
     } else if (err) {
       console.log("[Attachment] err: " + JSON.stringify(err));
@@ -188,8 +188,7 @@ action('removeAttachment', function() {
       }, 500);
     } else {
       return send({
-        success: true,
-        msg: 'deleted'
+        success: true
       }, 204);
     }
   });

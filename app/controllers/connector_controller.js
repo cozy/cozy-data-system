@@ -13,37 +13,19 @@ if (process.env.NODE_ENV === "test") {
   client = new Client("http://localhost:9102/");
 }
 
-before('permissions', function() {
-  var auth,
-    _this = this;
-  auth = req.header('authorization');
-  return checkPermissions(auth, body.docType, function(err, appName, isAuthorized) {
-    if (!appName) {
-      err = new Error("Application is not authenticated");
-      return send({
-        error: err
-      }, 401);
-    } else if (!isAuthorized) {
-      err = new Error("Application is not authorized");
-      return send({
-        error: err
-      }, 403);
-    } else {
-      compound.app.feed.publish('usage.application', appName);
-      return next();
-    }
-  });
-});
-
 action('bank', function() {
   var path;
   if ((body.login != null) && (body.password != null)) {
     path = "connectors/bank/" + params.name + "/";
     return client.post(path, body, function(err, res, resBody) {
       if (err) {
-        return send(500);
+        return send({
+          error: err
+        }, 500);
       } else if (res == null) {
-        return send(500);
+        return send({
+          error: "Res not found"
+        }, 500);
       } else if (res.statusCode !== 200) {
         return send(resBody, res.statusCode);
       } else {
@@ -51,7 +33,9 @@ action('bank', function() {
       }
     });
   } else {
-    return send("Credentials are not sent.", 400);
+    return send({
+      error: "Credentials are not sent."
+    }, 400);
   }
 });
 
@@ -61,9 +45,13 @@ action('bankHistory', function() {
     path = "connectors/bank/" + params.name + "/history/";
     return client.post(path, body, function(err, res, resBody) {
       if (err) {
-        return send(500);
+        return send({
+          error: err
+        }, 500);
       } else if (res == null) {
-        return send(500);
+        return send({
+          error: "Res not found"
+        }, 500);
       } else if (res.statusCode !== 200) {
         return send(resBody, res.statusCode);
       } else {
@@ -71,6 +59,8 @@ action('bankHistory', function() {
       }
     });
   } else {
-    return send("Credentials are not sent.", 400);
+    return send({
+      error: "Credentials are not sent."
+    }, 400);
   }
 });

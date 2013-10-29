@@ -104,6 +104,8 @@ action 'exist', ->
             send "exist": true
         else if status is 404
             send "exist": false
+        else
+            send 500, error: JSON.stringify err
 
 # GET /data/:id
 action 'find', ->
