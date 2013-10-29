@@ -122,7 +122,7 @@ initHomeProxy = (callback) ->
     permissions.proxy =
         "user": "authorized"
         "cozyinstance": "authorized"
-        "remote": "authorized"
+        "device": "authorized"
     callback null
 
 

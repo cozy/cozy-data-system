@@ -102,7 +102,7 @@ createFilter = function(id, callback) {
           msg: "This default filter doesn't exist"
         }, 400);
       }
-      designDoc.filters = filterFunction;
+      designDoc.filter = filterFunction;
       return db.save("_design/" + id, {
         views: {},
         filters: designDoc
@@ -123,9 +123,9 @@ createFilter = function(id, callback) {
       designDoc = res.filters;
       filterName = id + "filter";
       filterFunction = filter.get(defaultFilter, id);
-      designDoc.filters = filterFunction;
+      designDoc.filter = filterFunction;
       return db.merge("_design/" + id, {
-        filters: filters
+        filters: designDoc
       }, function(err, res) {
         if (err) {
           console.log("[Definition] err: " + JSON.stringify(err));
