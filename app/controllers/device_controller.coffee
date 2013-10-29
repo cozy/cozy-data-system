@@ -70,7 +70,7 @@ createFilter = (id, callback) ->
             filterFunction = filter.get(id)
             if filterFunction is null
                 send error: true, msg: "This default filter doesn't exist", 400
-            designDoc.filters = filterFunction
+            designDoc.filter = filterFunction
             db.save "_design/#{id}", {views: {} ,filters:designDoc}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
@@ -85,8 +85,8 @@ createFilter = (id, callback) ->
             designDoc = res.filters
             filterName = id + "filter"
             filterFunction = filter.get(defaultFilter, id)
-            designDoc.filters = filterFunction
-            db.merge "_design/#{id}", {filters:filters}, (err, res) ->
+            designDoc.filter = filterFunction
+            db.merge "_design/#{id}", {filters:designDoc}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
                     send error: true, msg: err.message, 500
