@@ -91,7 +91,7 @@ describe "Binaries", ->
         it "And I got a 404 response", ->
             @response.statusCode.should.equal 404
 
-        it "And binary of data should be deleted", ->
+        it "And binary of data should be deleted", (done) ->
             @client.get '/data/321/', (err, res, body) =>
                 body.binary.not.should.exist
                 done()
