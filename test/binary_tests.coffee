@@ -93,5 +93,5 @@ describe "Binaries", ->
 
         it "And binary of data should be deleted", (done) ->
             @client.get '/data/321/', (err, res, body) =>
-                body.binary.not.should.exist
+                should.not.exist body.binary["test.png"]
                 done()
