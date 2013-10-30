@@ -1,5 +1,6 @@
 Client = require('request-json').JsonClient
 helpers = require('./helpers')
+should = require('chai').Should()
 
 client = new Client("http://localhost:8888/")
 db = require('../helpers/db_connect_helper').db_connect()
@@ -136,6 +137,27 @@ describe "Mail handling tests", ->
                     @body.error.should.be.exist
                     @body.error.should.be.equal 'Body has not all necessary ' +
                         'attributes'
+
+        describe "Send an email with HTML body: ", ->
+
+            it "When I send a request to send email", (done) ->
+                data =
+                    to: "mail@cozycloud.cc"
+                    from: "Cozy-test <test@cozycloud.cc>"
+                    subject: "Good test"
+                    content: "This mail has a HTML body"
+                    html: "<p>This mail has a HTML body</p>"
+                client.setBasicAuth "test", "token"
+                client.post 'mail/', data, (err, res, body) =>
+                    @err = err
+                    @res = res
+                    @body = body
+                    done()
+
+            it "Then 200 sould be returned as status code", ->
+                    should.not.exist @err
+                    should.exist @res
+                    should.exist @body
 
 
     ###describe "Send an email with wrong mail: ", ->
