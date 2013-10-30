@@ -48,10 +48,10 @@ before 'permissionSendMail', ->
             next()
 , only: ['sendMailFromUser']
 
-# Helpers 
+# Helpers
 sendEmail = (mailOptions, callback) =>
     transport = nodemailer.createTransport "SMTP", {}
-    transport.sendMail mailOptions, (error, response) =>        
+    transport.sendMail mailOptions, (error, response) =>
         transport.close()
         callback error, response
 
@@ -64,11 +64,12 @@ checkBody = (attributes) =>
 # Send an email with options given in body
 action 'sendMail', =>
     checkBody ['to', 'from', 'subject', 'content']
-    mailOptions = 
+    mailOptions =
         to: body.to
         from: body.from
         subject: body.subject
         text: body.content
+        html: body.html or undefined
     if body.attachments?
         mailOptions.attachments = body.attachments
     sendEmail mailOptions, (error, response) =>
@@ -87,12 +88,13 @@ action 'sendMailToUser', =>
         if err
             console.log "[sendMailToUser] err: #{err}"
             send 500
-        else 
-            mailOptions = 
+        else
+            mailOptions =
                 to: user.email
                 from: body.from
                 subject: body.subject
                 text: body.content
+                html: body.html or undefined
             if body.attachments?
                 mailOptions.attachments = body.attachments
             sendEmail mailOptions, (error, response) =>
@@ -116,6 +118,7 @@ action 'sendMailFromUser', =>
                 from: user.email
                 subject: body.subject
                 text: body.content
+                html: body.html or undefined
             if body.attachments?
                 mailOptions.attachments = body.attachments
             sendEmail mailOptions, (error, response) =>
