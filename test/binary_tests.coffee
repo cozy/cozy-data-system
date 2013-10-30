@@ -94,3 +94,4 @@ describe "Binaries", ->
         it "And binary of data should be deleted", ->
             @client.get '/data/321/', (err, res, body) =>
                 body.binary.not.should.exist
+                done()
