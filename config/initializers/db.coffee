@@ -29,11 +29,24 @@ module.exports = (compound) ->
                 "names":[loginCouch[0]]
                 "roles":[]
             "readers":
-                "names":[loginCouch[0]]
+                "names":[loginCouch[0], 'proxy']
                 "roles":[]
         couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
         couchClient.put 'cozy/_security', data, (err, res, body)->
             callback err
+
+    addCozyUser = (callback) ->
+        loginCouch = initLoginCouch()
+        data = 
+            "_id": "org.couchdb.user:proxy",
+            "name": "proxy",
+            "type": "user",
+            "roles": [],
+            "password": process.env.TOKEN
+        couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
+        couchClient.post '_users', data, (err, res, body)->
+            callback err
+
 
     ### Logger ###
 
@@ -65,13 +78,19 @@ module.exports = (compound) ->
                     couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
                     couchClient.get 'cozy/_security', (err, res, body)=>
                         if not body.admins? or
-                                body.admins.names[0] isnt loginCouch[0]
-                            addCozyAdmin (err) =>
+                                body.admins.names[0] isnt loginCouch[0] or
+                                body.readers?.names[0] isnt 'proxy'
+                            addCozyUser (err) ->
                                 if err
                                     compound.logger.write "Error on database" +
-                                    " Add admin : #{err}"
+                                    " Add user : #{err}"
                                 else
-                                    logFound()
+                                    addCozyAdmin (err) =>
+                                        if err
+                                            compound.logger.write "Error on database" +
+                                            " Add admin : #{err}"
+                                        else
+                                            logFound()
                         else
                             logFound()
                 else
@@ -86,11 +105,16 @@ module.exports = (compound) ->
             if err
                 logError(err)
             else if (process.env.NODE_ENV is 'production')
-                addCozyAdmin (err) =>
+                addCozyUser (err) ->
                     if err
-                        logError(err)
+                        compound.logger.write "Error on database" +
+                        " Add user : #{err}"
                     else
-                        logCreated()
+                        addCozyAdmin (err) =>
+                            if err
+                                logError(err)
+                            else
+                                logCreated()
             else
                 logCreated()
 
