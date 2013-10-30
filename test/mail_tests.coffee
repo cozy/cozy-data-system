@@ -63,7 +63,8 @@ describe "Mail handling tests", ->
                 data =
                     from: "Cozy-test <test@cozycloud.cc>"
                     subject: "Wrong test"
-                    content: "This mail has a wrong email address"
+                    text: "This mail has a wrong email address"
+                    html: "<p>This mail has a wrong email address</p>"
                 client.setBasicAuth "test", "token"
                 client.post 'mail/', data, (err, res, body) =>
                     @err = err
@@ -83,7 +84,8 @@ describe "Mail handling tests", ->
                 data =
                     to: "mail@cozycloud.cc"
                     subject: "Wrong test"
-                    content: "This mail has a wrong email address"
+                    text: "This mail has a wrong email address"
+                    html: "<p>This mail has a wrong email address</p>"
                 client.setBasicAuth "test", "token"
                 client.post 'mail/', data, (err, res, body) =>
                     @err = err
@@ -103,7 +105,8 @@ describe "Mail handling tests", ->
                 data =
                     to: "mail@cozycloud.cc"
                     from: "Cozy-test <test@cozycloud.cc>"
-                    content: "This mail has a wrong email address"
+                    text: "This mail has a wrong email address"
+                    text: "<p>This mail has a wrong email address</p>"
                 client.setBasicAuth "test", "token"
                 client.post 'mail/', data, (err, res, body) =>
                     @err = err

@@ -109,12 +109,13 @@ checkBody = function(attributes) {
 
 action('sendMail', function() {
   var mailOptions;
-  checkBody(['to', 'from', 'subject', 'content']);
+  checkBody(['to', 'from', 'subject', 'text', 'html']);
   mailOptions = {
     to: body.to,
     from: body.from,
     subject: body.subject,
-    text: body.content
+    text: body.text,
+    html: body.html
   };
   if (body.attachments != null) {
     mailOptions.attachments = body.attachments;
@@ -132,7 +133,7 @@ action('sendMail', function() {
 });
 
 action('sendMailToUser', function() {
-  checkBody(['from', 'subject', 'content']);
+  checkBody(['from', 'subject', 'text', 'html']);
   return user.getUser(function(err, user) {
     var mailOptions,
       _this = this;
@@ -144,7 +145,8 @@ action('sendMailToUser', function() {
         to: user.email,
         from: body.from,
         subject: body.subject,
-        text: body.content
+        text: body.text,
+        html: body.html
       };
       if (body.attachments != null) {
         mailOptions.attachments = body.attachments;
@@ -164,7 +166,7 @@ action('sendMailToUser', function() {
 });
 
 action('sendMailFromUser', function() {
-  checkBody(['to', 'subject', 'content']);
+  checkBody(['to', 'subject', 'text', 'html']);
   return user.getUser(function(err, user) {
     var mailOptions,
       _this = this;
@@ -176,7 +178,8 @@ action('sendMailFromUser', function() {
         to: body.to,
         from: user.email,
         subject: body.subject,
-        text: body.content
+        text: body.text,
+        html: body.html
       };
       if (body.attachments != null) {
         mailOptions.attachments = body.attachments;

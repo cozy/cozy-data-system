@@ -48,10 +48,10 @@ before 'permissionSendMail', ->
             next()
 , only: ['sendMailFromUser']
 
-# Helpers 
+# Helpers
 sendEmail = (mailOptions, callback) =>
     transport = nodemailer.createTransport "SMTP", {}
-    transport.sendMail mailOptions, (error, response) =>        
+    transport.sendMail mailOptions, (error, response) =>
         transport.close()
         callback error, response
 
@@ -63,12 +63,13 @@ checkBody = (attributes) =>
 # POST /mail/
 # Send an email with options given in body
 action 'sendMail', =>
-    checkBody ['to', 'from', 'subject', 'content']
-    mailOptions = 
+    checkBody ['to', 'from', 'subject', 'text', 'html']
+    mailOptions =
         to: body.to
         from: body.from
         subject: body.subject
-        text: body.content
+        text: body.text
+        html: body.html
     if body.attachments?
         mailOptions.attachments = body.attachments
     sendEmail mailOptions, (error, response) =>
@@ -82,17 +83,18 @@ action 'sendMail', =>
 # POST /mail/to-user/
 # Send an email to user with options given in body
 action 'sendMailToUser', =>
-    checkBody ['from', 'subject', 'content']
+    checkBody ['from', 'subject', 'text', 'html']
     user.getUser (err, user) ->
         if err
             console.log "[sendMailToUser] err: #{err}"
             send 500
-        else 
-            mailOptions = 
+        else
+            mailOptions =
                 to: user.email
                 from: body.from
                 subject: body.subject
-                text: body.content
+                text: body.text
+                html: body.html
             if body.attachments?
                 mailOptions.attachments = body.attachments
             sendEmail mailOptions, (error, response) =>
@@ -105,7 +107,7 @@ action 'sendMailToUser', =>
 # POST /mail/from-user/
 # Send an email from user with options given in body
 action 'sendMailFromUser', =>
-    checkBody ['to', 'subject', 'content']
+    checkBody ['to', 'subject', 'text', 'html']
     user.getUser (err, user) ->
         if err
             console.log "[sendMailFromUser] err: #{err}"
@@ -115,7 +117,8 @@ action 'sendMailFromUser', =>
                 to: body.to
                 from: user.email
                 subject: body.subject
-                text: body.content
+                text: body.text
+                html: body.html
             if body.attachments?
                 mailOptions.attachments = body.attachments
             sendEmail mailOptions, (error, response) =>
