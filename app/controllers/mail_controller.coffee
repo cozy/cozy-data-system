@@ -63,13 +63,13 @@ checkBody = (attributes) =>
 # POST /mail/
 # Send an email with options given in body
 action 'sendMail', =>
-    checkBody ['to', 'from', 'subject', 'text', 'html']
+    checkBody ['to', 'from', 'subject', 'content']
     mailOptions =
         to: body.to
         from: body.from
         subject: body.subject
-        text: body.text
-        html: body.html
+        text: body.content
+        html: body.html or undefined
     if body.attachments?
         mailOptions.attachments = body.attachments
     sendEmail mailOptions, (error, response) =>
@@ -83,7 +83,7 @@ action 'sendMail', =>
 # POST /mail/to-user/
 # Send an email to user with options given in body
 action 'sendMailToUser', =>
-    checkBody ['from', 'subject', 'text', 'html']
+    checkBody ['from', 'subject', 'content']
     user.getUser (err, user) ->
         if err
             console.log "[sendMailToUser] err: #{err}"
@@ -93,8 +93,8 @@ action 'sendMailToUser', =>
                 to: user.email
                 from: body.from
                 subject: body.subject
-                text: body.text
-                html: body.html
+                text: body.content
+                html: body.html or undefined
             if body.attachments?
                 mailOptions.attachments = body.attachments
             sendEmail mailOptions, (error, response) =>
@@ -107,7 +107,7 @@ action 'sendMailToUser', =>
 # POST /mail/from-user/
 # Send an email from user with options given in body
 action 'sendMailFromUser', =>
-    checkBody ['to', 'subject', 'text', 'html']
+    checkBody ['to', 'subject', 'content']
     user.getUser (err, user) ->
         if err
             console.log "[sendMailFromUser] err: #{err}"
@@ -117,8 +117,8 @@ action 'sendMailFromUser', =>
                 to: body.to
                 from: user.email
                 subject: body.subject
-                text: body.text
-                html: body.html
+                text: body.content
+                html: body.html or undefined
             if body.attachments?
                 mailOptions.attachments = body.attachments
             sendEmail mailOptions, (error, response) =>
