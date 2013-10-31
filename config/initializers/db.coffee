@@ -90,6 +90,7 @@ module.exports = (compound) ->
                                         if err
                                             compound.logger.write "Error on database" +
                                             " Add admin : #{err}"
+                                            callback()
                                         else
                                             logFound()
                                             callback()
