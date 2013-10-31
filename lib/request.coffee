@@ -69,7 +69,7 @@ recoverApp = (callback) =>
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback all design documents from database
 recoverDocs = (res, docs, callback) =>
-    if res.length isnt 0
+    if res and res.length isnt 0
         doc = res.pop()
         db.get doc.id, (err, result) =>
             docs.push(result)
