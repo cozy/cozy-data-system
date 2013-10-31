@@ -146,7 +146,11 @@ action('create', function() {
   device = {
     login: body.login,
     password: randomString(32),
-    docType: "Device"
+    docType: "Device",
+    configuration: {
+      "File": "all",
+      "Folder": "all"
+    }
   };
   return db.view('device/byLogin', {
     key: device.login
