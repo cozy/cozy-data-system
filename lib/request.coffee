@@ -82,7 +82,7 @@ recoverDocs = (res, docs, callback) =>
 ## Callback all design documents from database
 recoverDesignDocs = (callback) =>
     filterRange =
-          startkey: "_design/"
+        startkey: "_design/"
         endkey: "_design0"
     db.all filterRange, (err, res) =>
         recoverDocs res, [], callback
