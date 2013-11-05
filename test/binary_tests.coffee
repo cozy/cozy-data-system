@@ -92,6 +92,6 @@ describe "Binaries", ->
             @response.statusCode.should.equal 404
 
         it "And binary of data should be deleted", (done) ->
-            @client.get '/data/321/', (err, res, body) =>
+            @client.get 'data/321/', (err, res, body) =>
                 should.not.exist body.binary["test.png"]
                 done()

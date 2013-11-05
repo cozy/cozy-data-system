@@ -156,4 +156,6 @@ module.exports.init = (callback) ->
                     # Search application
                     res.forEach (appli) ->
                         initApplication appli, () ->
-    callback tokens, permissions
+                    callback tokens, permissions
+    else
+        callback tokens, permissions

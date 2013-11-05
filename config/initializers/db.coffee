@@ -68,7 +68,7 @@ module.exports = (compound) ->
 
 
     ### Check existence of cozy database or create it ###
-    db_ensure = ->
+    db_ensure = (callback) ->
         db.exists (err, exists) ->
             if err
                 compound.logger.write "Error:", err
@@ -84,39 +84,49 @@ module.exports = (compound) ->
                                 if err
                                     compound.logger.write "Error on database" +
                                     " Add user : #{err}"
+                                    callback()
                                 else
                                     addCozyAdmin (err) =>
                                         if err
                                             compound.logger.write "Error on database" +
                                             " Add admin : #{err}"
+                                            callback()
                                         else
                                             logFound()
+                                            callback()
                         else
                             logFound()
+                            callback()
                 else
                     logFound()
+                    callback()
             else
-                db_create()
+                db_create(callback)
 
-    db_create = ->
+    db_create = (callback)->
         compound.logger.write "Database #{db.name} on" +
                 " #{db.connection.host}:#{db.connection.port} doesn't exist."
         db.create (err) ->
             if err
                 logError(err)
+                db_create(callback)
             else if (process.env.NODE_ENV is 'production')
                 addCozyUser (err) ->
                     if err
                         compound.logger.write "Error on database" +
                         " Add user : #{err}"
+                        callback()
                     else
                         addCozyAdmin (err) =>
                             if err
                                 logError(err)
+                                callback()
                             else
                                 logCreated()
+                                callback()
             else
                 logCreated()
+                callback()
 
     # this request is used to retrieved all the doctypes in the DS
     request_create = ->
@@ -129,6 +139,18 @@ module.exports = (compound) ->
                     return true
             }
         });
+        db.save('_design/device', {
+            all: {
+                map: (doc) ->
+                    if ((doc.docType) && (doc.docType is "Device"))
+                        emit doc._id, doc
+            },
+            byLogin: {
+                map: (doc) ->
+                    if ((doc.docType) && (doc.docType is "Device"))
+                        emit doc.login, doc
+            }
+        });
 
     feed_start = ->
         app.feed.startListening(db)
@@ -137,7 +159,7 @@ module.exports = (compound) ->
         # with compound 1.1.5-21+, we should make this initializer async
 
     app.feed = new Feed(app)
-    db_ensure()
-    initTokens (tokens, permissions) =>
-        request.init (err) =>
+    db_ensure () ->
+        initTokens (tokens, permissions) =>
+            request.init (err) =>
 

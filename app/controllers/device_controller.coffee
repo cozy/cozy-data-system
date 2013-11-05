@@ -102,6 +102,9 @@ action 'create', ->
         login: body.login
         password: randomString 32
         docType: "Device"
+        configuration: 
+            "File": "all"
+            "Folder": "all"
     # Check if an other device hasn't the same name
     db.view 'device/byLogin', key: device.login, (err, res) ->
         if res.length isnt 0
