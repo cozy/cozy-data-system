@@ -22,6 +22,7 @@ before 'permissions', ->
             @appName = appName
             compound.app.feed.publish 'usage.application', appName
             next()
+, except: ['doctypes']
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
