@@ -45,7 +45,7 @@ exports.routes = (map) ->
     map.delete '/filter/:req_name/', 'filter#remove'
 
     # Device hangling
-    map.post '/device', 'device#create'
+    map.post '/device/', 'device#create'
     map.delete '/device/:id/', 'device#remove'
 
     #Account management

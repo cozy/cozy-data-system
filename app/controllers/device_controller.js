@@ -96,12 +96,6 @@ createFilter = function(id, callback) {
     if (err && err.error === 'not_found') {
       designDoc = {};
       filterFunction = filter.get(id);
-      if (filterFunction === null) {
-        send({
-          error: true,
-          msg: "This default filter doesn't exist"
-        }, 400);
-      }
       designDoc.filter = filterFunction;
       return db.save("_design/" + id, {
         views: {},
@@ -109,10 +103,7 @@ createFilter = function(id, callback) {
       }, function(err, res) {
         if (err) {
           console.log("[Definition] err: " + JSON.stringify(err));
-          return send({
-            error: true,
-            msg: err.message
-          }, 500);
+          return callback(err.message);
         } else {
           return callback(null);
         }
@@ -129,10 +120,7 @@ createFilter = function(id, callback) {
       }, function(err, res) {
         if (err) {
           console.log("[Definition] err: " + JSON.stringify(err));
-          return send({
-            error: true,
-            msg: err.message
-          }, 500);
+          return callback(err.message);
         } else {
           return callback(null);
         }
@@ -201,7 +189,7 @@ action('remove', function() {
         } else {
           return send({
             success: true
-          }, 204);
+          }, 200);
         }
       });
     }

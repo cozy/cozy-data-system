@@ -68,13 +68,11 @@ createFilter = (id, callback) ->
         if err && err.error is 'not_found'
             designDoc = {}
             filterFunction = filter.get(id)
-            if filterFunction is null
-                send error: true, msg: "This default filter doesn't exist", 400
             designDoc.filter = filterFunction
             db.save "_design/#{id}", {views: {} ,filters:designDoc}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    send error: true, msg: err.message, 500
+                    callback err.message
                 else
                     callback null
 
@@ -89,7 +87,7 @@ createFilter = (id, callback) ->
             db.merge "_design/#{id}", {filters:designDoc}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    send error: true, msg: err.message, 500
+                    callback err.message
                 else
                     callback null
 
@@ -133,4 +131,4 @@ action 'remove', ->
                     console.log "[Definition] err: " + JSON.stringify err
                     send error: true, msg: err.message, 500
                 else
-                    send success: true, 204
+                    send success: true, 200
