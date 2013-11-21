@@ -32,6 +32,8 @@ before('permissions', function() {
       return next();
     }
   });
+}, {
+  except: ['doctypes']
 });
 
 before('lock request', function() {
