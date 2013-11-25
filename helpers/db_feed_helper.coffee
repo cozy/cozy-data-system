@@ -1,3 +1,6 @@
+Client = require('request-json').JsonClient
+client = new Client 'http://localhost:5984'
+
 module.exports = class Feed
 
     db:       undefined
@@ -52,12 +55,36 @@ module.exports = class Feed
 
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
     _onChange: (change) =>
-        return if change.deleted #delete events are send by data controller
+        docs_deleted = {}
+        if change.deleted #delete events are send by data controller
+            if docs_deleted[change.id]
+                delete docs_deleted[change.id]
+                return
+            else
+                doc = 
+                    _id: change.id
+                    _rev: change.changes[0].rev
+                @db.post doc, (err, doc) =>
+                    rev = doc.rev
+                    client.get "/cozy/#{change.id}?revs_info=true", (err, res, doc) =>
+                        @db.get change.id, doc._revs_info[2].rev, (err, doc) =>
+                            doctype = doc?.docType?.toLowerCase()
+                            @_publish "#{doctype}.delete", doc._id if doctype
+                            if doc.docType is 'File' and doc.binary?.file?
+                                binary = doc.binary.file.id
+                                binary_rev = doc.binary.file.rev
+                                @db.get binary, (err, doc) =>
+                                    docs_deleted[doc.id] = true
+                                    if doc 
+                                        @db.remove binary, binary_rev, (err, doc) =>
+                                            @db.remove change.id, rev, (err, doc) =>
+                                                docs_deleted[change.id] = true
+                                                return 
+        else
+            isCreation = change.changes[0].rev.split('-')[0] is '1'
+            operation = if isCreation then 'create' else 'update'
 
-        isCreation = change.changes[0].rev.split('-')[0] is '1'
-        operation = if isCreation then 'create' else 'update'
-
-        @db.get change.id, (err, doc) =>
-            console.log err if err?
-            doctype = doc?.docType?.toLowerCase()
-            @_publish "#{doctype}.#{operation}", doc._id if doctype
+            @db.get change.id, (err, doc) =>
+                console.log err if err?
+                doctype = doc?.docType?.toLowerCase()
+                @_publish "#{doctype}.#{operation}", doc._id if doctype
