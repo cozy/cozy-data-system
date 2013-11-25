@@ -74,6 +74,7 @@ module.exports = class Feed
                                 binary = doc.binary.file.id
                                 binary_rev = doc.binary.file.rev
                                 @db.get binary, (err, doc) =>
+                                    return if err
                                     docs_deleted[doc.id] = true
                                     if doc 
                                         @db.remove binary, binary_rev, (err, doc) =>
