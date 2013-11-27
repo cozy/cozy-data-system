@@ -245,7 +245,6 @@ action('delete', function() {
       if (doctype == null) {
         doctype = 'null';
       }
-      app.feed.publish("" + doctype + ".delete", _this.doc.id);
       return client.del("index/" + params.id + "/", function(err, res, resbody) {
         return send({
           success: true

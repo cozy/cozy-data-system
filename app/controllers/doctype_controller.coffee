@@ -100,5 +100,4 @@ action 'delete', ->
             # Event is emited
             doctype = @doc.docType?.toLowerCase()
             doctype ?= 'null'
-            app.feed.publish "#{doctype}.delete", @doc.id
             send success: true, 204

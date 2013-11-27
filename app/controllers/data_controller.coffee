@@ -175,7 +175,6 @@ action 'delete', ->
             # Event is emited
             doctype = @doc.docType?.toLowerCase()
             doctype ?= 'null'
-            app.feed.publish "#{doctype}.delete", @doc.id
             # Doc is removed from indexation
             client.del "index/#{params.id}/", (err, res, resbody) ->
                 send success: true, 204
