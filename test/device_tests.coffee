@@ -58,20 +58,21 @@ describe "Device", ->
                 done()
 
         it "And I remove a device", (done) ->
-            console.log @id
             @client.del "device/#{@id}/", (err, res, body) =>
                 console.log err if err
                 @response = res
                 done()
 
-        it "Then I got a 204 response", ->
-            @response.statusCode.should.equal 204    
+        it "Then I got a 200 response", ->
+            @response.statusCode.should.equal 200    
 
         it "And I remove a device", (done) ->
-            @client.del "device/#{@id}/", (err, res, body) =>
-                console.log err if err
-                @response = res
-                done()
+            setTimeout ()=>
+                @client.del "device/#{@id}/", (err, res, body) =>
+                    console.log err if err
+                    @response = res
+                    done()
+            , 100
 
         it "And I got a 404 response", ->
             @response.statusCode.should.equal 404

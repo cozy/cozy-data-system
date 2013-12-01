@@ -29,7 +29,8 @@ module.exports.create = (app, req, views, newView, callback) =>
             request[app]["#{req.type}/#{req.req_name}"] = path
         else
             path = req.req_name
-        callback null, path
+            request[app]["#{req.type}/#{req.req_name}"] = path
+            callback null, path
     else
         callback null, req.req_name
 

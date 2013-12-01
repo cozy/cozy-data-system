@@ -261,8 +261,10 @@ describe "Doctype handling tests", ->
                 @response.statusCode.should.equal 204
 
             it "Then doc with id 123 shouldn't exist in Database", (done) ->
-                client.get 'data/exist/123/', (error, response, body) =>
-                    @body = body
-                    @body.exist.should.be.false
-                    done()
+                setTimeout () =>
+                    client.get 'data/exist/123/', (error, response, body) =>
+                        @body = body
+                        @body.exist.should.be.false
+                        done()
+                , 100
 

@@ -6,6 +6,7 @@ module.exports = class Feed
     db:       undefined
     feed:     undefined
     axonSock: undefined
+    deleted_ids = {}
 
     constructor: (@app) ->
         @startPublishingToAxon()
@@ -55,25 +56,29 @@ module.exports = class Feed
 
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
     _onChange: (change) =>
-        if change.deleted #delete events are send by data controller
-            doc = 
-                _id: change.id
-                _rev: change.changes[0].rev
-            @db.post doc, (err, doc) =>
-                rev = doc.rev
-                client.get "/cozy/#{change.id}?revs_info=true", (err, res, doc) =>
-                    @db.get change.id, doc._revs_info[2].rev, (err, doc) =>
-                        doctype = doc?.docType?.toLowerCase()
-                        @_publish "#{doctype}.delete", doc._id if doctype
-                        if doc.docType is 'File' and doc.binary?.file?
-                            binary = doc.binary.file.id
-                            binary_rev = doc.binary.file.rev
-                            @db.get binary, (err, doc) =>
-                                return if err
-                                if doc 
-                                    @db.remove binary, binary_rev, (err, doc) =>
-                                        @db.remove change.id, rev, (err, doc) =>
-                                            return 
+        if change.deleted
+            if not deleted_ids[change.id]
+                doc = 
+                    _id: change.id
+                    _rev: change.changes[0].rev
+                @db.post doc, (err, doc) =>
+                    client.get "/cozy/#{change.id}?revs_info=true", (err, res, doc) =>
+                        @db.get change.id, doc._revs_info[2].rev, (err, doc) =>
+                            doctype = doc?.docType?.toLowerCase()
+                            @_publish "#{doctype}.delete", doc._id if doctype
+                            if doc.docType is 'File' and doc.binary?.file?
+                                binary = doc.binary.file.id
+                                binary_rev = doc.binary.file.rev
+                                @db.get binary, (err, doc) =>
+                                    return if err
+                                    if doc 
+                                        @db.remove binary, binary_rev, (err, doc) =>
+                            @db.get change.id, (err, doc) =>
+                                @db.remove change.id, doc.rev, (err, res) =>
+                                    deleted_ids[change.id] = 'deleted'
+                                    return 
+            else
+                delete deleted_ids[change.id]
         else
             isCreation = change.changes[0].rev.split('-')[0] is '1'
             operation = if isCreation then 'create' else 'update'
