@@ -67,12 +67,10 @@ describe "Device", ->
             @response.statusCode.should.equal 200    
 
         it "And I remove a device", (done) ->
-            setTimeout ()=>
-                @client.del "device/#{@id}/", (err, res, body) =>
-                    console.log err if err
-                    @response = res
-                    done()
-            , 100
+            @client.del "device/#{@id}/", (err, res, body) =>
+                console.log err if err
+                @response = res
+                done()
 
         it "And I got a 404 response", ->
             @response.statusCode.should.equal 404

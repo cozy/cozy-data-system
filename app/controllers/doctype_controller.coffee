@@ -90,14 +90,14 @@ action 'create', ->
 
 # DELETE /doctype/:id
 action 'delete', ->
+    send_success = () ->
+        send success: true, 204
+        app.feed.feed.removeListener "deletion.#{params.id}", send_success
     # this version don't take care of conflict (erase DB with the sent value)
     db.remove params.id, @doc.rev, (err, res) =>
         if err
             # oops unexpected error !
             console.log "[Delete] err: " + JSON.stringify err
             send error: err.message, 500
-        else
-            # Event is emited
-            doctype = @doc.docType?.toLowerCase()
-            doctype ?= 'null'
-            send success: true, 204
+        else        
+            app.feed.feed.on "deletion.#{params.id}", send_success

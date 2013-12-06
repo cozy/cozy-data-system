@@ -135,22 +135,22 @@ action('create', function() {
 });
 
 action('delete', function() {
-  var _this = this;
+  var send_success,
+    _this = this;
+  send_success = function() {
+    send({
+      success: true
+    }, 204);
+    return app.feed.feed.removeListener("deletion." + params.id, send_success);
+  };
   return db.remove(params.id, this.doc.rev, function(err, res) {
-    var doctype, _ref;
     if (err) {
       console.log("[Delete] err: " + JSON.stringify(err));
       return send({
         error: err.message
       }, 500);
     } else {
-      doctype = (_ref = _this.doc.docType) != null ? _ref.toLowerCase() : void 0;
-      if (doctype == null) {
-        doctype = 'null';
-      }
-      return send({
-        success: true
-      }, 204);
+      return app.feed.feed.on("deletion." + params.id, send_success);
     }
   });
 });

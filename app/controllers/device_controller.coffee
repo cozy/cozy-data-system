@@ -120,6 +120,10 @@ action 'create', ->
 
 # DELETE /device/:id
 action 'remove', ->
+    send_success = () ->
+        send success: true, 200
+        # status code is 200 because 204 is not transmit by httpProxy
+        app.feed.feed.removeListener "deletion.#{params.id}", send_success
     id = params.id
     db.remove "_design/#{id}", (err, res) =>
         if err
@@ -131,4 +135,4 @@ action 'remove', ->
                     console.log "[Definition] err: " + JSON.stringify err
                     send error: true, msg: err.message, 500
                 else
-                    send success: true, 200
+                    app.feed.feed.on "deletion.#{params.id}", send_success

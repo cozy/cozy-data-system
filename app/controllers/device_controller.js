@@ -168,8 +168,14 @@ action('create', function() {
 });
 
 action('remove', function() {
-  var id,
+  var id, send_success,
     _this = this;
+  send_success = function() {
+    send({
+      success: true
+    }, 200);
+    return app.feed.feed.removeListener("deletion." + params.id, send_success);
+  };
   id = params.id;
   return db.remove("_design/" + id, function(err, res) {
     if (err) {
@@ -187,9 +193,7 @@ action('remove', function() {
             msg: err.message
           }, 500);
         } else {
-          return send({
-            success: true
-          }, 200);
+          return app.feed.feed.on("deletion." + params.id, send_success);
         }
       });
     }

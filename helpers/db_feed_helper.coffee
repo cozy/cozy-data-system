@@ -64,18 +64,22 @@ module.exports = class Feed
                 @db.post doc, (err, doc) =>
                     client.get "/cozy/#{change.id}?revs_info=true", (err, res, doc) =>
                         @db.get change.id, doc._revs_info[2].rev, (err, doc) =>
-                            doctype = doc?.docType?.toLowerCase()
-                            @_publish "#{doctype}.delete", doc._id if doctype
                             if doc.docType is 'File' and doc.binary?.file?
                                 binary = doc.binary.file.id
                                 binary_rev = doc.binary.file.rev
+                                deleted_ids[binary] = 'deleted'
                                 @db.get binary, (err, doc) =>
                                     return if err
                                     if doc 
                                         @db.remove binary, binary_rev, (err, doc) =>
+                                            @_publish "binary.delete", doc._id
                             @db.get change.id, (err, doc) =>
+                                deleted_ids[change.id] = 'deleted'
                                 @db.remove change.id, doc.rev, (err, res) =>
-                                    deleted_ids[change.id] = 'deleted'
+                                    doctype = doc?.docType?.toLowerCase()
+                                    doctype ?= 'null'
+                                    @feed.emit "deletion.#{doc._id}"
+                                    @_publish "#{doctype}.delete", doc._id
                                     return 
             else
                 delete deleted_ids[change.id]

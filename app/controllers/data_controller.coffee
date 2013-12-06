@@ -2,7 +2,6 @@ load 'application'
 
 git = require('git-rev')
 Client = require("request-json").JsonClient
-RealtimeAdapter = require 'cozy-realtime-adapter'
 
 checkDocType = require('./lib/token').checkDocType
 updatePermissions = require('./lib/token').updatePermissions
@@ -12,7 +11,6 @@ else
     client = new Client "http://localhost:9102/"
 
 db = require('./helpers/db_connect_helper').db_connect()
-realtime = RealtimeAdapter compound, ['notification.*']
 
 
 ## Before and after methods
@@ -167,6 +165,9 @@ action 'upsert', ->
 
 # DELETE /data/:id
 action 'delete', ->
+    send_success = () ->
+        send success: true, 204
+        app.feed.feed.removeListener "deletion.#{params.id}", send_success
     # this version don't take care of conflict (erase DB with the sent value)
     db.remove params.id, @doc.rev, (err, res) =>
         if err
@@ -174,13 +175,9 @@ action 'delete', ->
             console.log "[Delete] err: " + JSON.stringify err
             send error: err.message, 500
         else            
-            # Event is emited
-            doctype = @doc.docType?.toLowerCase()
-            doctype ?= 'null'
-            #realtime.on "#{doctype}.#{params.id}", (event, msg) ->
             # Doc is removed from indexation
-            client.del "index/#{params.id}/", (err, res, resbody) ->
-                send success: true, 204
+            client.del "index/#{params.id}/", (err, res, resbody) =>
+                app.feed.feed.on "deletion.#{params.id}", send_success
 
 # PUT /data/merge/:id
 action 'merge', ->
