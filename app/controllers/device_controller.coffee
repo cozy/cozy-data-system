@@ -69,6 +69,8 @@ createFilter = (id, callback) ->
             designDoc = {}
             filterFunction = filter.get(id)
             designDoc.filter = filterFunction
+            filterDocTypeFunction = filter.getDocType(id)
+            designDoc.filterDocType = filterDocTypeFunction
             db.save "_design/#{id}", {views: {} ,filters:designDoc}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
