@@ -23,7 +23,7 @@ before 'permissions', ->
             @appName = appName
             compound.app.feed.publish 'usage.application', appName
             next()
-, except: ['doctypes']
+, except: ['doctypes', 'tags']
 
 # Lock document to avoid multiple modifications at the same time.
 before 'lock request', ->
@@ -61,6 +61,24 @@ action 'doctypes', ->
                 out.push key
             send 200, out
 
+# GET /tags
+# list all tags
+# tags are item of a tags:[] field
+action 'tags', ->
+
+    query =
+        group: true
+
+    out = []
+
+    db.view "tags/all", query, (err, res) ->
+
+        if err
+            send 500, error: JSON.stringify err
+        else
+            res.forEach (key, row, id) ->
+                out.push key
+            send 200, out
 
 # POST /request/:type/:req_name
 action 'results', ->

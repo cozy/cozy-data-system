@@ -75,6 +75,26 @@ action('doctypes', function() {
   });
 });
 
+action('tags', function() {
+  var out, query;
+  query = {
+    group: true
+  };
+  out = [];
+  return db.view("tags/all", query, function(err, res) {
+    if (err) {
+      return send(500, {
+        error: JSON.stringify(err)
+      });
+    } else {
+      res.forEach(function(key, row, id) {
+        return out.push(key);
+      });
+      return send(200, out);
+    }
+  });
+});
+
 action('results', function() {
   var _this = this;
   return request.get(this.appName, params, function(path) {
