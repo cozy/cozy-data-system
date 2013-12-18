@@ -1,5 +1,13 @@
+fs = require 'fs'
+S = require 'string'
 Client = require('request-json').JsonClient
 client = new Client 'http://localhost:5984'
+
+if process.env.NODE_ENV is 'production'
+    data = fs.readFileSync '/etc/cozy/couchdb.login'
+    lines = S(data.toString('utf8')).lines()
+    client.setBasicAuth lines[0], lines[1]
+
 
 module.exports = class Feed
 
