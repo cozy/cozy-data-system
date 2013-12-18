@@ -73,9 +73,9 @@ module.exports = class Feed
                                     if doc 
                                         @db.remove binary, binary_rev, (err, doc) =>
                                             @_publish "binary.delete", doc._id
-                            @db.get change.id, (err, doc) =>
+                            @db.get change.id, (err, document) =>
                                 deleted_ids[change.id] = 'deleted'
-                                @db.remove change.id, doc.rev, (err, res) =>
+                                @db.remove change.id, document.rev, (err, res) =>
                                     doctype = doc?.docType?.toLowerCase()
                                     doctype ?= 'null'
                                     @feed.emit "deletion.#{doc._id}"

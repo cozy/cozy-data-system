@@ -24,11 +24,12 @@ describe "Device", ->
     describe "Add a device", ->
 
         it "When I post a device", (done) ->
-            @client.post "device/", login: "work", (err, res, body) =>
-                console.log err if err
-                @response = res
-                @id = body.id
-                done()
+            setTimeout ()=>
+                @client.post "device/", login: "work", (err, res, body) =>
+                    console.log err if err
+                    @response = res
+                    done()
+            , 1000
 
         it "Then I got a 200 response", ->
             @response.statusCode.should.equal 200

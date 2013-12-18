@@ -91,9 +91,11 @@ randomString = function(length) {
 
 createFilter = function(id, callback) {
   var _this = this;
+  console.log("createFilter");
   return db.get("_design/" + id, function(err, res) {
     var designDoc, filterFunction, filterName;
     if (err && err.error === 'not_found') {
+      console.log("create filter");
       designDoc = {};
       filterFunction = filter.get(id);
       designDoc.filter = filterFunction;
@@ -111,6 +113,7 @@ createFilter = function(id, callback) {
     } else if (err) {
       return callback(err.message);
     } else {
+      "merge filter";
       designDoc = res.filters;
       filterName = id + "filter";
       filterFunction = filter.get(defaultFilter, id);
@@ -140,11 +143,19 @@ action('create', function() {
       "Folder": "all"
     }
   };
+  console.log(device);
   return db.view('device/byLogin', {
     key: device.login
   }, function(err, res) {
     var _this = this;
-    if (res.length !== 0) {
+    console.log(err);
+    console.log(res);
+    if (err) {
+      return send({
+        error: true,
+        msg: err
+      }, 500);
+    } else if (res.length !== 0) {
       return send({
         error: true,
         msg: "This name is already used"

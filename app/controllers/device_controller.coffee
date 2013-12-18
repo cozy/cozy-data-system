@@ -66,6 +66,7 @@ randomString = (length) ->
 createFilter = (id, callback) ->
     db.get "_design/#{id}", (err, res) =>
         if err && err.error is 'not_found'
+            console.log "create filter"
             designDoc = {}
             filterFunction = filter.get(id)
             designDoc.filter = filterFunction
@@ -105,7 +106,9 @@ action 'create', ->
             "Folder": "all"
     # Check if an other device hasn't the same name
     db.view 'device/byLogin', key: device.login, (err, res) ->
-        if res.length isnt 0
+        if err
+            send error:true, msg: err, 500
+        else if res.length isnt 0
             send error:true, msg: "This name is already used", 400
         else
             db.save device, (err, res) =>
