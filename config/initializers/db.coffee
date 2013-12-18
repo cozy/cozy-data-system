@@ -130,27 +130,31 @@ module.exports = (compound) ->
 
     # this request is used to retrieved all the doctypes in the DS
     request_create = ->
-        db.save('_design/doctypes', {
-            all: {
-                map: (doc) ->
-                    if(doc.docType)
-                        emit doc.docType, null
-                reduce: (key, values) -> # use to make a "distinct"
-                    return true
-            }
-        });
-        db.save('_design/device', {
-            all: {
-                map: (doc) ->
-                    if ((doc.docType) && (doc.docType is "Device"))
-                        emit doc._id, doc
-            },
-            byLogin: {
-                map: (doc) ->
-                    if ((doc.docType) && (doc.docType is "Device"))
-                        emit doc.login, doc
-            }
-        });
+        db.get '_design/doctypes', (err, doc) =>
+            if err and err.error is "not_found"
+                db.save('_design/doctypes', {
+                    all: {
+                        map: (doc) ->
+                            if(doc.docType)
+                                emit doc.docType, null
+                        reduce: (key, values) -> # use to make a "distinct"
+                            return true
+                    }
+                });
+        db.get '_design/device', (err, doc) =>
+            if err and err.error is "not_found"
+                db.save('_design/device', {
+                    all: {
+                        map: (doc) ->
+                            if ((doc.docType) && (doc.docType is "Device"))
+                                emit doc._id, doc
+                    },
+                    byLogin: {
+                        map: (doc) ->
+                            if ((doc.docType) && (doc.docType is "Device"))
+                                emit doc.login, doc
+                    }
+                });
 
     feed_start = ->
         app.feed.startListening(db)
