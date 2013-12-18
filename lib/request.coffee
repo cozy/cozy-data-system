@@ -27,8 +27,10 @@ module.exports.create = (app, req, views, newView, callback) =>
             # store in RAM
             request[app] = {} if not request[app]
             request[app]["#{req.type}/#{req.req_name}"] = path
+            callback null, path
         else
             path = req.req_name
+            request[app] = {} if not request[app]
             request[app]["#{req.type}/#{req.req_name}"] = path
             callback null, path
     else
