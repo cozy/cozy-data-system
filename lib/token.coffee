@@ -124,6 +124,7 @@ initHomeProxy = (callback) ->
         "user": "authorized"
         "cozyinstance": "authorized"
         "device": "authorized"
+        "usetracker": "authorized"
     callback null
 
 
