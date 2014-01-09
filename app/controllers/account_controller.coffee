@@ -13,7 +13,7 @@ checkProxyHome = require('./lib/token').checkProxyHome
 checkDocType = require('./lib/token').checkDocType
 cryptoTools = new CryptoTools()
 user = new User()
-keys = require('./lib/encryption')
+encryption = require('./lib/encryption')
 initPassword = require('./lib/init').initPassword
 db = require('./helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
@@ -148,13 +148,13 @@ action 'initializeKeys', =>
         else
             ## User has already been connected
             if user.salt? and user.slaveKey?
-                keys.logIn body.password, user, (err)->
+                encryption.logIn body.password, user, (err)->
                     send error: err, 500 if err?
                     initPassword () =>
                         send success: true
             ## First connection
             else
-                keys.init body.password, user, (err)->
+                encryption.init body.password, user, (err)->
                     if err
                         send error: err, 500
                     else
@@ -169,7 +169,7 @@ action 'updateKeys', ->
                 console.log "[updateKeys] err: #{err}"
                 send 500
             else
-                keys.update body.password, user, (err) ->
+                encryption.update body.password, user, (err) ->
                     if err
                         send error: err, 500
                     else
@@ -185,7 +185,7 @@ action 'resetKeys', ->
             console.log "[initializeKeys] err: #{err}"
             send 500
         else
-            keys.reset user, (err) ->
+            encryption.reset user, (err) ->
                 if err
                     send error:err, 500
                 else
@@ -194,7 +194,7 @@ action 'resetKeys', ->
 
 #DELETE /accounts/
 action 'deleteKeys', ->
-    keys.logOut (err) ->
+    encryption.logOut (err) ->
         if err
             send error: err, 500
         else

@@ -94,7 +94,6 @@ createFilter = function(id, callback) {
   return db.get("_design/" + id, function(err, res) {
     var designDoc, filterDocTypeFunction, filterFunction, filterName;
     if (err && err.error === 'not_found') {
-      console.log("create filter");
       designDoc = {};
       filterFunction = filter.get(id);
       designDoc.filter = filterFunction;

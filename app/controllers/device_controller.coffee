@@ -66,7 +66,6 @@ randomString = (length) ->
 createFilter = (id, callback) ->
     db.get "_design/#{id}", (err, res) =>
         if err && err.error is 'not_found'
-            console.log "create filter"
             designDoc = {}
             filterFunction = filter.get(id)
             designDoc.filter = filterFunction
