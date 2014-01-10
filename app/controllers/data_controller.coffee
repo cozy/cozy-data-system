@@ -3,6 +3,8 @@ load 'application'
 git = require('git-rev')
 Client = require("request-json").JsonClient
 
+encryption = require './lib/encryption'
+
 checkDocType = require('./lib/token').checkDocType
 updatePermissions = require('./lib/token').updatePermissions
 if process.env.NODE_ENV is "test"
@@ -11,6 +13,10 @@ else
     client = new Client "http://localhost:9102/"
 
 db = require('./helpers/db_connect_helper').db_connect()
+
+## Helpers
+toString = ->
+    "[Account for model: #{@id}]"
 
 
 ## Before and after methods
@@ -78,6 +84,28 @@ before 'permissions', ->
             compound.app.feed.publish 'usage.application', appName
             next()
 , only: ['find', 'delete', 'merge']
+
+## Encrypt data in field password
+before 'encryptPassword', ()->
+    if not body.docType? or not (body.docType.toLowerCase() is "application")
+        encryption.encrypt body.password, (err, password) ->
+            if err?
+                send error: err, 500
+             else
+                body.password = password
+    next()
+, only: ['create', 'update', 'merge', 'upsert']
+
+# Decrypt data in field password
+before 'decryptPassword', ()->
+    if not body.docType? or not(body.docType.toLowerCase() is "application")
+        encryption.decrypt @doc.password, (err, password) =>
+            if err?
+                send error: err, 500
+            else
+                @doc.password = password
+    next()
+, only: ['find']
 
 
 ## Actions
