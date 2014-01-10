@@ -63,6 +63,10 @@ exports.encrypt = (password, callback) ->
         callback null, password
 
 
+exports.get = () ->
+    return masterKey
+
+
 ## function decrypt (password, callback)
 ## @password {string} document password
 ## @callback {function} Continuation to pass control back to when complete.
