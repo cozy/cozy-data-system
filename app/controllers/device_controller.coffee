@@ -113,6 +113,7 @@ action 'create', ->
         else if res.length isnt 0
             send error:true, msg: "This name is already used", 400
         else
+            decryptedPassword = device.password
             encryption.encrypt device.password, (err, password) ->
                 if err?
                     send error: err, 500
@@ -125,6 +126,7 @@ action 'create', ->
                             send error:true, msg: err, 500
                         else
                             device.id = res._id
+                            device.password = decryptedPassword
                             send device, 200
         
 
