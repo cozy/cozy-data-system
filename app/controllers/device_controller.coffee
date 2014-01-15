@@ -5,7 +5,6 @@ db = require('./helpers/db_connect_helper').db_connect()
 checkDocType = require('./lib/token').checkDocType
 request = require('./lib/request')
 filter = require('./lib/default_filter')
-encryption = require './lib/encryption'
 
 
 # Before and after methods
@@ -113,21 +112,14 @@ action 'create', ->
         else if res.length isnt 0
             send error:true, msg: "This name is already used", 400
         else
-            decryptedPassword = device.password
-            encryption.encrypt device.password, (err, password) ->
-                if err?
-                    send error: err, 500
-                 else
-                    device.password = password
-                db.save device, (err, res) =>
-                    # Create filter
-                    createFilter res._id, (err) ->
-                        if err
-                            send error:true, msg: err, 500
-                        else
-                            device.id = res._id
-                            device.password = decryptedPassword
-                            send device, 200
+            db.save device, (err, res) =>
+                # Create filter
+                createFilter res._id, (err) ->
+                    if err
+                        send error:true, msg: err, 500
+                    else
+                        device.id = res._id
+                        send device, 200
         
 
 # DELETE /device/:id
