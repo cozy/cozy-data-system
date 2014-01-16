@@ -37,7 +37,7 @@ module.exports = (compound) ->
 
     addCozyUser = (callback) ->
         loginCouch = initLoginCouch()
-        data = 
+        data =
             "_id": "org.couchdb.user:proxy",
             "name": "proxy",
             "type": "user",
@@ -153,6 +153,17 @@ module.exports = (compound) ->
                         map: (doc) ->
                             if ((doc.docType) && (doc.docType is "Device"))
                                 emit doc.login, doc
+                    }
+                });
+        db.get '_design/tags', (err, doc) =>
+            if err and err.error is "not_found"
+
+                db.save('_design/tags', {
+                    all: {
+                        map: (doc) ->
+                            doc.tags?.forEach? (tag) -> emit tag, null
+                        reduce: (key, values) -> # use to make a "distinct"
+                            return true
                     }
                 });
 

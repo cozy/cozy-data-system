@@ -38,6 +38,7 @@ exports.routes = (map) ->
     map.delete '/data/:id/binaries/:name', 'binary#removeAttachment'
 
     # Request handling
+    map.get '/tags', 'request#tags'
     map.get '/doctypes', 'request#doctypes'
     map.post '/request/:type/:req_name/', 'request#results'
     map.put '/request/:type/:req_name/destroy/', 'request#removeResults'

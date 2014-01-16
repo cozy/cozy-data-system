@@ -36,7 +36,12 @@ describe "Request handling tests", ->
 
     before helpers.clearDB db
     before (done) ->
-        docs = ({'type':'dumb_doc', 'num':num} for num in [0..100])
+        docs = []
+        for num in [0..100]
+            docs.push
+                type: 'dumb_doc'
+                num: num
+                tags: ('tag'+i for i in [0..num])
         db.save docs, done
     before helpers.instantiateApp
     after helpers.after db
@@ -224,6 +229,18 @@ describe "Request handling tests", ->
 
             it "Then I should have 0 documents returned", ->
                 @body.should.have.length 0
+
+        describe "Access to tags", ->
+            before cleanRequest
+
+            it "When I send a request to get tags", (done) ->
+                client.get "tags", (error, response, body) =>
+                    response.statusCode.should.equal 200
+                    @body = body
+                    done()
+
+            it "Then I should have 101 docs", ->
+                @body.should.have.length 101
 
     describe "Deletion of docs through requests", ->
 
