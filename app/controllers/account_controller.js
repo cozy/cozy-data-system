@@ -213,7 +213,9 @@ action('updateKeys', function() {
         return send(500);
       } else {
         return encryption.update(body.password, user, function(err) {
-          if (err) {
+          if ((err != null) && err === 400) {
+            return send(400);
+          } else if (err) {
             return send({
               error: err
             }, 500);
