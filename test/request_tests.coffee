@@ -339,15 +339,6 @@ describe "Request handling tests", ->
                 response.statusCode.should.equal 204
                 done()
 
-        it "And I send a request to access view even_num", (done) ->
-            client.post "request/all/even_num/", {},  \
-                        (error, response, body) =>
-                @response = response
-                done()
-
-        it "Then error 404 should be returned", ->
-            @response.statusCode.should.equal 404
-
     describe "Deletion of an existing view without conflict", ->
         before cleanRequest
 

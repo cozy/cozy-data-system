@@ -4,6 +4,7 @@ async = require "async"
 db = require('./helpers/db_connect_helper').db_connect()
 checkDocType = require('./lib/token').checkDocType
 request = require('./lib/request')
+encryption = require('./lib/encryption')
 
 
 # Before and after methods
@@ -74,6 +75,14 @@ action 'results', ->
             else
                 res.forEach (value) ->
                     delete value._rev # CouchDB specific, user don't need it
+                    if value.password? and not (
+                        (value.docType? and
+                        (value.docType.toLowerCase() is "application" or
+                            value.docType.toLowerCase() is "user")
+                        ))
+                        encryption.decrypt value.password, (err, password) ->
+                            if not err?
+                                value.password = password
                 send res
 
 # PUT /request/:type/:req_name/destroy

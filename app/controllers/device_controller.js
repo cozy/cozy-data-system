@@ -92,27 +92,20 @@ randomString = function(length) {
 createFilter = function(id, callback) {
   var _this = this;
   return db.get("_design/" + id, function(err, res) {
-    var designDoc, filterFunction, filterName;
+    var designDoc, filterDocTypeFunction, filterFunction, filterName;
     if (err && err.error === 'not_found') {
       designDoc = {};
       filterFunction = filter.get(id);
-      if (filterFunction === null) {
-        send({
-          error: true,
-          msg: "This default filter doesn't exist"
-        }, 400);
-      }
       designDoc.filter = filterFunction;
+      filterDocTypeFunction = filter.getDocType(id);
+      designDoc.filterDocType = filterDocTypeFunction;
       return db.save("_design/" + id, {
         views: {},
         filters: designDoc
       }, function(err, res) {
         if (err) {
           console.log("[Definition] err: " + JSON.stringify(err));
-          return send({
-            error: true,
-            msg: err.message
-          }, 500);
+          return callback(err.message);
         } else {
           return callback(null);
         }
@@ -129,10 +122,7 @@ createFilter = function(id, callback) {
       }, function(err, res) {
         if (err) {
           console.log("[Definition] err: " + JSON.stringify(err));
-          return send({
-            error: true,
-            msg: err.message
-          }, 500);
+          return callback(err.message);
         } else {
           return callback(null);
         }
@@ -156,7 +146,12 @@ action('create', function() {
     key: device.login
   }, function(err, res) {
     var _this = this;
-    if (res.length !== 0) {
+    if (err) {
+      return send({
+        error: true,
+        msg: err
+      }, 500);
+    } else if (res.length !== 0) {
       return send({
         error: true,
         msg: "This name is already used"
@@ -180,8 +175,14 @@ action('create', function() {
 });
 
 action('remove', function() {
-  var id,
+  var id, send_success,
     _this = this;
+  send_success = function() {
+    send({
+      success: true
+    }, 200);
+    return app.feed.feed.removeListener("deletion." + params.id, send_success);
+  };
   id = params.id;
   return db.remove("_design/" + id, function(err, res) {
     if (err) {
@@ -199,9 +200,7 @@ action('remove', function() {
             msg: err.message
           }, 500);
         } else {
-          return send({
-            success: true
-          }, 204);
+          return app.feed.feed.on("deletion." + params.id, send_success);
         }
       });
     }

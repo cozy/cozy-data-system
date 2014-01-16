@@ -15,6 +15,10 @@ exports.routes = (map) ->
 
     map.delete '/data/:id/', 'data#delete'
 
+    #User management
+    map.post '/user/', 'user#create'
+    map.put '/user/merge/:id', 'user#merge'
+
     # Indexation
     map.post '/data/index/:id', 'index#index'
     map.post '/data/search/:type', 'index#search'
@@ -45,7 +49,7 @@ exports.routes = (map) ->
     map.delete '/filter/:req_name/', 'filter#remove'
 
     # Device hangling
-    map.post '/device', 'device#create'
+    map.post '/device/', 'device#create'
     map.delete '/device/:id/', 'device#remove'
 
     #Account management

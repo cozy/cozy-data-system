@@ -68,13 +68,13 @@ createFilter = (id, callback) ->
         if err && err.error is 'not_found'
             designDoc = {}
             filterFunction = filter.get(id)
-            if filterFunction is null
-                send error: true, msg: "This default filter doesn't exist", 400
             designDoc.filter = filterFunction
+            filterDocTypeFunction = filter.getDocType(id)
+            designDoc.filterDocType = filterDocTypeFunction
             db.save "_design/#{id}", {views: {} ,filters:designDoc}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    send error: true, msg: err.message, 500
+                    callback err.message
                 else
                     callback null
 
@@ -89,7 +89,7 @@ createFilter = (id, callback) ->
             db.merge "_design/#{id}", {filters:designDoc}, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    send error: true, msg: err.message, 500
+                    callback err.message
                 else
                     callback null
 
@@ -107,7 +107,9 @@ action 'create', ->
             "Folder": "all"
     # Check if an other device hasn't the same name
     db.view 'device/byLogin', key: device.login, (err, res) ->
-        if res.length isnt 0
+        if err
+            send error:true, msg: err, 500
+        else if res.length isnt 0
             send error:true, msg: "This name is already used", 400
         else
             db.save device, (err, res) =>
@@ -122,6 +124,10 @@ action 'create', ->
 
 # DELETE /device/:id
 action 'remove', ->
+    send_success = () ->
+        send success: true, 200
+        # status code is 200 because 204 is not transmit by httpProxy
+        app.feed.feed.removeListener "deletion.#{params.id}", send_success
     id = params.id
     db.remove "_design/#{id}", (err, res) =>
         if err
@@ -133,4 +139,4 @@ action 'remove', ->
                     console.log "[Definition] err: " + JSON.stringify err
                     send error: true, msg: err.message, 500
                 else
-                    send success: true, 204
+                    app.feed.feed.on "deletion.#{params.id}", send_success

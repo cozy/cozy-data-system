@@ -1,8 +1,20 @@
+fs = require 'fs'
+S = require 'string'
+Client = require('request-json').JsonClient
+client = new Client 'http://localhost:5984'
+
+if process.env.NODE_ENV is 'production'
+    data = fs.readFileSync '/etc/cozy/couchdb.login'
+    lines = S(data.toString('utf8')).lines()
+    client.setBasicAuth lines[0], lines[1]
+
+
 module.exports = class Feed
 
     db:       undefined
     feed:     undefined
     axonSock: undefined
+    deleted_ids = {}
 
     constructor: (@app) ->
         @startPublishingToAxon()
@@ -52,12 +64,38 @@ module.exports = class Feed
 
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
     _onChange: (change) =>
-        return if change.deleted #delete events are send by data controller
+        if change.deleted
+            if not deleted_ids[change.id]
+                doc = 
+                    _id: change.id
+                    _rev: change.changes[0].rev
+                @db.post doc, (err, doc) =>
+                    client.get "/cozy/#{change.id}?revs_info=true", (err, res, doc) =>
+                        @db.get change.id, doc._revs_info[2].rev, (err, doc) =>
+                            if doc.docType is 'File' and doc.binary?.file?
+                                binary = doc.binary.file.id
+                                binary_rev = doc.binary.file.rev
+                                deleted_ids[binary] = 'deleted'
+                                @db.get binary, (err, doc) =>
+                                    return if err
+                                    if doc 
+                                        @db.remove binary, binary_rev, (err, doc) =>
+                                            @_publish "binary.delete", doc._id
+                            @db.get change.id, (err, document) =>
+                                deleted_ids[change.id] = 'deleted'
+                                @db.remove change.id, document.rev, (err, res) =>
+                                    doctype = doc?.docType?.toLowerCase()
+                                    doctype ?= 'null'
+                                    @feed.emit "deletion.#{doc._id}"
+                                    @_publish "#{doctype}.delete", doc._id
+                                    return 
+            else
+                delete deleted_ids[change.id]
+        else
+            isCreation = change.changes[0].rev.split('-')[0] is '1'
+            operation = if isCreation then 'create' else 'update'
 
-        isCreation = change.changes[0].rev.split('-')[0] is '1'
-        operation = if isCreation then 'create' else 'update'
-
-        @db.get change.id, (err, doc) =>
-            console.log err if err?
-            doctype = doc?.docType?.toLowerCase()
-            @_publish "#{doctype}.#{operation}", doc._id if doctype
+            @db.get change.id, (err, doc) =>
+                console.log err if err?
+                doctype = doc?.docType?.toLowerCase()
+                @_publish "#{doctype}.#{operation}", doc._id if doctype

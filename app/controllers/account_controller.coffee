@@ -13,6 +13,8 @@ checkProxyHome = require('./lib/token').checkProxyHome
 checkDocType = require('./lib/token').checkDocType
 cryptoTools = new CryptoTools()
 user = new User()
+encryption = require('./lib/encryption')
+initPassword = require('./lib/init').initPassword
 db = require('./helpers/db_connect_helper').db_connect()
 correctWitness = "Encryption is correct"
 
@@ -21,7 +23,7 @@ correctWitness = "Encryption is correct"
 
 # Check if application which want manage encrypted keys is Proxy
 before 'permission_keys', ->
-   checkProxyHome req.header('authorization'), (err, isAuthorized) =>
+    checkProxyHome req.header('authorization'), (err, isAuthorized) =>
         if not isAuthorized
             err = new Error("Application is not authorized")
             send error: err, 403
@@ -140,35 +142,22 @@ toString = ->
 #POST /accounts/password/
 action 'initializeKeys', =>
     user.getUser (err, user) ->
-
         if err
             console.log "[initializeKeys] err: #{err}"
             send 500
         else
-            app.crypto = {} if not app.crypto?
+            ## User has already been connected
             if user.salt? and user.slaveKey?
-                app.crypto.masterKey =
-                    cryptoTools.genHashWithSalt body.password, user.salt
-                app.crypto.slaveKey = user.slaveKey
-                send success: true
-                if app.crypto.masterKey.length isnt 32
-                    console.log "[initializeKeys] err: password to initialize
-                        keys is different than user password"
-                    send 500
+                encryption.logIn body.password, user, (err)->
+                    send error: err, 500 if err?
+                    initPassword () =>
+                        send success: true
+            ## First connection
             else
-                salt = cryptoTools.genSalt(32 - body.password.length)
-                masterKey = cryptoTools.genHashWithSalt body.password, salt
-                slaveKey = randomString()
-                encryptedSlaveKey = cryptoTools.encrypt masterKey, slaveKey
-                app.crypto.masterKey = masterKey
-                app.crypto.slaveKey  = encryptedSlaveKey
-                data = salt: salt, slaveKey: encryptedSlaveKey
-                db.merge user._id, data, (err, res) =>
+                encryption.init body.password, user, (err)->
                     if err
-                        console.log "[initializeKeys] err: #{err}"
-                        send 500
+                        send error: err, 500
                     else
-                        console.log 'key intialized'
                         send success: true
 
 
@@ -180,31 +169,11 @@ action 'updateKeys', ->
                 console.log "[updateKeys] err: #{err}"
                 send 500
             else
-                if app.crypto? and app.crypto.masterKey? and
-                        app.crypto.slaveKey?
-                    if app.crypto.masterKey.length isnt 32
-                        console.log "[initializeKeys] err: password to
-                            initialize keys is different than user password"
-                        send 500
+                encryption.update body.password, user, (err) ->
+                    if err
+                        send error: err, 500
                     else
-                        slaveKey = cryptoTools.decrypt app.crypto.masterKey,
-                                app.crypto.slaveKey
-                        salt = cryptoTools.genSalt(32 - body.password.length)
-                        app.crypto.masterKey =
-                            cryptoTools.genHashWithSalt body.password, salt
-                        app.crypto.slaveKey =
-                            cryptoTools.encrypt app.crypto.masterKey, slaveKey
-                        data = slaveKey: app.crypto.slaveKey, salt: salt
-                        db.merge user._id, data, (err, res) =>
-                            if err
-                                console.log "[updateKeys] err: #{err}"
-                                send 500
-                            else
-                                send success: true
-                else
-                    console.log "[updateKeys] err: masterKey and slaveKey don't\
-                        exist"
-                    send 500
+                        send success: true
     else
         send 500
 
@@ -213,29 +182,23 @@ action 'updateKeys', ->
 action 'resetKeys', ->
     user.getUser (err, user) ->
         if err
-            console.log "[updateKeys] err: #{err}"
+            console.log "[initializeKeys] err: #{err}"
             send 500
         else
-            if app.crypto?
-                app.crypto = null
-            data = slaveKey: null, salt: null
-            db.merge user._id, data, (err, res) =>
+            encryption.reset user, (err) ->
                 if err
-                    console.log "[resetKeys] err: #{err}"
-                    send 500
+                    send error:err, 500
                 else
                     send success: true, 204
 
 
 #DELETE /accounts/
 action 'deleteKeys', ->
-    if app.crypto? and app.crypto.masterKey and app.crypto.slaveKey
-        app.crypto.masterKey = null
-        app.crypto.slaveKey = null
-        send sucess: true, 204
-    else
-        console.log "[deleteKeys] err: masterKey and slaveKey don't exist"
-        send error: "masterKey and slaveKey don't exis", 500
+    encryption.logOut (err) ->
+        if err
+            send error: err, 500
+        else
+            send sucess: true, 204
 
 
 #POST /account/
