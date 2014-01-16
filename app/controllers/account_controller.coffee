@@ -170,7 +170,9 @@ action 'updateKeys', ->
                 send 500
             else
                 encryption.update body.password, user, (err) ->
-                    if err
+                    if err? and err is 400 
+                        send 400
+                    else if err
                         send error: err, 500
                     else
                         send success: true

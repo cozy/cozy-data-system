@@ -141,7 +141,7 @@ exports.update = (password, user, callback) ->
     else
         err = "masterKey and slaveKey don't exist"
         console.log "[update] : #{err}"
-        callback err
+        callback 400
 
 
 ## function reset (pasword, user, callback)
