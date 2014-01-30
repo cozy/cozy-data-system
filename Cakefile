@@ -67,9 +67,10 @@ task "lint", "Run coffeelint on backend files", ->
 
 task 'convert', 'convert coffee files to JS', ->
     files = walk "app", []
-    files.concat walk "config", []
-    files.concat walk "lib", []
-    files.concat walk "helpers", []
+    files = files.concat walk "config", []
+    files = files.concat walk "lib", []
+    files = files.concat walk "helpers", []
+
     console.log "Compile to JS..."
     command = "coffee -cb server.coffee #{files.join ' '} "
     exec command, (err, stdout, stderr) ->
