@@ -35,7 +35,7 @@ before('permissions', function() {
     }
   });
 }, {
-  except: ['doctypes']
+  except: ['doctypes', 'tags']
 });
 
 before('lock request', function() {
