@@ -31,9 +31,9 @@
     "request": ">= 0",
     "coffee-script": "latest"
   },
-  "main": "server.js",
+  "main": "server.coffee",
   "scripts": {
     "test": "cake tests",
-    "start": "node server.js"
+    "start": "coffee server.coffee"
   }
 }
