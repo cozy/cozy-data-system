@@ -34,7 +34,7 @@ runTests = (fileList) ->
         command += "--debug-brk --forward-io --profile "
     if options.debug
         command += "--debug --forward-io --profile "
-    command += " --reporter spec --require should --compilers coffee:coffee-script/register --colors"
+    command += " --reporter spec --require should --compilers coffee:coffee-script --colors"
     exec command, (err, stdout, stderr) ->
         console.log stdout
         if err
@@ -67,7 +67,6 @@ task "lint", "Run coffeelint on backend files", ->
 
 task 'convert', 'convert coffee files to JS', ->
     files = walk "app", []
-    files = files.concat walk "config", []
     files = files.concat walk "lib", []
     files = files.concat walk "helpers", []
 
