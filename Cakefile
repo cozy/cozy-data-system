@@ -34,7 +34,7 @@ runTests = (fileList) ->
         command += "--debug-brk --forward-io --profile "
     if options.debug
         command += "--debug --forward-io --profile "
-    command += " --reporter spec --require should --compilers coffee:coffee-script --colors"
+    command += " --reporter spec --require should --compilers coffee:coffee-script/register --colors"
     exec command, (err, stdout, stderr) ->
         console.log stdout
         if err
