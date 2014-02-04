@@ -91,10 +91,22 @@ before 'encryptPassword', ()->
         encryption.encrypt body.password, (err, password) ->
             if err?
                 send error: err, 500
-             else
+            else
                 body.password = password
     next()
-, only: ['create', 'update', 'merge', 'upsert']
+, only: ['create', 'update', 'upsert']
+
+## Encrypt data in field password
+before 'encryptPassword', ()->
+    if not body.docType? or not (body.docType.toLowerCase() is "application")
+        if not @doc.docType? or not (@doc.docType.toLowerCase() is "application")
+            encryption.encrypt body.password, (err, password) ->
+                if err?
+                    send error: err, 500
+                else
+                    body.password = password
+    next()
+, only: ['merge']
 
 # Decrypt data in field password
 before 'decryptPassword', ()->
