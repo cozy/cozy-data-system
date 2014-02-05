@@ -110,7 +110,7 @@ before 'encryptPassword', ()->
 
 # Decrypt data in field password
 before 'decryptPassword', ()->
-    if not body.docType? or not(body.docType.toLowerCase() is "application")
+    if not @doc.docType? or not(@doc.docType.toLowerCase() is "application")
         encryption.decrypt @doc.password, (err, password) =>
             if err?
                 send error: err, 500
