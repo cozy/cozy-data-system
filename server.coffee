@@ -1,5 +1,7 @@
 #!/usr/bin/env coffee
 
+require 'coffee-script/register'
+
 app = module.exports = (params) ->
     params = params || {}
     # specify current dir as default root of server

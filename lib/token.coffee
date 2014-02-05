@@ -115,6 +115,7 @@ initHomeProxy = (callback) ->
         "user": "authorized"
         "device": "authorized"
         "alarm": "authorized"
+        "userpreference": "authorized"
         "cozyinstance": "authorized"
         "encryptedkeys": "authorized"
         "send mail to user": "authorized"
