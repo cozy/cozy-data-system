@@ -91,7 +91,7 @@ before 'encryptPassword', ()->
         encryption.encrypt body.password, (err, password) ->
             if err?
                 send error: err, 500
-            else
+            else if password?
                 body.password = password
     next()
 , only: ['create', 'update', 'upsert']
@@ -103,7 +103,7 @@ before 'encryptPassword', ()->
             encryption.encrypt body.password, (err, password) ->
                 if err?
                     send error: err, 500
-                else
+                else if password?
                     body.password = password
     next()
 , only: ['merge']
@@ -114,7 +114,7 @@ before 'decryptPassword', ()->
         encryption.decrypt @doc.password, (err, password) =>
             if err?
                 send error: err, 500
-            else
+            else if password?
                 @doc.password = password
     next()
 , only: ['find']
