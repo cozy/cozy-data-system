@@ -159,6 +159,7 @@ describe "Encryption handling tests", ->
                     name: "test"
                     password: "password"
                     docType: "Application"
+                client.setBasicAuth "home", "token"
                 client.post 'data/',data,  (err, res, body) =>
                     @body = body
                     @id = body._id
