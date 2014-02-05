@@ -136,7 +136,26 @@ before('encryptPassword', function() {
   }
   return next();
 }, {
-  only: ['create', 'update', 'merge', 'upsert']
+  only: ['create', 'update', 'upsert']
+});
+
+before('encryptPassword', function() {
+  if ((body.docType == null) || !(body.docType.toLowerCase() === "application")) {
+    if ((this.doc.docType == null) || !(this.doc.docType.toLowerCase() === "application")) {
+      encryption.encrypt(body.password, function(err, password) {
+        if (err != null) {
+          return send({
+            error: err
+          }, 500);
+        } else {
+          return body.password = password;
+        }
+      });
+    }
+  }
+  return next();
+}, {
+  only: ['merge']
 });
 
 before('decryptPassword', function() {
