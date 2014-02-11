@@ -11,6 +11,8 @@ mails = require './mails'
 user = require './user'
 account = require './accounts'
 
+utils = require './utils'
+
 module.exports =
 
     # Information page
@@ -21,17 +23,17 @@ module.exports =
     'data/:id/':
         get: [data.getDoc, data.permissions, data.decryptPassword, data.find]
         post: [data.permissions_param, data.encryptPassword, data.create]
-        put: [data.lockRequest, data.permissions_param, data.getDoc, data.encryptPassword, data.update, data.unlockRequest]
-        del: [data.lockRequest, data.getDoc, data.permissions, data.delete, data.unlockRequest]
+        put: [utils.lockRequest, data.permissions_param, data.getDoc, data.encryptPassword, data.update, utils.unlockRequest]
+        del: [utils.lockRequest, data.getDoc, data.permissions, data.delete, utils.unlockRequest]
     'data/exist/:id/': get: data.exist
-    'data/upsert/:id/': put: [data.lockRequest, data.permissions_param, data.encryptPassword, data.upsert, data.unlockRequest]
-    'data/merge/:id/': put: [data.lockRequest, data.permissions_param, data.getDoc, data.permissions, data.encryptPassword2, data.merge, data.unlockRequest]
+    'data/upsert/:id/': put: [utils.lockRequest, data.permissions_param, data.encryptPassword, data.upsert, utils.unlockRequest]
+    'data/merge/:id/': put: [utils.lockRequest, data.permissions_param, data.getDoc, data.permissions, data.encryptPassword2, data.merge, utils.unlockRequest]
 
     # Requests management
     'request/:type/:req_name/':
         post: [requests.permissions, requests.results]
-        put: [requests.permissions, requests.lockRequest, requests.definition, requests.unlockRequest]
-        del: [requests.permissions, requests.lockRequest, requests.remove, requests.unlockRequest]
+        put: [requests.permissions, utils.lockRequest, requests.definition, utils.unlockRequest]
+        del: [requests.permissions, utils.lockRequest, requests.remove, utils.unlockRequest]
     'request/:type/:req_name/destroy/': put: [requests.permissions, requests.removeResults]
 
     # Tags API
@@ -42,15 +44,15 @@ module.exports =
 
     # File management
     # attachment API is deprecated
-    'data/:id/attachments/': post: [attachments.lockRequest, attachments.getDoc, attachments.permissions, attachments.add, attachments.unlockRequest]
+    'data/:id/attachments/': post: [utils.lockRequest, attachments.getDoc, attachments.permissions, attachments.add, utils.unlockRequest]
     'data/:id/attachments/:name':
         get: [attachments.getDoc, attachments.permissions, attachments.get]
-        del: [attachments.lockRequest, attachments.getDoc, attachments.permissions, attachments.remove, attachments.unlockRequest]
+        del: [utils.lockRequest, attachments.getDoc, attachments.permissions, attachments.remove, utils.unlockRequest]
 
-    'data/:id/binaries/': post: [binaries.lockRequest, binaries.getDoc, binaries.permissions, binaries.add, binaries.unlockRequest]
+    'data/:id/binaries/': post: [utils.lockRequest, binaries.getDoc, binaries.permissions, binaries.add, utils.unlockRequest]
     'data/:id/binaries/:name':
         get: [binaries.getDoc, binaries.permissions, binaries.get]
-        del: [binaries.lockRequest, binaries.getDoc, binaries.permissions, binaries.remove, binaries.unlockRequest]
+        del: [utils.lockRequest, binaries.getDoc, binaries.permissions, binaries.remove, utils.unlockRequest]
 
     # Scrapper connectors
     'connectors/bank/:name/': post: connectors.bank
@@ -58,12 +60,12 @@ module.exports =
 
     # Device management
     'device/': post: [devices.permissions, devices.create]
-    'device/:id/': del: [devices.permissions, devices.lockRequest, devices.getDoc, devices.remove, devices.unlockRequest]
+    'device/:id/': del: [devices.permissions, utils.lockRequest, devices.getDoc, devices.remove, utils.unlockRequest]
 
     # Indexer management
     'data/index/:id':
-        post: [indexer.lockRequest, indexer.index, indexer.unlockRequest]
-        del: [indexer.lockRequest, indexer.remove, indexer.unlockRequest]
+        post: [utils.lockRequest, indexer.index, utils.unlockRequest]
+        del: [utils.lockRequest, indexer.remove, utils.unlockRequest]
     'data/search/:type': post: [indexer.permissionType, indexer.search]
     'data/index/clear-all/': del: [indexer.permissionAll, indexer.removeAll]
 
@@ -74,7 +76,7 @@ module.exports =
 
     #User management
     'user/': post: [user.permissions_add, user.create]
-    'user/merge/:id': put: [user.lockRequest, user.permissions_add, user.permissions, user.getDoc, user.merge, user.unlockRequest]
+    'user/merge/:id': put: [utils.lockRequest, user.permissions_add, user.permissions, user.getDoc, user.merge, utils.unlockRequest]
 
     #Account management
     'accounts/password/':

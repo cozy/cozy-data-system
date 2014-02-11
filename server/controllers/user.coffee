@@ -7,15 +7,6 @@ module.exports.permissions_add  = (req, res, next) ->
     checkDocType req.header('authorization'), "User", (err, isAuthenticated, isAuthorized) =>
         next()
 
-module.exports.lockRequest = (req, res, next) ->
-    req.lock = "#{req.params.id}"
-    locker.runIfUnlock req.lock, ->
-        locker.addLock req.lock
-        next()
-
-module.exports.unlockRequest = (req, res, next) ->
-    locker.removeLock req.lock
-
 module.exports.getDoc = (req, res, next) ->
     db.get params.id, (err, doc) =>
         if err and err.error is "not_found"

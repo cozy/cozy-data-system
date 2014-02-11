@@ -17,16 +17,6 @@ else
 
 ## Before and after methods
 
-# Lock document to avoid multiple modifications at the same time.
-module.exports.lockRequest = (req, res, next) ->
-    req.lock = "#{req.params.id}"
-    locker.runIfUnlock req.lock, ->
-        locker.addLock req.lock
-        next()
-
-# Unlock document when action is finished
-module.exports.unlockRequest = (req, res) -> locker.removeLock req.lock
-
 # Recover document from database with id equal to params.id
 module.exports.getDoc = (req, res, next) ->
     db.get req.params.id, (err, doc) =>
