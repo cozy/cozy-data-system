@@ -9,7 +9,7 @@ helpers.app = null
 initializeApplication = require '../server'
 
 helpers.startApp = (done) ->
-    @timeout 10000
+    @timeout 15000
 
     process.env.HOST = helpers.options.serverHost
     process.env.PORT = helpers.options.serverPort
