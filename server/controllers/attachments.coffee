@@ -25,23 +25,6 @@ deleteFiles = (req, callback) ->
 
 ## Before and after methods
 
-# Recover document from database with id equal to params.id
-module.exports.getDoc = (req, res, next) ->
-    db.get req.params.id, (err, doc) =>
-        if err and err.error == "not_found"
-            locker.removeLock req.lock
-            deleteFiles req, -> res.send 404, error: "not found"
-        else if err?
-            console.log "[Attachment] err: " + JSON.stringify err
-            locker.removeLock req.lock
-            deleteFiles req, -> res.send 500, error: err.error
-        else if doc?
-            req.doc = doc
-            next()
-        else
-            locker.removeLock req.lock
-            deleteFiles req, -> res.send 404, error: "not found"
-
 # Check if application is authorized to manage docType
 # docType corresponds to docType of recovered document from database
 # Required to be processed after "get doc"

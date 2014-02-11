@@ -22,23 +22,6 @@ module.exports.permissions = (req, res, next) ->
             @appName = appName
             next()
 
-# Recover document from database with id equal to params.id
-module.exports.getDoc = (req, res, next) ->
-    db.get req.params.id, (err, doc) ->
-        if err? and err.error is "not_found"
-            locker.removeLock req.lock
-            res.send 404, error: "not found"
-        else if err?
-            console.log "[Get doc] err: " + JSON.stringify err
-            locker.removeLock req.lock
-            res.send 500, error: err
-        else if doc?
-            req.doc = doc
-            next()
-        else
-            locker.removeLock req.lock
-            res.send 404, error: "not found"
-
 ## Helpers ##
 
 # Define random function for application's token
