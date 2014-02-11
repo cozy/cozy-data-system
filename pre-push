@@ -1,0 +1,10 @@
+#!/bin/sh
+
+CMD="cake check-build"
+
+$CMD
+RESULT=$?
+if [ $RESULT -ne 0 ]; then
+    exit 0
+fi
+exit 0

@@ -63,10 +63,13 @@ task "lint", "Run Coffeelint", ->
     logger.options.prefix = 'cake:lint'
     logger.info 'Start linting...'
     exec command, (err, stdout, stderr) ->
-        console.log stdout
+        if err
+            logger.error err
+        else
+            console.log stdout
 
-task 'compile', 'Compile CoffeeScript to JavaScript', ->
-    logger.options.prefix = 'cake:compile'
+task 'build', 'Build CoffeeScript to Javascript', ->
+    logger.options.prefix = 'cake:build'
     logger.info "Start compilation..."
     command = "coffee -cb --output build/server server && " + \
               "coffee -cb --output build/ server.coffee"
@@ -77,3 +80,24 @@ task 'compile', 'Compile CoffeeScript to JavaScript', ->
         else
             logger.info "Compilation succeeded."
             process.exit 0
+
+task 'check-build', 'Check if the compiled files are up to date', ->
+    logger.options.prefix = 'cake:check-build'
+    jsDate = fs.statSync('build/server.js').mtime
+
+    coffeeFiles = walk './server'
+    coffeeFiles.push './server.coffee'
+
+    coffeeDate = null
+    for file in coffeeFiles
+        fileDate = fs.statSync(file).mtime
+        coffeeDate = fileDate if  fileDate > coffeeDate or coffeeDate is null
+
+    if coffeeDate > jsDate
+        msg = "Javascript build doesn't seem to be up to date. Are you " + \
+              "sure you've built the sources? If, not please run 'cake build'."
+        logger.warn msg
+        process.exit 1
+    else
+        logger.info "Javascript build is up to date."
+        process.exit 0
