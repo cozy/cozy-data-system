@@ -53,7 +53,7 @@ task 'tests', 'run server tests, ./test is parsed by default, otherwise use -f o
     if options.file
         testFiles  = testFiles.concat(options.file)
     if not(options.dir or options.file)
-        testFiles = walk("test", [])
+        testFiles = walk("tests", [])
     runTests testFiles
 
 
