@@ -27,17 +27,17 @@ helpers.stopApp = (done) ->
 
 helpers.clearDB = (db) -> (done) ->
     @timeout 10000
-    console.log "Clear DB"
+    console.log "Clearing DB..."
     db.destroy (err) ->
-        console.log "Database destroyed"
+        console.log "\t-> Database destroyed!"
         if err and err.error isnt 'not_found'
             console.log "db.destroy err : ", err
             return done err
 
         setTimeout ->
-            console.log "Expecting a little ..."
+            console.log "Waiting a bit..."
             db.create (err) ->
-                console.log "Database created"
+                console.log "\t-> Database created"
                 console.log "db.create err : ", err if err
                 done err
         , 1000
