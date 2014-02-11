@@ -30,6 +30,6 @@
   "main": "server.coffee",
   "scripts": {
     "test": "cake tests",
-    "start": "coffee server.coffee"
+    "start": "node build/server.js"
   }
 }

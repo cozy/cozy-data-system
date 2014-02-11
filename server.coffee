@@ -5,7 +5,9 @@ application = module.exports = (callback) ->
 
     port = process.env.PORT || 9101
     host = process.env.HOST || "127.0.0.1"
-    americano.start name: 'data-system', port: port, (app, server) ->
+    root = __dirname
+
+    americano.start name: 'data-system', port: port, root: root, (app, server) ->
         initialize app, server, callback
 
 if not module.parent
