@@ -15,6 +15,8 @@ client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serv
 crypto = new Crypto()
 user = new User()
 
+process.env.TOKEN = "token"
+
 # helpers
 cleanRequest = ->
     delete @body
