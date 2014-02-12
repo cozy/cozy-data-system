@@ -10,6 +10,8 @@ helpers.options =
     serverPort: '8888'
 client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
 
+process.env.TOKEN = "token"
+
 # helpers
 cleanRequest = ->
     delete @body
@@ -77,8 +79,8 @@ describe "Mail handling tests", ->
             it "Then 400 sould be returned as error code", ->
                     @res.statusCode.should.be.equal 400
                     @body.error.should.be.exist
-                    @body.error.should.be.equal 'Body has not all necessary ' +
-                        'attributes'
+                    @body.error.should.be.equal 'Body has at least one missing'+
+                                                ' attribute (to).'
 
         describe "Send an email without from: ", ->
 
@@ -97,8 +99,8 @@ describe "Mail handling tests", ->
             it "Then, 400 sould be returned as error code", ->
                     @res.statusCode.should.be.equal 400
                     @body.error.should.be.exist
-                    @body.error.should.be.equal 'Body has not all necessary ' +
-                        'attributes'
+                    @body.error.should.be.equal 'Body has at least one missing'+
+                                                ' attribute (from).'
 
         describe "Send an email without subject: ", ->
 
@@ -117,8 +119,8 @@ describe "Mail handling tests", ->
             it "Then 400 sould be returned as error code", ->
                     @res.statusCode.should.be.equal 400
                     @body.error.should.be.exist
-                    @body.error.should.be.equal 'Body has not all necessary ' +
-                        'attributes'
+                    @body.error.should.be.equal 'Body has at least one missing'+
+                                                ' attribute (subject).'
 
         describe "Send an email without content: ", ->
 
@@ -137,8 +139,8 @@ describe "Mail handling tests", ->
             it "Then 400 sould be returned as error code", ->
                     @res.statusCode.should.be.equal 400
                     @body.error.should.be.exist
-                    @body.error.should.be.equal 'Body has not all necessary ' +
-                        'attributes'
+                    @body.error.should.be.equal 'Body has at least one missing'+
+                                                ' attribute (content).'
 
         describe "Send an email with HTML body: ", ->
 

@@ -11,6 +11,8 @@ helpers.options =
     serverPort: '8888'
 serverUrl = "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
 
+process.env.TOKEN = "token"
+
 describe "Binaries", ->
 
     # Clear DB, create a new one, then init data for tests.

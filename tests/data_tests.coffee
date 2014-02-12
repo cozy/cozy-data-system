@@ -10,6 +10,8 @@ helpers.options =
     serverPort: '8888'
 client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
 
+process.env.TOKEN = "token"
+
 # helpers
 cleanRequest = ->
     delete @body

@@ -12,6 +12,8 @@ helpers.options =
 client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
 client.setBasicAuth "proxy", "token"
 
+process.env.TOKEN = "token"
+
 describe "Device", ->
 
     # Clear DB, create a new one, then init data for tests.
