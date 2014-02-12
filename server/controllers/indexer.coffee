@@ -16,7 +16,7 @@ feed = require '../helpers/db_feed_helper'
 # Check if application is authorized to manipulate docType given in params.type
 permission = (req, docType, callback) ->
     auth = req.header 'authorization'
-    checkDocType auth, docType, (err, appName, isAuthorized) =>
+    checkDocType auth, docType, (err, appName, isAuthorized) ->
         feed.publish 'usage.application', appName
         callback()
 

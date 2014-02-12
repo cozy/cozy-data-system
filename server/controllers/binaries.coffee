@@ -6,11 +6,11 @@ deleteFiles = require('./utils').deleteFiles
 
 # POST /data/:id/binaries
 module.exports.add = (req, res, next) ->
-    attach = (binary, name, file, doc) =>
+    attach = (binary, name, file, doc) ->
         fileData =
             name: name
             "content-type": file.type
-        stream = db.saveAttachment binary, fileData, (err, binDoc) =>
+        stream = db.saveAttachment binary, fileData, (err, binDoc) ->
             if err
                 console.log "[Attachment] err: " + JSON.stringify err
                 deleteFiles req.files
@@ -26,7 +26,7 @@ module.exports.add = (req, res, next) ->
                     newBin = {}
 
                 newBin[name] = bin
-                db.merge doc._id, binary: newBin, (err) =>
+                db.merge doc._id, binary: newBin, (err) ->
                     deleteFiles req.files
                     next()
                     res.send 201, success: true

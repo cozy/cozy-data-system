@@ -14,14 +14,17 @@ randomString = (length) ->
     return string.substr 0, length
 
 createFilter = (id, callback) ->
-    db.get "_design/#{id}", (err, res) =>
+    db.get "_design/#{id}", (err, res) ->
         if err && err.error is 'not_found'
             designDoc = {}
             filterFunction = filter.get id
             designDoc.filter = filterFunction
             filterDocTypeFunction = filter.getDocType id
             designDoc.filterDocType = filterDocTypeFunction
-            db.save "_design/#{id}", {views: {} ,filters:designDoc}, (err, res) ->
+            options =
+                views: {}
+                filters: designDoc
+            db.save "_design/#{id}", options, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
                     callback err.message
@@ -62,7 +65,7 @@ module.exports.create = (req, res) ->
         else if response.length isnt 0
             res.send 400, error: "This name is already used"
         else
-            db.save device, (err, docInfo) =>
+            db.save device, (err, docInfo) ->
                 # Create filter
                 createFilter docInfo._id, (err) ->
                     if err?
@@ -79,7 +82,7 @@ module.exports.remove = (req, res, next) ->
         # status code is 200 because 204 is not transmit by httpProxy
         res.send 200, success: true
     id = req.params.id
-    db.remove "_design/#{id}", (err, response) =>
+    db.remove "_design/#{id}", (err, response) ->
         if err?
             console.log "[Definition] err: " + JSON.stringify err
             next()

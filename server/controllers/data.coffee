@@ -54,7 +54,7 @@ module.exports.encryptPassword2 = (req, res, next) ->
 module.exports.decryptPassword = (req, res, next) ->
     doctype = req.doc.docType
     if not doctype? or doctype.toLowerCase() isnt "application"
-        encryption.decrypt req.doc.password, (err, password) =>
+        encryption.decrypt req.doc.password, (err, password) ->
             if err?
                 res.send 500, error: err
             else if password?
@@ -159,13 +159,13 @@ module.exports.delete = (req, res, next) ->
         next()
         feed.feed.removeListener "deletion.#{id}", send_success
         res.send 204, success: true
-    db.remove id, req.doc.rev, (err, res) =>
+    db.remove id, req.doc.rev, (err, res) ->
         if err?
             next()
             res.send 500, error: err.message
         else
             # Doc is removed from indexation
-            client.del "index/#{id}/", (err, response, resbody) =>
+            client.del "index/#{id}/", (err, response, resbody) ->
                 feed.feed.on "deletion.#{id}", send_success
 
 # PUT /data/merge/:id/

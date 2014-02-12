@@ -19,9 +19,9 @@ productionOrTest = process.env.NODE_ENV is "production" or
 ## @callback {function} Continuation to pass control back to when complete.
 ## Store new request name in case of conflict
 ## Callback new request name
-module.exports.create = (app, req, views, newView, callback) => 
+module.exports.create = (app, req, views, newView, callback) =>
     if productionOrTest
-        if views[req.req_name]? and 
+        if views[req.req_name]? and
                 JSON.stringify(views[req.req_name]) isnt JSON.stringify(newView)
             path = "#{app}-#{req.req_name}"
             # store in RAM
@@ -63,7 +63,7 @@ recoverApp = (callback) =>
             callback []
         else
             res.forEach (app) =>
-                apps.push app.name  
+                apps.push app.name
             callback apps
 
 ## function recoverDocs (callback)
@@ -93,12 +93,12 @@ recoverDesignDocs = (callback) =>
 ## function init (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize request
-module.exports.init = (callback) => 
+module.exports.init = (callback) =>
     if productionOrTest
         recoverApp (apps) =>
             recoverDesignDocs (docs) =>
                 for app in apps
-                    for doc in docs 
+                    for doc in docs
                         for view, body of doc.views
                             # Search if view start with application name
                             if view.indexOf(app + '-') is 0

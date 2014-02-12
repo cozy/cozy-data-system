@@ -3,13 +3,13 @@ User = require '../lib/user'
 user = new User()
 
 # Helpers
-sendEmail = (mailOptions, callback) =>
+sendEmail = (mailOptions, callback) ->
     transport = nodemailer.createTransport "SMTP", {}
-    transport.sendMail mailOptions, (error, response) =>
+    transport.sendMail mailOptions, (error, response) ->
         transport.close()
         callback error, response
 
-checkBody = (res, body, attributes) =>
+checkBody = (res, body, attributes) ->
     for attr in attributes
         if not body[attr]?
             res.send 400, error: "Body has not all necessary attributes"
@@ -53,7 +53,7 @@ module.exports.sendToUser = (req, res) ->
                 html: body.html or undefined
             if body.attachments?
                 mailOptions.attachments = body.attachments
-            sendEmail mailOptions, (error, response) =>
+            sendEmail mailOptions, (error, response) ->
                 if error
                     console.log "[sendMail] Error : " + error
                     res.send 500, error: error
@@ -78,7 +78,7 @@ module.exports.sendFromUser = (req, res) ->
                 html: body.html or undefined
             if body.attachments?
                 mailOptions.attachments = body.attachments
-            sendEmail mailOptions, (error, response) =>
+            sendEmail mailOptions, (error, response) ->
                 if error
                     console.log "[sendMail] Error : " + error
                     res.send 500, error: error

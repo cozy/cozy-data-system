@@ -38,7 +38,7 @@ module.exports.tags = (req, res) ->
 
 # POST /request/:type/:req_name/
 module.exports.results = (req, res) ->
-    request.get req.appName, req.params, (path) =>
+    request.get req.appName, req.params, (path) ->
         db.view "#{req.params.type}/" + path, req.body, (err, docs) ->
             if err?
                 if err.error is "not_found"
@@ -71,11 +71,11 @@ module.exports.removeResults = (req, res) ->
             else
                 delFunc()
 
-    delFunc = =>
+    delFunc = ->
         # db.view seems to alter the options object
         # cloning the object before each query prevents that
         query = JSON.parse JSON.stringify req.body
-        request.get req.appName, req.params, (path) =>
+        request.get req.appName, req.params, (path) ->
             path = "#{req.params.type}/" + path
             db.view path, query, (err, docs) ->
                 if err?
@@ -90,7 +90,7 @@ module.exports.removeResults = (req, res) ->
 # PUT /request/:type/:req_name/
 module.exports.definition = (req, res, next) ->
     # no need to precise language because it's javascript
-    db.get "_design/#{req.params.type}", (err, docs) =>
+    db.get "_design/#{req.params.type}", (err, docs) ->
         if err? && err.error is 'not_found'
             design_doc = {}
             design_doc[req.params.req_name] = req.body
@@ -108,9 +108,11 @@ module.exports.definition = (req, res, next) ->
 
         else
             views = docs.views
-            request.create req.appName, req.params, views, req.body, (err, path) =>
+            request.create req.appName, req.params, views, req.body, \
+            (err, path) ->
                 views[path] = req.body
-                db.merge "_design/#{req.params.type}", views: views, (err, response) ->
+                db.merge "_design/#{req.params.type}", views: views, \
+                (err, response) ->
                     next()
                     if err?
                         console.log "[Definition] err: " + JSON.stringify err
@@ -120,7 +122,7 @@ module.exports.definition = (req, res, next) ->
 
 # DELETE /request/:type/:req_name
 module.exports.remove = (req, res, next) ->
-    db.get "_design/#{req.params.type}", (err, docs) =>
+    db.get "_design/#{req.params.type}", (err, docs) ->
         if err? and err.error is 'not_found'
             next()
             res.send 404, error: "not found"
@@ -129,16 +131,17 @@ module.exports.remove = (req, res, next) ->
             res.send 500, error: err.message
         else
             views = docs.views
-            request.get req.appName, req.params, (path) =>
+            request.get req.appName, req.params, (path) ->
                 if path is "#{req.params.req_name}"
                     next()
                     res.send 204, success: true
                 else
                     delete views["#{path}"]
-                    db.merge "_design/#{req.params.type}", views: views, (err, response) ->
+                    db.merge "_design/#{req.params.type}", views: views, \
+                    (err, response) ->
                         next()
                         if err?
-                            console.log "[Definition] err: " + JSON.stringify err
+                            console.log "[Definition] err: " + err.message
                             res.send 500, error: err.message
                         else
                             res.send 204, success: true

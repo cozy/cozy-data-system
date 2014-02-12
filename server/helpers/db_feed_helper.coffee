@@ -18,8 +18,8 @@ module.exports = class Feed
 
     constructor: ->
         @logger = require('printit')
-                    date: true
-                    prefix: 'helper/db_feed'
+            date: true
+            prefix: 'helper/db_feed'
 
     initialize: (server) ->
         @startPublishingToAxon()
@@ -62,7 +62,7 @@ module.exports = class Feed
 
     # [INTERNAL] publish to available outputs
     _publish: (event, id) ->
-        @logger.info "Publishing #{event} #{id}" unless process.env.NODE_ENV is "test"
+        @logger.info "Publishing #{event} #{id}"
         @axonSock.emit event, id if @axonSock?
 
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
@@ -76,7 +76,8 @@ module.exports = class Feed
 
                 # the doc is recreated to retrieve its doctype
                 @db.post doc, (err, doc) =>
-                    client.get "/cozy/#{change.id}?revs_info=true", (err, res, doc) =>
+                    client.get "/cozy/#{change.id}?revs_info=true", \
+                    (err, res, doc) =>
                         @db.get change.id, doc._revs_info[2].rev, (err, doc) =>
                             if doc.docType is 'File' and doc.binary?.file?
                                 binary = doc.binary.file.id
@@ -85,11 +86,13 @@ module.exports = class Feed
                                 @db.get binary, (err, doc) =>
                                     return if err
                                     if doc
-                                        @db.remove binary, binary_rev, (err, doc) =>
+                                        @db.remove binary, binary_rev, \
+                                        (err, doc) =>
                                             @_publish "binary.delete", doc._id
                             @db.get change.id, (err, document) =>
                                 deleted_ids[change.id] = 'deleted'
-                                @db.remove change.id, document.rev, (err, res) =>
+                                @db.remove change.id, document.rev, \
+                                (err, res) =>
                                     doctype = doc?.docType?.toLowerCase()
                                     doctype ?= 'null'
                                     @feed.emit "deletion.#{doc._id}"

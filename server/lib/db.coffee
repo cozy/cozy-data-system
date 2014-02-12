@@ -7,8 +7,8 @@ initTokens = require('../lib/token').init
 request = require('../lib/request')
 
 logger = require('printit')
-        date: true
-        prefix: 'lib/db'
+    date: true
+    prefix: 'lib/db'
 
 module.exports = (callback) ->
     feed = require '../helpers/db_feed_helper'
@@ -133,40 +133,35 @@ module.exports = (callback) ->
     request_create = ->
         db.get '_design/doctypes', (err, doc) =>
             if err and err.error is "not_found"
-                db.save('_design/doctypes', {
-                    all: {
+                db.save '_design/doctypes',
+                    all:
                         map: (doc) ->
                             if(doc.docType)
                                 emit doc.docType, null
                         reduce: (key, values) -> # use to make a "distinct"
                             return true
-                    }
-                });
+
         db.get '_design/device', (err, doc) =>
             if err and err.error is "not_found"
-                db.save('_design/device', {
-                    all: {
+                db.save '_design/device',
+                    all:
                         map: (doc) ->
                             if ((doc.docType) && (doc.docType is "Device"))
                                 emit doc._id, doc
-                    },
-                    byLogin: {
+                    byLogin:
                         map: (doc) ->
                             if ((doc.docType) && (doc.docType is "Device"))
                                 emit doc.login, doc
-                    }
-                });
+
         db.get '_design/tags', (err, doc) =>
             if err and err.error is "not_found"
 
-                db.save('_design/tags', {
-                    all: {
+                db.save '_design/tags',
+                    all:
                         map: (doc) ->
                             doc.tags?.forEach? (tag) -> emit tag, null
                         reduce: (key, values) -> # use to make a "distinct"
                             return true
-                    }
-                });
 
     feed_start = -> feed.startListening db
 
