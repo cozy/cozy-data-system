@@ -19,7 +19,7 @@ module.exports.deleteFiles = function(files) {
   }
 };
 
-module.exports.checkPermissions = function(permission, auth, res, next) {
+module.exports.checkPermissions = function(permission, auth, next) {
   return checkDocType(auth, permission, function(err, appName, isAuthorized) {
     if (!appName) {
       err = new Error("Application is not authenticated");

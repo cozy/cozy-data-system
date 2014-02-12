@@ -48,18 +48,18 @@ module.exports.getDoc = function(req, res, next) {
 
 module.exports.checkPermissionsFactory = function(permission) {
   return function(req, res, next) {
-    return checkPermissions(permission, req.header('authorization'), res, next);
+    return checkPermissions(permission, req.header('authorization'), next);
   };
 };
 
 module.exports.checkPermissionsByDoc = function(req, res, next) {
-  return checkPermissions(req.doc.docType, req.header('authorization'), res, next);
+  return checkPermissions(req.doc.docType, req.header('authorization'), next);
 };
 
 module.exports.checkPermissionsByBody = function(req, res, next) {
-  return checkPermissions(req.body.docType, req.header('authorization'), res, next);
+  return checkPermissions(req.body.docType, req.header('authorization'), next);
 };
 
 module.exports.checkPermissionsByType = function(req, res, next) {
-  return checkPermissions(req.params.type, req.header('authorization'), res, next);
+  return checkPermissions(req.params.type, req.header('authorization'), next);
 };
