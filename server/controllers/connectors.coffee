@@ -1,5 +1,4 @@
 Client = require("request-json").JsonClient
-checkPermissions = require('../lib/token').checkDocType
 
 if process.env.NODE_ENV is "test"
     client = new Client "http://localhost:9092/"

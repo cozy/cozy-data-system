@@ -1,5 +1,5 @@
 fs = require 'fs'
-feed = require '../helpers/db_feed_helper'
+feed = require '../lib/feed'
 checkDocType = require('../lib/token').checkDocType
 
 # Delete files on the file system

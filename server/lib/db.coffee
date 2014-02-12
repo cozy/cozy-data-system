@@ -11,7 +11,7 @@ logger = require('printit')
     prefix: 'lib/db'
 
 module.exports = (callback) ->
-    feed = require '../helpers/db_feed_helper'
+    feed = require '../lib/feed'
     db = require('../helpers/db_connect_helper').db_connect()
 
     ### Helpers ###

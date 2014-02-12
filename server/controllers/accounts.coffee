@@ -1,5 +1,4 @@
 db = require('../helpers/db_connect_helper').db_connect()
-feed = require '../helpers/db_feed_helper'
 encryption = require '../lib/encryption'
 
 Client = require("request-json").JsonClient
@@ -9,7 +8,6 @@ User = require '../lib/user'
 
 randomString = require('../lib/random').randomString
 checkProxyHome = require('../lib/token').checkProxyHome
-checkDocType = require('../lib/token').checkDocType
 initPassword = require('../lib/init').initPassword
 
 accountManager = new Account()

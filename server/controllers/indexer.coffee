@@ -1,3 +1,4 @@
+feed = require '../lib/feed'
 Client = require("request-json").JsonClient
 
 if process.env.NODE_ENV is "test"
@@ -7,9 +8,6 @@ else
 
 db = require('../helpers/db_connect_helper').db_connect()
 checkDocType = require('../lib/token').checkDocType
-feed = require '../helpers/db_feed_helper'
-
-## Before and after methods
 
 ## Helpers
 

@@ -2,7 +2,7 @@ git = require 'git-rev'
 Client = require("request-json").JsonClient
 
 db = require('../helpers/db_connect_helper').db_connect()
-feed = require '../helpers/db_feed_helper'
+feed = require '../lib/feed'
 encryption = require '../lib/encryption'
 
 updatePermissions = require('../lib/token').updatePermissions

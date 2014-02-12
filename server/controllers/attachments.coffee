@@ -65,6 +65,6 @@ module.exports.remove = (req, res, next) ->
             next err
         else if err?
             console.log "[Attachment] err: " + JSON.stringify err
-            next new Error err
+            next err # cradle sends a Error object here
         else
             res.send 204, success: true

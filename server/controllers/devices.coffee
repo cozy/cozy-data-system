@@ -1,8 +1,8 @@
 async = require "async"
+feed = require '../lib/feed'
 db = require('../helpers/db_connect_helper').db_connect()
 request = require '../lib/request'
 filter = require '../lib/default_filter'
-feed = require '../helpers/db_feed_helper'
 
 ## Helpers ##
 
