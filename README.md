@@ -1,29 +1,29 @@
 ## Cozy Data System
 
-Little API that act as a middleware between applications and data sent to the 
+Little API that act as a middleware between applications and data sent to the
 database, to the indexer and to the file system.
 
-## Setup 
+## Setup
 
-Install 
+Install
 [CouchDB](https://github.com/mycozycloud/cozy-data-system/wiki/Couchdb-help)
-(1.2.0), 
+(1.2.0),
 [NodeJS](https://github.com/mycozycloud/cozy-data-system/wiki/Nodejs-help)
 (> 0.8.0) then:
 
     git clone git://github.com/mycozycloud/cozy-data-system.git
     cd cozy-data-system
-    
-    # Load submodules
-    git submodule init
-    git submodule update
 
     # Load dependencies
     npm install
 
 Once datasystem is installed, run it with:
 
-    coffee server
+    npm start # performs a node build/server.js
+
+Or you can start it in dev mode with:
+
+    coffee server.coffee
 
 ## Cozy instance setup
 
@@ -40,14 +40,30 @@ Status](https://travis-ci.org/mycozycloud/cozy-data-system.png?branch=master)](h
 
 Run tests with following commmand
 
-    NODE_ENV="test" cake tests
+    cake tests
 
+
+## Before submitting a pull request
+* Make sure the tests pass
+* Make sure you've built your modification:
+
+```bash
+cake tests
+cake check-build
+cake build
+```
+
+You can also use the provided hook:
+
+```bash
+cp pre-push .git/hooks/
+```
 
 # About Cozy
 
 Cozy Data System is part of the Cozy platform backend. Cozy is the personal
-server for everyone. It allows you to install your every day web applications 
-easily on your server, a single place you control. This means you can manage 
+server for everyone. It allows you to install your every day web applications
+easily on your server, a single place you control. This means you can manage
 efficiently your data while protecting your privacy without technical skills.
 
 More informations and hosting services on:

@@ -1,18 +1,18 @@
-#!/usr/bin/env coffee
+application = module.exports = (callback) ->
 
-require 'coffee-script/register'
+    americano = require 'americano'
+    initialize = require './server/initialize'
+    errorMiddleware = require './server/middlewares/errors'
 
-app = module.exports = (params) ->
-    params = params || {}
-    # specify current dir as default root of server
-    params.root = params.root || __dirname
-    return require('compound').createServer(params)
+    options =
+        name: 'data-system'
+        port: process.env.PORT || 9101
+        host: process.env.HOST || "127.0.0.1"
+        root: __dirname
+
+    americano.start options, (app, server) ->
+        app.use errorMiddleware
+        initialize app, server, callback
 
 if not module.parent
-    port = process.env.PORT || 9101
-    host = process.env.HOST || "127.0.0.1"
-    server = app()
-    server.listen port, host, ->
-        msg = "Compound server listening on #{host}:#{port} within " +
-                "#{server.set('env')} environment"
-        console.log msg
+    application()
