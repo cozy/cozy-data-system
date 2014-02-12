@@ -147,8 +147,20 @@ module.exports =
 
     # Indexer management
     'data/index/:id':
-        post: [utils.lockRequest, indexer.index, utils.unlockRequest]
-        del: [utils.lockRequest, indexer.remove, utils.unlockRequest]
+        post: [
+            utils.lockRequest
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            indexer.index
+            utils.unlockRequest
+        ]
+        del: [
+            utils.lockRequest
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            indexer.remove
+            utils.unlockRequest
+        ]
     'data/search/:type': post: [utils.checkPermissionsByType, indexer.search]
     'data/index/clear-all/': del: [
         utils.checkPermissionsFactory('all')

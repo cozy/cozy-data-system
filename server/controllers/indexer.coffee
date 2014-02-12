@@ -7,44 +7,23 @@ else
     client = new Client "http://localhost:9102/"
 
 db = require('../helpers/db_connect_helper').db_connect()
-checkDocType = require('../lib/token').checkDocType
-
-## Helpers
-
-# Check if application is authorized to manipulate docType given in params.type
-permission = (req, docType, callback) ->
-    auth = req.header 'authorization'
-    checkDocType auth, docType, (err, appName, isAuthorized) ->
-        feed.publish 'usage.application', appName
-        callback()
 
 ## Actions
 
 # POST /data/index/:id
 # Index given fields of document matching id.
 module.exports.index = (req, res, next) ->
-    indexDoc = (doc) =>
-        doc["id"] = doc._id
-        data =
-            doc: doc
-            fields: req.body.fields
-        client.post "index/", data, (err, response, body) ->
-            if err or res.statusCode isnt 200
-                next new Error err
-            else
-                res.send 200, success: true
-                next()
-        , false # body = indexation succeeds, do not parse
-
-    db.get req.params.id, (err, doc) ->
-        if doc?
-            permission req, doc.docType, ->
-                indexDoc doc
+    req.doc.id = req.doc._id
+    data =
+        doc: req.doc
+        fields: req.body.fields
+    client.post "index/", data, (err, response, body) ->
+        if err or response.statusCode isnt 200
+            next new Error err
         else
-            err = new Error "not found"
-            err.status = 404
-            next err
-
+            res.send 200, success: true
+            next()
+    , false # body = indexation succeeds, do not parse
 
 # POST /data/search/
 # Returns documents matching given text query
@@ -78,24 +57,13 @@ module.exports.search = (req, res, next) ->
 # DELETE /data/index/:id
 # Remove index for given document
 module.exports.remove = (req, res, next) ->
-    removeIndex = ->
-        client.del "index/#{params.id}/", (err, response, body) ->
-            if err?
-                next new Error err
-            else
-                res.send 200, success: true
-                next()
-        , false # body is not JSON
-
-    db.get req.params.id, (err, doc) ->
-        permission req, doc.docType, ->
-            if doc?
-                permission req, doc.docType, ->
-                    removeIndex doc
-            else
-                err = new Error "not found"
-                err.status = 404
-                next err
+    client.del "index/#{req.params.id}/", (err, response, body) ->
+        if err?
+            next new Error err
+        else
+            res.send 200, success: true
+            next()
+    , false # body is not JSON
 
 
 # DELETE /data/index/clear-all/
