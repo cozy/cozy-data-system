@@ -94,9 +94,9 @@ module.exports = class Feed
                                 @db.remove change.id, document.rev, \
                                 (err, res) =>
                                     doctype = doc?.docType?.toLowerCase()
-                                    doctype ?= 'null'
                                     @feed.emit "deletion.#{doc._id}"
-                                    @_publish "#{doctype}.delete", doc._id
+                                    if doctype?
+                                        @_publish "#{doctype}.delete", doc._id
                                     return
             else
                 delete deleted_ids[change.id]
