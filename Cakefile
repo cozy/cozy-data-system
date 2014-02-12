@@ -46,6 +46,7 @@ task 'tests', "Run tests #{taskDetails}", (opts) ->
 
     logger.info "Running tests with #{env}..."
     command = "#{env} mocha " + files.join(" ") + " --reporter spec --colors "
+    command += "--globals clearImmediate,setImmediate "
     command += "--compilers coffee:coffee-script/register"
     exec command, (err, stdout, stderr) ->
         console.log stdout
