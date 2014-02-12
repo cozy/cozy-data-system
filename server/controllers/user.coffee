@@ -1,15 +1,5 @@
 db = require('../helpers/db_connect_helper').db_connect()
-locker = require '../lib/locker'
 keys = require '../lib/encryption'
-checkDocType = require('../lib/token').checkDocType
-
-module.exports.permissions_add  = (req, res, next) ->
-    checkDocType req.header('authorization'), "User", (err, isAuthenticated, isAuthorized) =>
-        next()
-
-module.exports.permissions = (req, res, next) ->
-    checkDocType req.header('authorization'), req.doc.docType, (err, isAuthenticated, isAuthorized) =>
-        next()
 
 # POST /user
 module.exports.create = (req, res) ->

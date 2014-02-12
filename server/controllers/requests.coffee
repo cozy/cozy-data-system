@@ -1,29 +1,8 @@
 async = require "async"
 
 db = require('../helpers/db_connect_helper').db_connect()
-feed = require '../helpers/db_feed_helper'
-locker = require '../lib/locker'
 request = require '../lib/request'
 encryption = require '../lib/encryption'
-checkDocType = require('../lib/token').checkDocType
-
-# Before and after methods
-
-# Check if application is authorized to manipulate docType given in params.type
-
-module.exports.permissions = (req, res, next) ->
-    auth = req.header 'authorization'
-    checkDocType auth, req.params.type, (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error "Application is not authenticated"
-            res.send 401, error: err
-        else if not isAuthorized
-            err = new Error "Application is not authorized"
-            res.send 403, error: err
-        else
-            req.appName = appName
-            feed.publish 'usage.application', appName
-            next()
 
 ## Actions
 

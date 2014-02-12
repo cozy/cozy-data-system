@@ -8,37 +8,8 @@ else
 db = require('../helpers/db_connect_helper').db_connect()
 checkDocType = require('../lib/token').checkDocType
 feed = require '../helpers/db_feed_helper'
-locker = require '../lib/locker'
 
 ## Before and after methods
-
-# Check if application is authorized to manipulate docType given in params.type
-module.exports.permissionType = (req, res, next) ->
-    auth = req.header 'authorization'
-    checkDocType auth, req.params.type, (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error "Application is not authenticated"
-            res.send 401, error: err
-        else if not isAuthorized
-            err = new Error "Application is not authorized"
-            res.send 403, error: err
-        else
-            feed.publish 'usage.application', appName
-            next()
-
-# Check if application is authorized to manipulate all docTypes
-module.exports.permissionAll = (req, res, next) ->
-    auth = req.header 'authorization'
-    checkDocType auth, "all", (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error "Application is not authenticated"
-            send 401, error: err
-        else if not isAuthorized
-            err = new Error "Application is not authorized"
-            send 403, error: err
-        else
-            feed.publish 'usage.application', appName
-            next()
 
 ## Helpers
 

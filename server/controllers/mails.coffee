@@ -1,50 +1,7 @@
 nodemailer = require "nodemailer"
-feed = require '../helpers/db_feed_helper'
-checkDocType = require('../lib/token').checkDocType
 User = require '../lib/user'
 user = new User()
 
-# Check if application is authorized to manage send any mail
-module.exports.permissionSendMail = (req, res, next) ->
-    auth = req.header 'authorization'
-    checkDocType auth, "send mail",  (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error "Application is not authenticated"
-            res.send 401, error: err
-        else if not isAuthorized
-            err = new Error "Application is not authorized"
-            res.send 403, error: err
-        else
-            feed.publish 'usage.application', appName
-            next()
-
-# Check if application is authorized to send a mail to user
-module.exports.permissionSendMailToUser = (req, res, next) ->
-    auth = req.header 'authorization'
-    checkDocType auth, "send mail to user",  (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error "Application is not authenticated"
-            res.send 401, error: err
-        else if not isAuthorized
-            err = new Error "Application is not authorized"
-            res.send 403, error: err
-        else
-            feed.publish 'usage.application', appName
-            next()
-
-# Check if application is authorized to send a mail from user
-module.exports.permissionSendMailFromUser = (req, res, next) ->
-    auth = req.header 'authorization'
-    checkDocType auth, "send mail from user",  (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error "Application is not authenticated"
-            res.send 401, error: err
-        else if not isAuthorized
-            err = new Error "Application is not authorized"
-            res.send 403, error: err
-        else
-            feed.publish 'usage.application', appName
-            next()
 # Helpers
 sendEmail = (mailOptions, callback) =>
     transport = nodemailer.createTransport "SMTP", {}

@@ -1,27 +1,6 @@
 fs = require "fs"
 db = require('../helpers/db_connect_helper').db_connect()
-locker = require '../lib/locker'
-feed = require '../helpers/db_feed_helper'
-checkPermissions = require('../lib/token').checkDocType
 deleteFiles = require('./utils').deleteFiles
-
-## Before and after methods
-
-# Check if application is authorized to manage docType
-# docType corresponds to docType of recovered document from database
-# Required to be processed after "get doc"
-module.exports.permissions = (req, res, next) ->
-    auth = req.header 'authorization'
-    checkPermissions auth, req.doc.docType, (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error("Application is not authenticated")
-            res.send 401, error: err
-        else if not isAuthorized
-            err = new Error("Application is not authorized")
-            res.send 403, error: err
-        else
-            feed.publish 'usage.application', appName
-            next()
 
 ## Actions
 

@@ -21,7 +21,7 @@ correctWitness = "Encryption is correct"
 ## Before and after methods
 
 # Check if application which want manage encrypted keys is Proxy
-module.exports.permission_keys = (req, res, next) ->
+module.exports.checkPermissions = (req, res, next) ->
     checkProxyHome req.header('authorization'), (err, isAuthorized) ->
         if not isAuthorized
             err = new Error "Application is not authorized"

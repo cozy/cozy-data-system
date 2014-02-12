@@ -3,10 +3,8 @@ Client = require("request-json").JsonClient
 
 db = require('../helpers/db_connect_helper').db_connect()
 feed = require '../helpers/db_feed_helper'
-locker = require '../lib/locker'
 encryption = require '../lib/encryption'
 
-checkDocType = require('../lib/token').checkDocType
 updatePermissions = require('../lib/token').updatePermissions
 
 if process.env.NODE_ENV is "test"
@@ -16,46 +14,6 @@ else
 
 
 ## Before and after methods
-
-# Check if application is authorized to manage docType of document
-# docType corresponds to docType given in parameters
-module.exports.permissions_param = (req, res, next) ->
-    auth = req.header 'authorization'
-    checkDocType auth, req.body.docType, (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error "Application is not authenticated"
-            res.send 401, error: err.message
-        else if not isAuthorized
-            err = new Error "Application is not authorized"
-            res.send 403, error: err.message
-        else
-            feed.publish 'usage.application', appName
-            next()
-
-# Check if application is authorized to manage docType of document
-# docType corresponds to docType of recovered document from database
-# Required to be processed after "get doc"
-# TODO: merge with permissions_param
-module.exports.permissions = (req, res, next) ->
-    ###
-    doctypeName = req.doc?.docType or req.body?.docType or null
-    if req.doc?.docType? and req.body?.docType? \
-       and req.doc.docType is req.body.docType
-       res.send 500, "A document's doctype cannot change"
-    else
-    ###
-
-    auth = req.header 'authorization'
-    checkDocType auth, req.doc.docType, (err, appName, isAuthorized) =>
-        if not appName
-            err = new Error "Application is not authenticated"
-            res.send 401, error: err.message
-        else if not isAuthorized
-            err = new Error "Application is not authorized"
-            res.send 403, error: err.message
-        else
-            feed.publish 'usage.application', appName
-            next()
 
 ## Encrypt data in field password
 module.exports.encryptPassword = (req, res, next) ->
