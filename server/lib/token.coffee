@@ -35,6 +35,7 @@ checkToken = (auth, callback) ->
 ## Check if application can manage docType
 module.exports.checkDocType = (auth, docType, callback) ->
     # Check if application is authenticated
+
     if productionOrTest
         checkToken auth, (err, isAuthenticated, name) =>
             if isAuthenticated
@@ -52,7 +53,9 @@ module.exports.checkDocType = (auth, docType, callback) ->
             else
                 callback null, false, false
     else
-        callback null, true, true
+        checkToken auth, (err, isAuthenticated, name) ->
+            name ?= 'unknown'
+            callback null, name, true
 
 
 ## function checkProxy (auth, callback)
