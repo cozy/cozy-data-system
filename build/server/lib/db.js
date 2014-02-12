@@ -68,16 +68,16 @@ module.exports = function(callback) {
 
   /* Logger */
   logFound = function() {
-    console.info(("Database " + db.name + " on " + db.connection.host) + (":" + db.connection.port + " found."));
+    logger.info(("Database " + db.name + " on " + db.connection.host) + (":" + db.connection.port + " found."));
     feed_start();
     return request_create();
   };
   logError = function(err) {
-    console.info("Error on database creation : ");
-    return console.info(err);
+    logger.info("Error on database creation : ");
+    return logger.info(err);
   };
   logCreated = function() {
-    console.info(("Database " + db.name + " on") + (" " + db.connection.host + ":" + db.connection.port + " created."));
+    logger.info(("Database " + db.name + " on") + (" " + db.connection.host + ":" + db.connection.port + " created."));
     feed_start();
     return request_create();
   };
@@ -87,7 +87,7 @@ module.exports = function(callback) {
     return db.exists(function(err, exists) {
       var loginCouch;
       if (err) {
-        return logger.write("Error:", err);
+        return logger.error("Error:", err);
       } else if (exists) {
         if (process.env.NODE_ENV === 'production') {
           loginCouch = initLoginCouch();
@@ -98,13 +98,13 @@ module.exports = function(callback) {
               if ((body.admins == null) || body.admins.names[0] !== loginCouch[0] || ((_ref = body.readers) != null ? _ref.names[0] : void 0) !== 'proxy') {
                 return addCozyUser(function(err) {
                   if (err) {
-                    logger.write("Error on database" + (" Add user : " + err));
+                    logger.error("Error on database" + (" Add user : " + err));
                     return callback();
                   } else {
                     return addCozyAdmin((function(_this) {
                       return function(err) {
                         if (err) {
-                          logger.write("Error on database" + (" Add admin : " + err));
+                          logger.error("Error on database" + (" Add admin : " + err));
                           return callback();
                         } else {
                           logFound();
@@ -130,7 +130,7 @@ module.exports = function(callback) {
     });
   };
   db_create = function(callback) {
-    logger.write(("Database " + db.name + " on") + (" " + db.connection.host + ":" + db.connection.port + " doesn't exist."));
+    logger.error(("Database " + db.name + " on") + (" " + db.connection.host + ":" + db.connection.port + " doesn't exist."));
     return db.create(function(err) {
       if (err) {
         logError(err);
@@ -138,7 +138,7 @@ module.exports = function(callback) {
       } else if (process.env.NODE_ENV === 'production') {
         return addCozyUser(function(err) {
           if (err) {
-            logger.write("Error on database" + (" Add user : " + err));
+            logger.error("Error on database" + (" Add user : " + err));
             return callback();
           } else {
             return addCozyAdmin((function(_this) {

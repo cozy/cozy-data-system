@@ -52,17 +52,17 @@ module.exports = (callback) ->
     ### Logger ###
 
     logFound = ->
-        console.info "Database #{db.name} on #{db.connection.host}" +
+        logger.info "Database #{db.name} on #{db.connection.host}" +
             ":#{db.connection.port} found."
         feed_start()
         request_create()
 
     logError = (err) ->
-        console.info "Error on database creation : "
-        console.info err
+        logger.info "Error on database creation : "
+        logger.info err
 
     logCreated = ->
-        console.info "Database #{db.name} on" +
+        logger.info "Database #{db.name} on" +
             " #{db.connection.host}:#{db.connection.port} created."
         feed_start()
         request_create()
@@ -72,7 +72,7 @@ module.exports = (callback) ->
     db_ensure = (callback) ->
         db.exists (err, exists) ->
             if err
-                logger.write "Error:", err
+                logger.error "Error:", err
             else if exists
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
@@ -83,13 +83,13 @@ module.exports = (callback) ->
                                 body.readers?.names[0] isnt 'proxy'
                             addCozyUser (err) ->
                                 if err
-                                    logger.write "Error on database" +
+                                    logger.error "Error on database" +
                                     " Add user : #{err}"
                                     callback()
                                 else
                                     addCozyAdmin (err) =>
                                         if err
-                                            logger.write "Error on database" +
+                                            logger.error "Error on database" +
                                             " Add admin : #{err}"
                                             callback()
                                         else
@@ -105,7 +105,7 @@ module.exports = (callback) ->
                 db_create(callback)
 
     db_create = (callback)->
-        logger.write "Database #{db.name} on" +
+        logger.error "Database #{db.name} on" +
                 " #{db.connection.host}:#{db.connection.port} doesn't exist."
         db.create (err) ->
             if err
@@ -114,7 +114,7 @@ module.exports = (callback) ->
             else if (process.env.NODE_ENV is 'production')
                 addCozyUser (err) ->
                     if err
-                        logger.write "Error on database" +
+                        logger.error "Error on database" +
                         " Add user : #{err}"
                         callback()
                     else
