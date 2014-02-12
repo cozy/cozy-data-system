@@ -14,8 +14,8 @@ module.exports.add = (req, res, next) ->
             if err
                 console.log "[Attachment] err: " + JSON.stringify err
                 deleteFiles req.files
-                next()
-                res.send 500, error: err.error
+                next new Error err.error
+
             else
                 bin =
                     id: binDoc.id
@@ -28,8 +28,8 @@ module.exports.add = (req, res, next) ->
                 newBin[name] = bin
                 db.merge doc._id, binary: newBin, (err) ->
                     deleteFiles req.files
-                    next()
                     res.send 201, success: true
+                    next()
 
         fs.createReadStream(file.path).pipe stream
 
@@ -46,21 +46,23 @@ module.exports.add = (req, res, next) ->
             db.save binary, (err, binary) ->
                 attach binary, name, file, req.doc
     else
-        console.log "no doc for attachment"
-        next()
-        res.send 400, error: "No file send"
+        err = new Error "No file sent"
+        err.status = 400
+        next err
 
 
 # GET /data/:id/binaries/:name/
-module.exports.get = (req, res) ->
+module.exports.get = (req, res, next) ->
     name = req.params.name
     if req.doc.binary and req.doc.binary[name]
 
         stream = db.getAttachment req.doc.binary[name].id, name, (err) ->
             if err and err.error = "not_found"
-                res.send 404, error: err.error
+                err = new Error "not found"
+                err.status = 404
+                next err
             else if err
-                res.send 500, error: err.error
+                next new Error err.error
             else
                 res.send 200
 
@@ -71,7 +73,9 @@ module.exports.get = (req, res) ->
 
         res.on 'close', -> stream.abort()
     else
-        res.send 404, error: 'not_found'
+        err = new Error "not found"
+        err.status = 404
+        next err
 
 # DELETE /data/:id/binaries/:name
 module.exports.remove = (req, res, next) ->
@@ -84,15 +88,18 @@ module.exports.remove = (req, res, next) ->
         db.save req.doc, (err) ->
             db.get id, (err, binary) ->
                 db.remove binary.id, binary.rev, (err) ->
-                    next()
                     if err? and err.error = "not_found"
-                        res.send 404, error: err.error
+                        err = new Error "not found"
+                        err.status = 404
+                        next err
                     else if err
                         console.log "[Attachment] err: " + JSON.stringify err
-                        res.send 500, error: err.error
+                        next new Error err.error
                     else
                         res.send 204, success: true
+                        next()
     else
-        next()
-        res.send 404, error: 'not_found'
+        err = new Error "not found"
+        err.status = 404
+        next err
 

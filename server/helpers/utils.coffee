@@ -12,10 +12,12 @@ module.exports.checkPermissions = (permission, auth, res, next) ->
     checkDocType auth, permission, (err, appName, isAuthorized) ->
         if not appName
             err = new Error "Application is not authenticated"
-            res.send 401, error: err.message
+            err.status = 401
+            next err
         else if not isAuthorized
             err = new Error "Application is not authorized"
-            res.send 403, error: err.message
+            err.status = 403
+            next err
         else
             feed.publish 'usage.application', appName
             next()

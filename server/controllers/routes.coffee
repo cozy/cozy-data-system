@@ -11,7 +11,7 @@ mails = require './mails'
 user = require './user'
 account = require './accounts'
 
-utils = require './utils'
+utils = require '../middlewares/utils'
 
 module.exports =
 

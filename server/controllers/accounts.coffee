@@ -25,7 +25,8 @@ module.exports.checkPermissions = (req, res, next) ->
     checkProxyHome req.header('authorization'), (err, isAuthorized) ->
         if not isAuthorized
             err = new Error "Application is not authorized"
-            res.send 403, error: err
+            err.status = 403
+            next err
         else
             next()
 
@@ -36,19 +37,19 @@ module.exports.initializeKeys = (req, res) ->
     user.getUser (err, user) ->
         if err
             console.log "[initializeKeys] err: #{err}"
-            res.send 500, error: err
+            next new Error err
         else
             ## User has already been connected
             if user.salt? and user.slaveKey?
                 encryption.logIn req.body.password, user, (err)->
-                    res.send 500, error: err if err?
+                    next new Error err if err?
                     initPassword ->
                         res.send 200, success: true
             ## First connection
             else
                 encryption.init req.body.password, user, (err)->
                     if err
-                        res.send 500, error: err
+                        next new Error err
                     else
                         res.send 200, success: true
 
@@ -59,17 +60,21 @@ module.exports.updateKeys = (req, res) ->
         user.getUser (err, user) ->
             if err
                 console.log "[updateKeys] err: #{err}"
-                res.send 500, error: err
+                next new Error err
             else
                 encryption.update req.body.password, user, (err) ->
                     if err? and err is 400
-                        res.send 400, error: err
+                        err = new Error "No master or slave keys"
+                        err.status = 400
+                        next err
                     else if err
-                        res.send 500, error: err
+                        next new Error err
                     else
                         res.send 200, success: true
     else
-        res.send 400, "no password field in body"
+        err = new Error "no password field in request's body"
+        err.status = 400.
+        next err
 
 
 #DELETE /accounts/reset/
@@ -77,20 +82,20 @@ module.exports.resetKeys = (req, res) ->
     user.getUser (err, user) ->
         if err
             console.log "[initializeKeys] err: #{err}"
-            res.send 500, error: err
+            next new Error err
         else
             encryption.reset user, (err) ->
                 if err
-                    send 500, error: err
+                    next new Error err
                 else
-                    send 204, success: true
+                    res.send 204, success: true
 
 
 #DELETE /accounts/
 module.exports.deleteKeys = (req, res) ->
     encryption.logOut (err) ->
         if err
-            res.send 500, error: err
+            next new Error err
         else
             res.send 204, sucess: true
 

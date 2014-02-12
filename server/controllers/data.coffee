@@ -20,13 +20,9 @@ module.exports.encryptPassword = (req, res, next) ->
     doctype = req.body.docType
     if not doctype? or doctype.toLowerCase() isnt "application"
         encryption.encrypt req.body.password, (err, password) ->
-            if err?
-                res.send 500, error: err
-            else if password?
-                req.body.password = password
-                next()
-            else
-                next()
+            err = new Error err if err?
+            req.body.password = password if password?
+            next err
     else
         next()
 
@@ -38,13 +34,9 @@ module.exports.encryptPassword2 = (req, res, next) ->
     if not doctypeBody? or doctypeBody.toLowerCase() isnt "application"
         if not doctypeDoc? or doctypeDoc.toLowerCase() isnt "application"
             encryption.encrypt req.body.password, (err, password) ->
-                if err?
-                    send 500, error: err
-                else if password?
-                    req.body.password = password
-                    next()
-                else
-                    next()
+                err = new Error err if err?
+                req.body.password = password if password?
+                next err
         else
             next()
     else
@@ -55,13 +47,9 @@ module.exports.decryptPassword = (req, res, next) ->
     doctype = req.doc.docType
     if not doctype? or doctype.toLowerCase() isnt "application"
         encryption.decrypt req.doc.password, (err, password) ->
-            if err?
-                res.send 500, error: err
-            else if password?
-                req.doc.password = password
-                next()
-            else
-                next()
+            err = new Error err if err?
+            req.doc.password = password if password?
+            next err
     else
         next()
 
@@ -82,14 +70,14 @@ module.exports.index = (req, res) ->
                 """
 
 # GET /data/exist/:id/
-module.exports.exist = (req, res) ->
+module.exports.exist = (req, res, next) ->
     db.head req.params.id, (err, response, status) ->
         if status is 200
             res.send 200, exist: true
         else if status is 404
             res.send 200, exist: false
         else
-            res.send 500, error: JSON.stringify err
+            next new Error err
 
 # GET /data/:id/
 module.exports.find = (req, res) ->
@@ -98,7 +86,7 @@ module.exports.find = (req, res) ->
 
 # POST /data/:id/
 # POST /data/
-module.exports.create = (req, res) ->
+module.exports.create = (req, res, next) ->
     delete req.body._attachments # attachments management has a dedicated API
 
     doctype = req.body.docType
@@ -108,19 +96,23 @@ module.exports.create = (req, res) ->
     if req.params.id?
         db.get req.params.id, (err, doc) -> # this GET needed because of cache
             if doc?
-                res.send 409, error: "The document already exists"
+                err = new Error "The document already exists."
+                err.status = 409
+                next err
             else
                 db.save req.params.id, req.body, (err, doc) ->
                     if err?
-                        res.send 409, error: err.message
+                        err = new Error "The document already exists."
+                        err.status = 409
+                        next err
                     else
-                        res.send 201, "_id": doc.id
+                        res.send 201, _id: doc.id
     else
         db.save req.body, (err, doc) ->
             if err?
-                res.send 500, error: err.message
+                next new Error err.error
             else
-                res.send 201, "_id": doc.id
+                res.send 201, _id: doc.id
 
 # PUT /data/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
@@ -132,9 +124,10 @@ module.exports.update = (req, res, next) ->
         updatePermissions req.body
 
     db.save req.params.id, req.body, (err, response) ->
-        next()
-        if err? then res.send 500, error: err.message
-        else res.send 200, success: true
+        if err? then next new Error err.error
+        else
+            res.send 200, success: true
+            next()
 
 # PUT /data/upsert/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
@@ -143,26 +136,26 @@ module.exports.upsert = (req, res, next) ->
 
     db.get req.params.id, (err, doc) ->
         db.save req.params.id, req.body, (err, savedDoc) ->
-            next()
             if err?
-                res.send 500, error: err.message
+                next new Error err.error
             else if doc?
                 res.send 200, success: true
+                next()
             else
-                res.send 201, "_id": savedDoc.id
+                res.send 201, _id: savedDoc.id
+                next()
 
 # DELETE /data/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
 module.exports.delete = (req, res, next) ->
     id = req.params.id
     send_success = () ->
-        next()
         feed.feed.removeListener "deletion.#{id}", send_success
         res.send 204, success: true
+        next()
     db.remove id, req.doc.rev, (err, res) ->
         if err?
-            next()
-            res.send 500, error: err.message
+            next new Error err.error
         else
             # Doc is removed from indexation
             client.del "index/#{id}/", (err, response, resbody) ->
@@ -174,8 +167,8 @@ module.exports.merge = (req, res, next) ->
     delete req.body._attachments # attachments management has a dedicated API
 
     db.merge req.params.id, req.body, (err, doc) ->
-        next()
         if err?
-            res.send 500, error: err.message
+            next new Error err.error
         else
             res.send 200, success: true
+            next()

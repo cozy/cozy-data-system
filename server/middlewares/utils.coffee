@@ -23,21 +23,22 @@ module.exports.unlockRequest = (req, res) -> locker.removeLock req.lock
 module.exports.getDoc = (req, res, next) ->
     db.get req.params.id, (err, doc) ->
         if err? and err.error is "not_found"
-            locker.removeLock req.lock
             deleteFiles req.files # for binaries management
-            res.send 404, error: err.error
+            err = new Error 'not found'
+            err.status = 404
+            next err
         else if err?
             console.log "[Get doc] err: " + JSON.stringify err
-            locker.removeLock req.lock
             deleteFiles req.files # for binaries management
-            res.send 500, error: err
+            next new Error err.error
         else if doc?
             req.doc = doc
             next()
         else
-            locker.removeLock req.lock
             deleteFiles req.files # for binaries management
-            res.send 404, error: "not found"
+            err = new Error 'not found'
+            err.status = 404
+            next err
 
 # For arbitrary stuff like "send mail to user"
 module.exports.checkPermissionsFactory = (permission) -> (req, res, next) ->

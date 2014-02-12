@@ -2,6 +2,7 @@ application = module.exports = (callback) ->
 
     americano = require 'americano'
     initialize = require './server/initialize'
+    errorMiddleware = require './server/middlewares/errors'
 
     options =
         name: 'data-system'
@@ -10,6 +11,7 @@ application = module.exports = (callback) ->
         root: __dirname
 
     americano.start options, (app, server) ->
+        app.use errorMiddleware
         initialize app, server, callback
 
 if not module.parent

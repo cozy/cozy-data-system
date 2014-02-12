@@ -18,29 +18,30 @@ module.exports.add = (req, res, next) ->
             if err
                 console.log "[Attachment] err: " + JSON.stringify err
                 deleteFiles req.files
-                next()
-                res.send 500, error: err.error
+                next new Error err.error
             else
                 deleteFiles req.files
-                next()
                 res.send 201, success: true
+                next()
 
         fs.createReadStream(file.path).pipe stream
 
     else
-        console.log "no doc for attachment"
-        next()
-        res.send 400, error: "No file sent"
+        err = new Error "No file sent"
+        err.status = 400
+        next err
 
 # GET /data/:id/attachments/:name
-module.exports.get = (req, res) ->
+module.exports.get = (req, res, next) ->
     name = req.params.name
 
     stream = db.getAttachment req.doc.id, name, (err) ->
         if err? and err.error = "not_found"
-            res.send 404, error: "not found"
+            err = new Error "not found"
+            err.status = 404
+            next err
         else if err
-            res.send 500, error: err.error
+            next new Error err.error
         else
             res.send 200, success: true
 
@@ -59,9 +60,11 @@ module.exports.remove = (req, res, next) ->
     db.removeAttachment req.doc, name, (err) ->
         next()
         if err? and err.error = "not_found"
-            res.send 404, error: "not found"
+            err = new Error "not found"
+            err.status = 404
+            next err
         else if err?
             console.log "[Attachment] err: " + JSON.stringify err
-            res.send 500, error: err.error
+            next new Error err
         else
             res.send 204, success: true

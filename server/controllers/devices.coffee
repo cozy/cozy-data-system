@@ -49,7 +49,7 @@ createFilter = (id, callback) ->
 ## Actions
 
 # POST /device
-module.exports.create = (req, res) ->
+module.exports.create = (req, res, next) ->
     # Create device
     device =
         login: req.body.login
@@ -61,15 +61,17 @@ module.exports.create = (req, res) ->
     # Check if an other device hasn't the same name
     db.view 'device/byLogin', key: device.login, (err, response) ->
         if err?
-            res.send 500, error: err
+            next new Error err
         else if response.length isnt 0
-            res.send 400, error: "This name is already used"
+            err = new Error "This name is already used"
+            err.status = 400
+            next err
         else
             db.save device, (err, docInfo) ->
                 # Create filter
                 createFilter docInfo._id, (err) ->
                     if err?
-                        res.send 500, error: err
+                        next new Error err
                     else
                         device.id = docInfo._id
                         res.send 200, device
@@ -78,20 +80,19 @@ module.exports.create = (req, res) ->
 module.exports.remove = (req, res, next) ->
     send_success = () ->
         feed.feed.removeListener "deletion.#{req.params.id}", send_success
-        next()
         # status code is 200 because 204 is not transmit by httpProxy
         res.send 200, success: true
+        next()
     id = req.params.id
     db.remove "_design/#{id}", (err, response) ->
         if err?
             console.log "[Definition] err: " + JSON.stringify err
+            next new Error err.error
             next()
-            res.send 500, error: err.message
         else
             db.remove id, req.doc._rev, (err, response) ->
                 if err?
                     console.log "[Definition] err: " + JSON.stringify err
-                    next()
-                    res.send 500, error: err.message
+                    next new Error err.error
                 else
                     feed.feed.on "deletion.#{req.params.id}", send_success

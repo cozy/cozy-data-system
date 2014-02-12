@@ -9,78 +9,102 @@ sendEmail = (mailOptions, callback) ->
         transport.close()
         callback error, response
 
-checkBody = (res, body, attributes) ->
+checkBody = (body, attributes) ->
+    missingAttributes = []
     for attr in attributes
-        if not body[attr]?
-            res.send 400, error: "Body has not all necessary attributes"
+        missingAttributes.push attr if not body[attr]?
+
+    return missingAttributes
 
 # POST /mail/
 # Send an email with options given in body
-module.exports.send = (req, res) ->
+module.exports.send = (req, res, next) ->
     body = req.body
-    checkBody res, body, ['to', 'from', 'subject', 'content']
-    mailOptions =
-        to: body.to
-        from: body.from
-        subject: body.subject
-        text: body.content
-        html: body.html or undefined
-    if body.attachments?
-        mailOptions.attachments = body.attachments
-    sendEmail mailOptions, (error, response) ->
-        if error
-            console.log "[sendMail] Error : " + error
-            res.send 500, error: error
-        else
-            res.send 200, response
+    missingAttributes = checkBody body, ['to', 'from', 'subject', 'content']
+
+    if missingAttributes.length > 0
+        attrs = missingAttributes.join " "
+        err = new Error "Body has at least one missing attribute (#{attrs})."
+        err.status = 400
+        next err
+    else
+        mailOptions =
+            to: body.to
+            from: body.from
+            subject: body.subject
+            text: body.content
+            html: body.html or undefined
+
+        if body.attachments?
+            mailOptions.attachments = body.attachments
+        sendEmail mailOptions, (error, response) ->
+            if error
+                console.log "[sendMail] Error : " + error
+                next new Error error
+            else
+                res.send 200, response
 
 
 # POST /mail/to-user/
 # Send an email to user with options given in body
-module.exports.sendToUser = (req, res) ->
+module.exports.sendToUser = (req, res, next) ->
     body = req.body
-    checkBody res, body, ['to', 'from', 'subject', 'content']
-    user.getUser (err, user) ->
-        if err
-            console.log "[sendMailToUser] err: #{err}"
-            res.send 500, error: err
-        else
-            mailOptions =
-                to: user.email
-                from: body.from
-                subject: body.subject
-                text: body.content
-                html: body.html or undefined
-            if body.attachments?
-                mailOptions.attachments = body.attachments
-            sendEmail mailOptions, (error, response) ->
-                if error
-                    console.log "[sendMail] Error : " + error
-                    res.send 500, error: error
-                else
-                    res.send 200, response
+    missingAttributes = checkBody body, ['from', 'subject', 'content']
+
+    if missingAttributes.length > 0
+        attrs = missingAttributes.join " "
+        err = new Error "Body has at least one missing attribute (#{attrs})."
+        err.status = 400
+        next err
+    else
+        user.getUser (err, user) ->
+            if err
+                console.log "[sendMailToUser] err: #{err}"
+                next new Error err
+            else
+                mailOptions =
+                    to: user.email
+                    from: body.from
+                    subject: body.subject
+                    text: body.content
+                    html: body.html or undefined
+                if body.attachments?
+                    mailOptions.attachments = body.attachments
+                sendEmail mailOptions, (error, response) ->
+                    if error
+                        console.log "[sendMail] Error : " + error
+                        next new Error error
+                    else
+                        res.send 200, response
 
 # POST /mail/from-user/
 # Send an email from user with options given in body
-module.exports.sendFromUser = (req, res) ->
+module.exports.sendFromUser = (req, res, next) ->
     body = req.body
-    checkBody res, body, ['to', 'from', 'subject', 'content']
-    user.getUser (err, user) ->
-        if err
-            console.log "[sendMailFromUser] err: #{err}"
-            res.send 500, error: err
-        else
-            mailOptions =
-                to: body.to
-                from: user.email
-                subject: body.subject
-                text: body.content
-                html: body.html or undefined
-            if body.attachments?
-                mailOptions.attachments = body.attachments
-            sendEmail mailOptions, (error, response) ->
-                if error
-                    console.log "[sendMail] Error : " + error
-                    res.send 500, error: error
-                else
-                    res.send 200, response
+    missingAttributes = checkBody body, ['to', 'subject', 'content']
+
+    if missingAttributes.length > 0
+        attrs = missingAttributes.join " "
+        err = new Error "Body has at least one missing attribute (#{attrs})."
+        err.status = 400
+        next err
+    else
+        user.getUser (err, user) ->
+            if err
+                console.log "[sendMailFromUser] err: #{err}"
+                next new Error err
+            else
+                mailOptions =
+                    to: body.to
+                    from: user.email
+                    subject: body.subject
+                    text: body.content
+                    html: body.html or undefined
+                if body.attachments?
+                    mailOptions.attachments = body.attachments
+                sendEmail mailOptions, (error, response) ->
+                    if error
+                        console.log "[sendMail] Error : " + error
+                        next new Error error
+                    else
+                        res.send 200, response

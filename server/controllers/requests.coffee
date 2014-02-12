@@ -9,14 +9,14 @@ encryption = require '../lib/encryption'
 # GET /doctypes
 # list all doctypes that have been created
 # a doctype is a design document with a "all" request
-module.exports.doctypes = (req, res) ->
+module.exports.doctypes = (req, res, next) ->
 
     query = group: true
     out = []
 
     db.view "doctypes/all", query, (err, docs) ->
         if err?
-            res.send 500, err: JSON.stringify err
+            next new Error err
         else
             docs.forEach (key, row, id) -> out.push key
             res.send 200, out
@@ -24,28 +24,30 @@ module.exports.doctypes = (req, res) ->
 # GET /tags
 # list all tags
 # tags are item of a tags:[] field
-module.exports.tags = (req, res) ->
+module.exports.tags = (req, res, next) ->
 
     query = group: true
     out = []
 
     db.view "tags/all", query, (err, docs) ->
         if err?
-            send 500, error: JSON.stringify err
+            next new Error err
         else
             docs.forEach (key, row, id) -> out.push key
             res.send 200, out
 
 # POST /request/:type/:req_name/
-module.exports.results = (req, res) ->
+module.exports.results = (req, res, next) ->
     request.get req.appName, req.params, (path) ->
         db.view "#{req.params.type}/" + path, req.body, (err, docs) ->
             if err?
                 if err.error is "not_found"
-                    res.send 404, error: "not found"
+                    err = new Error "not found"
+                    err.status = 404
+                    next err
                 else
                     console.log "[Results] err: " + JSON.stringify err
-                    res.send 500, error: err.message
+                    next new Error err.error
             else
                 docs.forEach (value) ->
                     delete value._rev # CouchDB specific, user don't need it
@@ -60,14 +62,14 @@ module.exports.results = (req, res) ->
                 res.send docs
 
 # PUT /request/:type/:req_name/destroy/
-module.exports.removeResults = (req, res) ->
+module.exports.removeResults = (req, res, next) ->
     removeFunc = (doc, callback) ->
         db.remove doc.value._id, doc.value._rev, callback
 
     removeAllDocs = (docs) ->
         async.forEachSeries docs, removeFunc, (err) ->
             if err?
-                res.send 500, error: err.message
+                next new Error err
             else
                 delFunc()
 
@@ -79,7 +81,9 @@ module.exports.removeResults = (req, res) ->
             path = "#{req.params.type}/" + path
             db.view path, query, (err, docs) ->
                 if err?
-                    res.send 404, error: "not found"
+                    err = new Error "not found"
+                    err.status = 404
+                    next err
                 else
                     if docs.length > 0
                         removeAllDocs docs
@@ -95,16 +99,16 @@ module.exports.definition = (req, res, next) ->
             design_doc = {}
             design_doc[req.params.req_name] = req.body
             db.save "_design/#{req.params.type}", design_doc, (err, response) ->
-                next()
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    res.send 500, error: err.message
+                    next new Error err.error
                 else
                     res.send 200, success: true
+                    next()
 
         else if err?
+            next new Error err.error
             next()
-            res.send 500, error: err.message
 
         else
             views = docs.views
@@ -113,35 +117,35 @@ module.exports.definition = (req, res, next) ->
                 views[path] = req.body
                 db.merge "_design/#{req.params.type}", views: views, \
                 (err, response) ->
-                    next()
                     if err?
                         console.log "[Definition] err: " + JSON.stringify err
-                        res.send 500, error: err.message
+                        next new Error err.error
                     else
                         res.send 200, success: true
+                        next()
 
 # DELETE /request/:type/:req_name
 module.exports.remove = (req, res, next) ->
     db.get "_design/#{req.params.type}", (err, docs) ->
         if err? and err.error is 'not_found'
-            next()
-            res.send 404, error: "not found"
+            err = new Error "not found"
+            err.status = 404
+            next err
         else if err?
-            next()
-            res.send 500, error: err.message
+            next new Error err.error
         else
             views = docs.views
             request.get req.appName, req.params, (path) ->
                 if path is "#{req.params.req_name}"
-                    next()
                     res.send 204, success: true
+                    next()
                 else
                     delete views["#{path}"]
                     db.merge "_design/#{req.params.type}", views: views, \
                     (err, response) ->
-                        next()
                         if err?
                             console.log "[Definition] err: " + err.message
-                            res.send 500, error: err.message
+                            next new Error err.error
                         else
                             res.send 204, success: true
+                            next()

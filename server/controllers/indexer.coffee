@@ -31,11 +31,11 @@ module.exports.index = (req, res, next) ->
             doc: doc
             fields: req.body.fields
         client.post "index/", data, (err, response, body) ->
-            next()
             if err or res.statusCode isnt 200
-                res.send 500, error: JSON.stringify err
+                next new Error err
             else
                 res.send 200, success: true
+                next()
         , false # body = indexation succeeds, do not parse
 
     db.get req.params.id, (err, doc) ->
@@ -43,29 +43,29 @@ module.exports.index = (req, res, next) ->
             permission req, doc.docType, ->
                 indexDoc doc
         else
-            next()
-            res.send 404, error: "not found"
+            err = new Error "not found"
+            err.status = 404
+            next err
 
 
 # POST /data/search/
 # Returns documents matching given text query
-module.exports.search = (req, res) ->
+module.exports.search = (req, res, next) ->
     data =
         docType: req.params.type
         query: req.body.query
 
     client.post "search/", data, (err, response, body) ->
         if err
-            res.send 500, error: err.message
+            next new Error err
         else if not response?
-            res.send 500, error: err.message
+            next new Error "Response not found"
         else if response.statusCode isnt 200
-            console.log response.statusCode, body
             res.send response.statusCode, body
         else
             db.get body.ids, (err, docs) ->
                 if err
-                    res.send 500, error: err.message
+                    next new Error err.error
                 else
                     results = []
                     for doc in docs
@@ -82,11 +82,11 @@ module.exports.search = (req, res) ->
 module.exports.remove = (req, res, next) ->
     removeIndex = ->
         client.del "index/#{params.id}/", (err, response, body) ->
-            next()
             if err?
-                res.send 500, error: err.message
+                next new Error err
             else
                 res.send 200, success: true
+                next()
         , false # body is not JSON
 
     db.get req.params.id, (err, doc) ->
@@ -95,16 +95,17 @@ module.exports.remove = (req, res, next) ->
                 permission req, doc.docType, ->
                     removeIndex doc
             else
-                next()
-                res.send 404, err: "not found"
+                err = new Error "not found"
+                err.status = 404
+                next err
 
 
 # DELETE /data/index/clear-all/
 # Remove all index from data system
-module.exports.removeAll = (req, res) ->
+module.exports.removeAll = (req, res, next) ->
     client.del "clear-all/", (err, response, body) ->
         if err
-            res.send 500, error: err.message
+            next new Error err
         else
             res.send 200, success: true
     , false  # body is not JSON

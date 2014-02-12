@@ -10,32 +10,36 @@ else
 
 # POST /connectors/bank/:name
 # Returns data extracted with connector name. Credentials are required.
-module.exports.bank = (req, res) ->
+module.exports.bank = (req, res, next) ->
     if req.body.login? and req.body.password?
         path = "connectors/bank/#{req.params.name}/"
         client.post path, req.body, (err, response, body) ->
             if err?
-                res.send 500, error: err
+                next new Error err
             else if not response?
-                res.send 500, error: "Response not found"
+                next new Error "Response not found"
             else if response.statusCode isnt 200
                 res.send response.statusCode, body
             else
                 res.send 200, body
     else
-        res.send 400, error: "Credentials are not sent."
+        err = new Error "Login and password fields missing in request's body."
+        err.status = 400
+        next err
 
-module.exports.bankHistory = (req, res) ->
+module.exports.bankHistory = (req, res, next) ->
     if req.body.login? and req.body.password?
         path = "connectors/bank/#{req.params.name}/history/"
         client.post path, req.body, (err, response, body) ->
             if err?
-                res.send 500, error: err
+                next new Error err
             else if not response?
-                res.send 500, error: "Res not found"
+                next new Error "Response not found"
             else if response.statusCode isnt 200
                 res.send response.statusCode, body
             else
                 res.send 200, body
     else
-        res.send 400, error: "Credentials are not sent."
+        err = new Error "Login and password fields missing in request's body."
+        err.status = 400
+        next err
