@@ -1,14 +1,10 @@
-fs = require 'fs'
 locker = require '../lib/locker'
-feed = require '../helpers/db_feed_helper'
 db = require('../helpers/db_connect_helper').db_connect()
-checkDocType = require('../lib/token').checkDocType
 
-###
-
-    MIDDLEWARES
-
-###
+# Helpers
+helpers = require '../helpers/utils'
+checkPermissions = helpers.checkPermissions
+deleteFiles = helpers.deleteFiles
 
 # Lock document to avoid multiple modifications at the same time.
 module.exports.lockRequest = (req, res, next) ->
@@ -59,28 +55,3 @@ module.exports.checkPermissionsByBody = (req, res, next) ->
 # Get the permission from the request's params
 module.exports.checkPermissionsByType = (req, res, next) ->
     checkPermissions req.params.type, req.header('authorization'), res, next
-
-###
-
-    HELPERS
-
-###
-
-# Delete files on the file system
-deleteFiles = module.exports.deleteFiles = (files) ->
-    if files? and Object.keys(files).length > 0
-        fs.unlinkSync file.path for key, file of files
-
-# Check the application has the permissions to access the route
-checkPermissions = module.exports.checkPermissions = \
-(permission, auth, res, next) ->
-    checkDocType auth, permission, (err, appName, isAuthorized) ->
-        if not appName
-            err = new Error "Application is not authenticated"
-            res.send 401, error: err.message
-        else if not isAuthorized
-            err = new Error "Application is not authorized"
-            res.send 403, error: err.message
-        else
-            feed.publish 'usage.application', appName
-            next()

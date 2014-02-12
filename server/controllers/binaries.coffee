@@ -1,6 +1,6 @@
 fs = require "fs"
 db = require('../helpers/db_connect_helper').db_connect()
-deleteFiles = require('./utils').deleteFiles
+deleteFiles = require('../helpers/utils').deleteFiles
 
 ## Actions
 
