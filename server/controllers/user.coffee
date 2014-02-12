@@ -1,9 +1,9 @@
 db = require('../helpers/db_connect_helper').db_connect()
 keys = require '../lib/encryption'
 
-# POST /user
+# POST /user/
 module.exports.create = (req, res, next) ->
-    delete body._attachments
+    delete req.body._attachments
     if req.params.id
         db.get req.params.id, (err, doc) -> # this GET needed because of cache
             if doc
@@ -11,7 +11,7 @@ module.exports.create = (req, res, next) ->
                 err.status = 409
                 next err
             else
-                db.save params.id, req.body, (err, response) ->
+                db.save req.params.id, req.body, (err, response) ->
                     if err
                         err = new Error "The document exists"
                         err.status = 409
