@@ -19,10 +19,13 @@ else
 module.exports.encryptPassword = (req, res, next) ->
     doctype = req.body.docType
     if not doctype? or doctype.toLowerCase() isnt "application"
-        encryption.encrypt req.body.password, (err, password) ->
-            err = new Error err if err?
-            req.body.password = password if password?
-            next err
+        try
+            password = encryption.encrypt req.body.password
+        catch error
+            next error
+
+        req.body.password = password if password?
+        next()
     else
         next()
 
@@ -33,10 +36,13 @@ module.exports.encryptPassword2 = (req, res, next) ->
     doctypeDoc = req.doc.docType
     if not doctypeBody? or doctypeBody.toLowerCase() isnt "application"
         if not doctypeDoc? or doctypeDoc.toLowerCase() isnt "application"
-            encryption.encrypt req.body.password, (err, password) ->
-                err = new Error err if err?
-                req.body.password = password if password?
-                next err
+            try
+                password = encryption.encrypt req.body.password
+            catch error
+                next error
+
+            req.body.password = password if password?
+            next()
         else
             next()
     else
@@ -46,10 +52,13 @@ module.exports.encryptPassword2 = (req, res, next) ->
 module.exports.decryptPassword = (req, res, next) ->
     doctype = req.doc.docType
     if not doctype? or doctype.toLowerCase() isnt "application"
-        encryption.decrypt req.doc.password, (err, password) ->
-            err = new Error err if err?
-            req.doc.password = password if password?
-            next err
+        try
+            password = encryption.decrypt req.doc.password
+        catch error
+            next error
+
+        req.doc.password = password if password?
+        next()
     else
         next()
 

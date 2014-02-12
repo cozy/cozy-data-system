@@ -56,8 +56,12 @@ module.exports.results = (req, res, next) ->
                         (value.docType.toLowerCase() is "application" or
                             value.docType.toLowerCase() is "user")
                         ))
-                        encryption.decrypt value.password, (err, password) ->
-                            value.password = password if not err?
+                        try
+                            password = encryption.decrypt req.doc.password
+                        catch error
+                            next error
+
+                        value.password = password if not err?
 
                 res.send docs
 

@@ -50,17 +50,17 @@ updateKeys = (oldKey, password, encryptedslaveKey, callback) ->
 ## @password {string} document password
 ## @callback {function} Continuation to pass control back to when complete.
 ## Return encrypted password
-exports.encrypt = (password, callback) ->
+exports.encrypt = (password) ->
     if password? and process.env.NODE_ENV isnt "development"
         if masterKey? and slaveKey?
             newPwd = cryptoTools.encrypt slaveKey, password
-            callback null, newPwd
+            return newPwd
         else
             err = "master key and slave key don't exist"
             console.log "[encrypt]: #{err}"
-            callback err
+            throw new Error err
     else
-        callback null, password
+        return password
 
 
 exports.get = () ->
@@ -71,19 +71,19 @@ exports.get = () ->
 ## @password {string} document password
 ## @callback {function} Continuation to pass control back to when complete.
 ## Return decrypted password if password was encrypted
-exports.decrypt = (password, callback) ->
+exports.decrypt = (password) ->
     if password? and process.env.NODE_ENV isnt "development"
         if masterKey? and slaveKey?
             newPwd = password
             try
                 newPwd = cryptoTools.decrypt slaveKey, password
-            callback null, newPwd
+            return newPwd
         else
             err = "master key and slave key don't exist"
             console.log "[decrypt]: #{err}"
-            callback err
+            throw new Error err
     else
-        callback null, password
+        return password
 
 
 ## function init (password, user, callback)
