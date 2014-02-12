@@ -2,6 +2,12 @@ fs = require 'fs'
 locker = require '../lib/locker'
 db = require('../helpers/db_connect_helper').db_connect()
 
+###
+
+    MIDDLEWARES
+
+###
+
 # Lock document to avoid multiple modifications at the same time.
 module.exports.lockRequest = (req, res, next) ->
 
@@ -35,7 +41,13 @@ module.exports.getDoc = (req, res, next) ->
             deleteFiles req.files # for binaries management
             res.send 404, error: "not found"
 
+###
+
+    HELPERS
+
+###
+
 # Delete files on the file system
-deleteFiles = (files) ->
+deleteFiles = module.exports.deleteFiles = (files) ->
     if files? and Object.keys(files).length > 0
         fs.unlinkSync file.path for key, file of files

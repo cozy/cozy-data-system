@@ -3,25 +3,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 locker = require '../lib/locker'
 feed = require '../helpers/db_feed_helper'
 checkPermissions = require('../lib/token').checkDocType
-
-## Helpers
-
-# TODO: make it recursive
-deleteFiles = (req, callback) ->
-    i = 0
-    lasterr = null
-    for key, file of req.files
-        i++
-        fs.unlink file.path, (err) ->
-            i--
-            lasterr ?= err
-
-            if i is 0
-                console.log lasterr if lasterr
-                callback lasterr
-    if i is 0
-        callback()
-
+deleteFiles = require('./utils').deleteFiles
 
 ## Before and after methods
 
@@ -56,13 +38,13 @@ module.exports.add = (req, res, next) ->
         stream = db.saveAttachment req.doc, fileData, (err) ->
             if err
                 console.log "[Attachment] err: " + JSON.stringify err
-                deleteFiles req, ->
-                    next()
-                    res.send 500, error: err.error
+                deleteFiles req.files
+                next()
+                res.send 500, error: err.error
             else
-                deleteFiles req, ->
-                    next()
-                    res.send 201, success: true
+                deleteFiles req.files
+                next()
+                res.send 201, success: true
 
         fs.createReadStream(file.path).pipe stream
 
