@@ -51,7 +51,12 @@ module.exports.checkDocType = function(auth, docType, callback) {
       };
     })(this));
   } else {
-    return callback(null, true, true);
+    return checkToken(auth, function(err, isAuthenticated, name) {
+      if (name == null) {
+        name = 'unknown';
+      }
+      return callback(null, name, true);
+    });
   }
 };
 

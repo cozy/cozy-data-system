@@ -49,19 +49,19 @@ updateKeys = function(oldKey, password, encryptedslaveKey, callback) {
   return callback(data);
 };
 
-exports.encrypt = function(password, callback) {
+exports.encrypt = function(password) {
   var err, newPwd;
   if ((password != null) && process.env.NODE_ENV !== "development") {
     if ((masterKey != null) && (slaveKey != null)) {
       newPwd = cryptoTools.encrypt(slaveKey, password);
-      return callback(null, newPwd);
+      return newPwd;
     } else {
       err = "master key and slave key don't exist";
       console.log("[encrypt]: " + err);
-      return callback(err);
+      throw new Error(err);
     }
   } else {
-    return callback(null, password);
+    return password;
   }
 };
 
@@ -69,7 +69,7 @@ exports.get = function() {
   return masterKey;
 };
 
-exports.decrypt = function(password, callback) {
+exports.decrypt = function(password) {
   var err, newPwd;
   if ((password != null) && process.env.NODE_ENV !== "development") {
     if ((masterKey != null) && (slaveKey != null)) {
@@ -77,14 +77,14 @@ exports.decrypt = function(password, callback) {
       try {
         newPwd = cryptoTools.decrypt(slaveKey, password);
       } catch (_error) {}
-      return callback(null, newPwd);
+      return newPwd;
     } else {
       err = "master key and slave key don't exist";
       console.log("[decrypt]: " + err);
-      return callback(err);
+      throw new Error(err);
     }
   } else {
-    return callback(null, password);
+    return password;
   }
 };
 

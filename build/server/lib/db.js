@@ -22,7 +22,7 @@ logger = require('printit')({
 
 module.exports = function(callback) {
   var addCozyAdmin, addCozyUser, db, db_create, db_ensure, feed, feed_start, initLoginCouch, logCreated, logError, logFound, request_create;
-  feed = require('../helpers/db_feed_helper');
+  feed = require('../lib/feed');
   db = require('../helpers/db_connect_helper').db_connect();
 
   /* Helpers */
