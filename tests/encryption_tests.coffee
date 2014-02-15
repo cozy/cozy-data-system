@@ -1,14 +1,15 @@
 should = require('chai').Should()
 Client = require('request-json').JsonClient
-Crypto = require '../server/lib/crypto_tools'
-User = require '../server/lib/user'
-randomString = require('../server/lib/random.coffee').randomString
-getMasterKey = require('../server/lib/encryption').get
-
 helpers = require './helpers'
 
+Crypto = require "#{helpers.prefix}server/lib/crypto_tools"
+User = require "#{helpers.prefix}server/lib/user"
+randomString = require("#{helpers.prefix}server/lib/random").randomString
+getMasterKey = require("#{helpers.prefix}server/lib/encryption").get
+
+
 # connection to DB for "hand work"
-db = require('../server/helpers/db_connect_helper').db_connect()
+db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
 helpers.options =
     serverHost: 'localhost'

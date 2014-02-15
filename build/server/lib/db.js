@@ -3,6 +3,11 @@ var Client, S, couchClient, couchUrl, fs, initTokens, logger, request;
 
 fs = require('fs');
 
+logger = require('printit')({
+  date: false,
+  prefix: 'lib:db'
+});
+
 S = require('string');
 
 Client = require("request-json").JsonClient;
@@ -68,16 +73,16 @@ module.exports = function(callback) {
 
   /* Logger */
   logFound = function() {
-    console.info(("Database " + db.name + " on " + db.connection.host) + (":" + db.connection.port + " found."));
+    logger.info(("Database " + db.name + " on " + db.connection.host) + (":" + db.connection.port + " found."));
     feed_start();
     return request_create();
   };
   logError = function(err) {
-    console.info("Error on database creation : ");
-    return console.info(err);
+    logger.info("Error on database creation : ");
+    return logger.info(err);
   };
   logCreated = function() {
-    console.info(("Database " + db.name + " on") + (" " + db.connection.host + ":" + db.connection.port + " created."));
+    logger.info(("Database " + db.name + " on") + (" " + db.connection.host + ":" + db.connection.port + " created."));
     feed_start();
     return request_create();
   };
@@ -130,7 +135,7 @@ module.exports = function(callback) {
     });
   };
   db_create = function(callback) {
-    logger.write(("Database " + db.name + " on") + (" " + db.connection.host + ":" + db.connection.port + " doesn't exist."));
+    logger.info(("Database " + db.name + " on") + (" " + db.connection.host + ":" + db.connection.port + " doesn't exist."));
     return db.create(function(err) {
       if (err) {
         logError(err);
@@ -138,7 +143,7 @@ module.exports = function(callback) {
       } else if (process.env.NODE_ENV === 'production') {
         return addCozyUser(function(err) {
           if (err) {
-            logger.write("Error on database" + (" Add user : " + err));
+            logger.info("Error on database" + (" Add user : " + err));
             return callback();
           } else {
             return addCozyAdmin((function(_this) {
@@ -166,14 +171,8 @@ module.exports = function(callback) {
         if (err && err.error === "not_found") {
           return db.save('_design/doctypes', {
             all: {
-              map: function(doc) {
-                if (doc.docType) {
-                  return emit(doc.docType, null);
-                }
-              },
-              reduce: function(key, values) {
-                return true;
-              }
+              map: "function(doc) {\n    if(doc.docType) {\n        return emit(doc.docType, null);\n    }\n}",
+              reduce: "function(key, values) {\n    return true;\n}"
             }
           });
         }
@@ -184,18 +183,10 @@ module.exports = function(callback) {
         if (err && err.error === "not_found") {
           return db.save('_design/device', {
             all: {
-              map: function(doc) {
-                if (doc.docType && (doc.docType === "Device")) {
-                  return emit(doc._id, doc);
-                }
-              }
+              map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase === \"device\") {\n        return emit(doc._id, doc);\n    }\n}"
             },
             byLogin: {
-              map: function(doc) {
-                if (doc.docType && (doc.docType === "Device")) {
-                  return emit(doc.login, doc);
-                }
-              }
+              map: "function (doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"device\") {\n        return emit(doc.login, doc)\n    }\n}"
             }
           });
         }
@@ -206,15 +197,8 @@ module.exports = function(callback) {
         if (err && err.error === "not_found") {
           return db.save('_design/tags', {
             all: {
-              map: function(doc) {
-                var _ref;
-                return (_ref = doc.tags) != null ? typeof _ref.forEach === "function" ? _ref.forEach(function(tag) {
-                  return emit(tag, null);
-                }) : void 0 : void 0;
-              },
-              reduce: function(key, values) {
-                return true;
-              }
+              map: "function (doc) {\nvar _ref;\nreturn (_ref = doc.tags) != null ? typeof _ref.forEach === \"function\" ? _ref.forEach(function(tag) {\n   return emit(tag, null);\n    }) : void 0 : void 0;\n}",
+              reduce: "function(key, values) {\n    return true;\n}"
             }
           });
         }

@@ -3,7 +3,7 @@ async = require('async')
 Client = require('request-json').JsonClient
 helpers = require('./helpers')
 
-db = require('../server/helpers/db_connect_helper').db_connect()
+db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
 helpers.options =
     serverHost: 'localhost'

@@ -3,7 +3,7 @@ helpers = require './helpers'
 Client = require('request-json').JsonClient
 
 # connection to DB for "hand work"
-db = require('../server/helpers/db_connect_helper').db_connect()
+db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
 helpers.options =
     serverHost: 'localhost'

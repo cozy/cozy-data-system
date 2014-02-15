@@ -4,23 +4,28 @@ db = require('../helpers/db_connect_helper').db_connect()
 module.exports = class User
 
     initAllView: (callback) ->
-        db.get "_design/user", (err, res) =>
-            map = (doc) ->
-                emit doc._id, doc if doc.docType is "User"
+        db.get "_design/user", (err, res) ->
+            map = """
+            function(doc) {
+                if(doc.docType.toLowerCase() === "user") {
+                    return emit(doc._id, doc);
+                }
+            }
+            """
 
             design_doc =
                 all:
-                    map: map.toString()
+                    map: map
 
             if err and err.error is 'not_found'
-                db.save "_design/user", design_doc, (err, res) =>
+                db.save "_design/user", design_doc, (err, res) ->
                     if err
                         callback err
                     else
                         callback null
 
             else if not res.all?
-                db.merge "_design/user", design_doc, (err, res) =>
+                db.merge "_design/user", design_doc, (err, res) ->
                     if err
                         callback err
                     else

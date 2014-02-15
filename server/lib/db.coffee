@@ -1,4 +1,7 @@
 fs = require 'fs'
+logger = require('printit')
+    date: false
+    prefix: 'lib:db'
 S = require 'string'
 Client = require("request-json").JsonClient
 couchUrl = "http://localhost:5984/"
@@ -52,17 +55,17 @@ module.exports = (callback) ->
     ### Logger ###
 
     logFound = ->
-        console.info "Database #{db.name} on #{db.connection.host}" +
+        logger.info "Database #{db.name} on #{db.connection.host}" +
             ":#{db.connection.port} found."
         feed_start()
         request_create()
 
     logError = (err) ->
-        console.info "Error on database creation : "
-        console.info err
+        logger.info "Error on database creation : "
+        logger.info err
 
     logCreated = ->
-        console.info "Database #{db.name} on" +
+        logger.info "Database #{db.name} on" +
             " #{db.connection.host}:#{db.connection.port} created."
         feed_start()
         request_create()
@@ -105,7 +108,7 @@ module.exports = (callback) ->
                 db_create(callback)
 
     db_create = (callback)->
-        logger.write "Database #{db.name} on" +
+        logger.info "Database #{db.name} on" +
                 " #{db.connection.host}:#{db.connection.port} doesn't exist."
         db.create (err) ->
             if err
@@ -114,7 +117,7 @@ module.exports = (callback) ->
             else if (process.env.NODE_ENV is 'production')
                 addCozyUser (err) ->
                     if err
-                        logger.write "Error on database" +
+                        logger.info "Error on database" +
                         " Add user : #{err}"
                         callback()
                     else
@@ -135,33 +138,59 @@ module.exports = (callback) ->
             if err and err.error is "not_found"
                 db.save '_design/doctypes',
                     all:
-                        map: (doc) ->
-                            if(doc.docType)
-                                emit doc.docType, null
-                        reduce: (key, values) -> # use to make a "distinct"
-                            return true
+                        map: """
+                        function(doc) {
+                            if(doc.docType) {
+                                return emit(doc.docType, null);
+                            }
+                        }
+                        """
+                        # use to make a "distinct"
+                        reduce: """
+                        function(key, values) {
+                            return true;
+                        }
+                        """
 
         db.get '_design/device', (err, doc) =>
             if err and err.error is "not_found"
                 db.save '_design/device',
                     all:
-                        map: (doc) ->
-                            if ((doc.docType) && (doc.docType is "Device"))
-                                emit doc._id, doc
+                        map: """
+                        function(doc) {
+                            if(doc.docType && doc.docType.toLowerCase === "device") {
+                                return emit(doc._id, doc);
+                            }
+                        }
+                        """
                     byLogin:
-                        map: (doc) ->
-                            if ((doc.docType) && (doc.docType is "Device"))
-                                emit doc.login, doc
+                        map: """
+                        function (doc) {
+                            if(doc.docType && doc.docType.toLowerCase() === "device") {
+                                return emit(doc.login, doc)
+                            }
+                        }
+                        """
 
         db.get '_design/tags', (err, doc) =>
             if err and err.error is "not_found"
 
                 db.save '_design/tags',
                     all:
-                        map: (doc) ->
-                            doc.tags?.forEach? (tag) -> emit tag, null
-                        reduce: (key, values) -> # use to make a "distinct"
-                            return true
+                        map: """
+                        function (doc) {
+                        var _ref;
+                        return (_ref = doc.tags) != null ? typeof _ref.forEach === "function" ? _ref.forEach(function(tag) {
+                           return emit(tag, null);
+                            }) : void 0 : void 0;
+                        }
+                        """
+                        # use to make a "distinct"
+                        reduce: """
+                        function(key, values) {
+                            return true;
+                        }
+                        """
 
     feed_start = -> feed.startListening db
 

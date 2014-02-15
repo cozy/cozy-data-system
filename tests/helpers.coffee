@@ -1,14 +1,19 @@
 http = require 'http'
-
+logger = require('printit')
+    date: false
+    prefix: 'tests:helper'
 helpers = {}
+
+helpers.prefix = if process.env.COVERAGE then '../instrumented/' else '../'
 
 # server management
 helpers.options = {}
 helpers.app = null
 
-initializeApplication = require '../server'
+initializeApplication = require "#{helpers.prefix}server"
 
-helpers.startApp = (done) ->
+helpers.startApp = (done, forceProcess = false) ->
+
     @timeout 15000
 
     process.env.HOST = helpers.options.serverHost
@@ -19,7 +24,8 @@ helpers.startApp = (done) ->
         @app.server = server
         done()
 
-helpers.stopApp = (done) ->
+helpers.stopApp = (done, forceProcess = false) ->
+
     @timeout 1000
     setTimeout =>
         @app.server.close done
@@ -27,18 +33,18 @@ helpers.stopApp = (done) ->
 
 helpers.clearDB = (db) -> (done) ->
     @timeout 10000
-    console.log "Clearing DB..."
+    logger.info "Clearing DB..."
     db.destroy (err) ->
-        console.log "\t-> Database destroyed!"
+        logger.info "\t-> Database destroyed!"
         if err and err.error isnt 'not_found'
-            console.log "db.destroy err : ", err
+            logger.info "db.destroy err : ", err
             return done err
 
         setTimeout ->
-            console.log "Waiting a bit..."
+            logger.info "Waiting a bit..."
             db.create (err) ->
-                console.log "\t-> Database created"
-                console.log "db.create err : ", err if err
+                logger.info "\t-> Database created"
+                logger.info "db.create err : ", err if err
                 done err
         , 1000
 

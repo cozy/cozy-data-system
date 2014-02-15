@@ -63,8 +63,7 @@ exports.encrypt = (password) ->
         return password
 
 
-exports.get = () ->
-    return masterKey
+exports.get = () -> return masterKey
 
 
 ## function decrypt (password, callback)

@@ -59,6 +59,9 @@ You can also use the provided hook:
 cp pre-push .git/hooks/
 ```
 
+# About code coverage
+The `cake coverage` command requires a bit of explanation. To achieve a proper code coverage, all CouchDB requests must be written in full javascript, otherwise the tests cannot work (since the coffee source is compiled with a special version).
+
 # About Cozy
 
 Cozy Data System is part of the Cozy platform backend. Cozy is the personal
