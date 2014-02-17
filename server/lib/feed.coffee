@@ -31,7 +31,8 @@ module.exports = class Feed
     startPublishingToAxon: ->
         axon = require 'axon'
         @axonSock = axon.socket 'pub-emitter'
-        @axonSock.bind 9105
+        axonPort =  parseInt process.env.AXON_PORT or 9105
+        @axonSock.bind axonPort
         @logger.info 'Pub server started'
 
         @axonSock.sock.on 'connect', () =>

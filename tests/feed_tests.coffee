@@ -17,7 +17,7 @@ describe "Feed tests", ->
         @subscriber = new helpers.Subscriber()
         @axonSock = axon.socket 'sub-emitter'
         @axonSock.on 'note.*', @subscriber.listener
-        @axonSock.connect 9105, done
+        @axonSock.connect helpers.options.axonPort, done
 
     # Stop application after finishing tests.
 

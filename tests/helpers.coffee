@@ -17,6 +17,8 @@ helpers.options =
 
     # default port must also be changed in server/lib/indexer.coffee
     indexerPort: process.env.INDEXER_PORT or 9092
+    # default port must also be changed in server/lib/feed.coffee
+    axonPort: parseInt process.env.AXON_PORT or 9105
 
 # default client
 client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
