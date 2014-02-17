@@ -11,8 +11,6 @@ client = helpers.getClient()
 crypto = new Crypto()
 user = new User()
 
-process.env.TOKEN = "token"
-
 # helpers
 cleanRequest = ->
     delete @body

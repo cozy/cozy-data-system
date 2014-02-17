@@ -8,8 +8,6 @@ db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 client = helpers.getClient()
 client.setBasicAuth "proxy", "token"
 
-process.env.TOKEN = "token"
-
 describe "Device", ->
 
     # Clear DB, create a new one, then init data for tests.

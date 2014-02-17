@@ -8,8 +8,6 @@ db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
 serverUrl = "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
 
-process.env.TOKEN = "token"
-
 describe "Attachments", ->
 
     # Clear DB, create a new one, then init data for tests.

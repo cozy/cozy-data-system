@@ -6,7 +6,6 @@ User = require "#{helpers.prefix}server/lib/user"
 randomString = require("#{helpers.prefix}server/lib/random").randomString
 getMasterKey = require("#{helpers.prefix}server/lib/encryption").get
 
-
 # connection to DB for "hand work"
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 

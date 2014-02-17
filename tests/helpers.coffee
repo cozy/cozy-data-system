@@ -5,6 +5,9 @@ logger = require('printit')
     prefix: 'tests:helper'
 helpers = {}
 
+# Mandatory
+process.env.TOKEN = "token"
+
 helpers.prefix = if process.env.COVERAGE then '../instrumented/' else '../'
 
 # server management

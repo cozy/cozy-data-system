@@ -5,7 +5,6 @@ helpers = require './helpers'
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
 client = helpers.getClient()
-process.env.TOKEN = "token"
 
 # helpers
 cleanRequest = ->
