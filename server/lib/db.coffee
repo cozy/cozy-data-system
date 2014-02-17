@@ -4,8 +4,8 @@ logger = require('printit')
     prefix: 'lib:db'
 S = require 'string'
 Client = require("request-json").JsonClient
-couchUrl = "http://localhost:5984/"
-couchClient = new Client couchUrl
+
+
 initTokens = require('../lib/token').init
 request = require('../lib/request')
 
@@ -16,6 +16,8 @@ logger = require('printit')
 module.exports = (callback) ->
     feed = require '../lib/feed'
     db = require('../helpers/db_connect_helper').db_connect()
+    couchUrl = "http://#{db.connection.host}:#{db.connection.port}/"
+    couchClient = new Client couchUrl
 
     ### Helpers ###
 
@@ -75,7 +77,8 @@ module.exports = (callback) ->
     db_ensure = (callback) ->
         db.exists (err, exists) ->
             if err
-                logger.write "Error:", err
+                couchUrl = "#{db.connection.host}:#{db.connection.port}"
+                logger.error "Error: #{err} (#{couchUrl})"
             else if exists
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
@@ -86,13 +89,13 @@ module.exports = (callback) ->
                                 body.readers?.names[0] isnt 'proxy'
                             addCozyUser (err) ->
                                 if err
-                                    logger.write "Error on database" +
+                                    logger.error "Error on database" +
                                     " Add user : #{err}"
                                     callback()
                                 else
                                     addCozyAdmin (err) =>
                                         if err
-                                            logger.write "Error on database" +
+                                            logger.error "Error on database" +
                                             " Add admin : #{err}"
                                             callback()
                                         else

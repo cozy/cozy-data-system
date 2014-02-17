@@ -1,13 +1,12 @@
 fs = require 'fs'
 S = require 'string'
 Client = require('request-json').JsonClient
-client = new Client 'http://localhost:5984'
-
-if process.env.NODE_ENV is 'production'
-    data = fs.readFileSync '/etc/cozy/couchdb.login'
-    lines = S(data.toString('utf8')).lines()
-    client.setBasicAuth lines[0], lines[1]
-
+client = null
+setCouchCredentials = ->
+    if process.env.NODE_ENV is 'production'
+        data = fs.readFileSync '/etc/cozy/couchdb.login'
+        lines = S(data.toString('utf8')).lines()
+        client.setBasicAuth lines[0], lines[1]
 
 module.exports = class Feed
 
@@ -42,6 +41,11 @@ module.exports = class Feed
     # db the craddle connection
     startListening: (db) ->
         @stopListening()
+
+        couchUrl = "http://#{db.connection.host}:#{db.connection.port}/"
+        client = new Client couchUrl
+        setCouchCredentials()
+
         @feed = db.changes since: 'now'
         @feed.on 'change', @_onChange
         @feed.on 'error', (err) =>
