@@ -77,7 +77,8 @@ module.exports = class Feed
 
                 # the doc is recreated to retrieve its doctype
                 @db.post doc, (err, doc) =>
-                    client.get "/cozy/#{change.id}?revs_info=true", \
+                    dbName = @db.name
+                    client.get "/#{dbName}/#{change.id}?revs_info=true", \
                     (err, res, doc) =>
                         @db.get change.id, doc._revs_info[2].rev, (err, doc) =>
                             if doc.docType is 'File' and doc.binary?.file?

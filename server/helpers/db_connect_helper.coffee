@@ -18,9 +18,8 @@ setup_credentials = ->
         port : '5984',
         cache : false,
         raw: false
-        db: 'cozy'
+        db: process.env.DB_NAME or 'cozy'
     }
-
 
     # credentials retrieved by environment variable
     if process.env.NODE_ENV is 'production'

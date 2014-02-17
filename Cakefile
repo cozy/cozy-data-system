@@ -45,7 +45,7 @@ task 'tests', "Run tests #{taskDetails}", (opts) ->
     env = if options['env'] then "NODE_ENV=#{options.env}" else "NODE_ENV=test"
 
     logger.info "Running tests with #{env}..."
-    command = "#{env} mocha " + files.join(" ") + " --reporter spec --colors "
+    command = "DB_NAME=cozy_test #{env} mocha " + files.join(" ") + " --reporter spec --colors "
     command += "--compilers coffee:coffee-script/register"
     exec command, (err, stdout, stderr) ->
         console.log stdout
