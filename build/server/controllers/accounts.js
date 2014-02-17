@@ -39,36 +39,43 @@ module.exports.checkPermissions = function(req, res, next) {
   });
 };
 
-module.exports.initializeKeys = function(req, res) {
-  return user.getUser(function(err, user) {
-    if (err) {
-      console.log("[initializeKeys] err: " + err);
-      return next(new Error(err));
-    } else {
-      if ((user.salt != null) && (user.slaveKey != null)) {
-        return encryption.logIn(req.body.password, user, function(err) {
-          if (err != null) {
-            next(new Error(err));
-          }
-          return initPassword(function() {
-            return res.send(200, {
-              success: true
+module.exports.initializeKeys = function(req, res, next) {
+  var err;
+  if (req.body.password != null) {
+    return user.getUser(function(err, user) {
+      if (err) {
+        console.log("[initializeKeys] err: " + err);
+        return next(new Error(err));
+      } else {
+        if ((user.salt != null) && (user.slaveKey != null)) {
+          return encryption.logIn(req.body.password, user, function(err) {
+            if (err != null) {
+              next(new Error(err));
+            }
+            return initPassword(function() {
+              return res.send(200, {
+                success: true
+              });
             });
           });
-        });
-      } else {
-        return encryption.init(req.body.password, user, function(err) {
-          if (err) {
-            return next(new Error(err));
-          } else {
-            return res.send(200, {
-              success: true
-            });
-          }
-        });
+        } else {
+          return encryption.init(req.body.password, user, function(err) {
+            if (err) {
+              return next(new Error(err));
+            } else {
+              return res.send(200, {
+                success: true
+              });
+            }
+          });
+        }
       }
-    }
-  });
+    });
+  } else {
+    err = new Error("No password field in request's body");
+    err.status = 400;
+    return next(err);
+  }
 };
 
 module.exports.updateKeys = function(req, res) {
@@ -95,7 +102,7 @@ module.exports.updateKeys = function(req, res) {
       }
     });
   } else {
-    err = new Error("no password field in request's body");
+    err = new Error("No password field in request's body");
     return err.status = 400..next(err);
   }
 };
