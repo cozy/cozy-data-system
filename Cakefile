@@ -72,11 +72,12 @@ task "coverage", "Generate code coverage of tests", ->
                 cleanCoverage -> process.exit 1
             else
                 logger.info "Instrumented files generated."
-                command = "COVERAGE=true NODE_ENV=test mocha tests/ " + \
+                env = "COVERAGE=true NODE_ENV=test " + \
+                      "DB_NAME=cozy_test AXON_PORT=9223"
+                command = "#{env} mocha tests/ " + \
                           "--compilers coffee:coffee-script/register " + \
                           "--reporter html-cov > coverage/coverage.html"
                 logger.info "Generating code coverage..."
-                console.log command
                 exec command, (err, stdout, stderr) ->
                     if err
                         logger.error err
