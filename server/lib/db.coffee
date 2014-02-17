@@ -38,7 +38,7 @@ module.exports = (callback) ->
                 "names":[loginCouch[0], 'proxy']
                 "roles":[]
         couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
-        couchClient.put 'cozy/_security', data, (err, res, body)->
+        couchClient.put "#{db.name}/_security", data, (err, res, body)->
             callback err
 
     addCozyUser = (callback) ->
@@ -83,7 +83,7 @@ module.exports = (callback) ->
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
                     couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
-                    couchClient.get 'cozy/_security', (err, res, body)=>
+                    couchClient.get "#{db.name}/_security", (err, res, body)=>
                         if not body.admins? or
                                 body.admins.names[0] isnt loginCouch[0] or
                                 body.readers?.names[0] isnt 'proxy'
