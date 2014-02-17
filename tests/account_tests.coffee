@@ -1,6 +1,5 @@
 should = require('chai').Should()
-Client = require('request-json').JsonClient
-helpers = require('./helpers')
+helpers = require './helpers'
 
 prefix = helpers.prefix
 Crypto = require "#{prefix}server/lib/crypto_tools"
@@ -8,11 +7,7 @@ User = require "#{prefix}server/lib/user"
 randomString = require("#{prefix}server/lib/random").randomString
 getMasterKey = require("#{prefix}server/lib/encryption").get
 db = require("#{prefix}server/helpers/db_connect_helper").db_connect()
-helpers.options =
-    serverHost: 'localhost'
-    serverPort: '8888'
-client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
-
+client = helpers.getClient()
 crypto = new Crypto()
 user = new User()
 

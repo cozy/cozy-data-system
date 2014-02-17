@@ -1,15 +1,10 @@
 should = require('chai').Should()
-Client = require('request-json').JsonClient
 helpers = require './helpers'
 
 # connection to DB for "hand work"
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
-helpers.options =
-    serverHost: 'localhost'
-    serverPort: '8888'
-client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
-
+client = helpers.getClient()
 process.env.TOKEN = "token"
 
 # helpers

@@ -1,4 +1,5 @@
 http = require 'http'
+Client = require('request-json').JsonClient
 logger = require('printit')
     date: false
     prefix: 'tests:helper'
@@ -7,27 +8,38 @@ helpers = {}
 helpers.prefix = if process.env.COVERAGE then '../instrumented/' else '../'
 
 # server management
-helpers.options = {}
-helpers.app = null
+helpers.options =
+    serverHost: process.env.HOST or 'localhost'
+    serverPort: process.env.PORT or 8888
 
-# default port must also be changed in server/lib/indexer.coffee
-helpers.indexerPort = process.env.INDEXER_PORT or 9092
+    # default port must also be changed in server/lib/indexer.coffee
+    indexerPort: process.env.INDEXER_PORT or 9092
+
+# default client
+client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
+
+# set the configuration for the server
+process.env.HOST = helpers.options.serverHost
+process.env.PORT = helpers.options.serverPort
+
+# Returns a client if url is given, default app client otherwise
+helpers.getClient = (url = null) ->
+    if url?
+        return new Client url
+    else
+        return client
 
 initializeApplication = require "#{helpers.prefix}server"
 
-helpers.startApp = (done, forceProcess = false) ->
+helpers.startApp = (done) ->
 
     @timeout 15000
-
-    process.env.HOST = helpers.options.serverHost
-    process.env.PORT = helpers.options.serverPort
-
     initializeApplication (app, server) =>
         @app = app
         @app.server = server
         done()
 
-helpers.stopApp = (done, forceProcess = false) ->
+helpers.stopApp = (done) ->
 
     @timeout 1000
     setTimeout =>
