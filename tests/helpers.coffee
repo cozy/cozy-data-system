@@ -10,6 +10,9 @@ helpers.prefix = if process.env.COVERAGE then '../instrumented/' else '../'
 helpers.options = {}
 helpers.app = null
 
+# default port must also be changed in server/lib/indexer.coffee
+helpers.indexerPort = process.env.INDEXER_PORT or 9092
+
 initializeApplication = require "#{helpers.prefix}server"
 
 helpers.startApp = (done, forceProcess = false) ->

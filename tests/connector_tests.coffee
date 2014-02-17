@@ -44,7 +44,7 @@ describe 'Connectors - Bank / Accounts', ->
                 should.exist body.password
                 return operations
 
-        @indexerServer = indexer.listen 9092, done
+        @indexerServer = indexer.listen helpers.indexerPort, done
 
     after -> @indexerServer.close()
     after helpers.stopApp

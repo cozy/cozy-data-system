@@ -56,7 +56,7 @@ describe "Indexation", ->
                 should.exist body.query
                 body.query.should.equal "dragons"
                 return ids: [dragonNoteId]
-        @indexer.listen 9092, done
+        @indexer.listen helpers.indexerPort, done
 
 
     after (done) -> @indexer.close done

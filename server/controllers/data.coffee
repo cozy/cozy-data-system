@@ -1,17 +1,11 @@
 git = require 'git-rev'
-Client = require("request-json").JsonClient
 
 db = require('../helpers/db_connect_helper').db_connect()
 feed = require '../lib/feed'
 encryption = require '../lib/encryption'
+client = require '../lib/indexer'
 
 updatePermissions = require('../lib/token').updatePermissions
-
-if process.env.NODE_ENV is "test"
-    client = new Client "http://localhost:9092/"
-else
-    client = new Client "http://localhost:9102/"
-
 
 ## Before and after methods
 

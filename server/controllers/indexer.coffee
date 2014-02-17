@@ -1,10 +1,5 @@
 feed = require '../lib/feed'
-Client = require("request-json").JsonClient
-
-if process.env.NODE_ENV is "test"
-    client = new Client "http://localhost:9092/"
-else
-    client = new Client "http://localhost:9102/"
+client = require '../lib/indexer'
 
 db = require('../helpers/db_connect_helper').db_connect()
 

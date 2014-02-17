@@ -32,7 +32,7 @@ describe "Data handling tests", ->
         client.setBasicAuth "home", "token"
         done()
         #indexer = helpers.fakeServer 'deleted', 204
-        #@indexer = indexer.listen 9092, done
+        #@indexer = indexer.listen helpers.indexerPort, done
 
     before helpers.startApp
 
