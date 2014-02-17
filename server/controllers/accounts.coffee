@@ -31,25 +31,30 @@ module.exports.checkPermissions = (req, res, next) ->
 ## Actions
 
 #POST /accounts/password/
-module.exports.initializeKeys = (req, res) ->
-    user.getUser (err, user) ->
-        if err
-            console.log "[initializeKeys] err: #{err}"
-            next new Error err
-        else
-            ## User has already been connected
-            if user.salt? and user.slaveKey?
-                encryption.logIn req.body.password, user, (err)->
-                    next new Error err if err?
-                    initPassword ->
-                        res.send 200, success: true
-            ## First connection
+module.exports.initializeKeys = (req, res, next) ->
+    if req.body.password?
+        user.getUser (err, user) ->
+            if err
+                console.log "[initializeKeys] err: #{err}"
+                next new Error err
             else
-                encryption.init req.body.password, user, (err)->
-                    if err
-                        next new Error err
-                    else
-                        res.send 200, success: true
+                ## User has already been connected
+                if user.salt? and user.slaveKey?
+                    encryption.logIn req.body.password, user, (err)->
+                        next new Error err if err?
+                        initPassword ->
+                            res.send 200, success: true
+                ## First connection
+                else
+                    encryption.init req.body.password, user, (err)->
+                        if err
+                            next new Error err
+                        else
+                            res.send 200, success: true
+    else
+        err = new Error "No password field in request's body"
+        err.status = 400
+        next err
 
 
 #PUT /accounts/password/
@@ -70,7 +75,7 @@ module.exports.updateKeys = (req, res) ->
                     else
                         res.send 200, success: true
     else
-        err = new Error "no password field in request's body"
+        err = new Error "No password field in request's body"
         err.status = 400.
         next err
 
