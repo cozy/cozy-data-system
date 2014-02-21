@@ -8,7 +8,12 @@ helpers = {}
 # Mandatory
 process.env.TOKEN = "token"
 
-helpers.prefix = if process.env.COVERAGE then '../instrumented/' else '../'
+if process.env.COVERAGE
+    helpers.prefix = '../instrumented/'
+else if process.env.USE_JS
+    helpers.prefix = '../build/'
+else
+    helpers.prefix = '../'
 
 # server management
 helpers.options =

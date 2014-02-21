@@ -7,6 +7,7 @@ logger = require('printit')
 option '-f', '--file [FILE*]' , 'List of test files to run'
 option '-d', '--dir [DIR*]' , 'Directory of test files to run'
 option '-e' , '--env [ENV]', 'Run tests with NODE_ENV=ENV. Default is test'
+option '' , '--use-js', 'If enabled, tests will run with the built files'
 
 options =  # defaults, will be overwritten by command line options
     file        : no
@@ -42,8 +43,10 @@ task 'tests', "Run tests #{taskDetails}", (opts) ->
     unless options.dir or options.file
         files = walk "tests"
 
+
     env = if options['env'] then "NODE_ENV=#{options.env}" else "NODE_ENV=test"
-    env += " DB_NAME=cozy_test AXON_PORT=9223"
+    env += " DB_NAME=cozy_test AXON_PORT=9223 "
+    env += "USE_JS=true" if options['use-js']? and options['use-js']
     logger.info "Running tests with #{env}..."
     command = "#{env} mocha " + files.join(" ") + " --reporter spec --colors "
     command += "--compilers coffee:coffee-script/register"
