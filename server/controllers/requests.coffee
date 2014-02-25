@@ -57,7 +57,7 @@ module.exports.results = (req, res, next) ->
                             value.docType.toLowerCase() is "user")
                         ))
                         try
-                            password = encryption.decrypt req.doc.password
+                            password = encryption.decrypt value.password
                         catch error
                             next error
 

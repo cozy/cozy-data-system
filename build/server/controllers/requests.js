@@ -63,7 +63,7 @@ module.exports.results = function(req, res, next) {
           delete value._rev;
           if ((value.password != null) && !((value.docType != null) && (value.docType.toLowerCase() === "application" || value.docType.toLowerCase() === "user"))) {
             try {
-              password = encryption.decrypt(req.doc.password);
+              password = encryption.decrypt(value.password);
             } catch (_error) {
               error = _error;
               next(error);
