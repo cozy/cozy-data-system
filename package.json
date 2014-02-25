@@ -1,6 +1,13 @@
 {
   "name": "cozy-data-system",
   "version": "1.0.8",
+  "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
+  "licenses": [
+    {
+      "type": "AGPL v3",
+      "url": "http://www.gnu.org/licenses/agpl-3.0.html"
+    }
+  ],
   "engines": [
     "*"
   ],
