@@ -49,7 +49,7 @@ module.exports = function(callback) {
       }
     };
     couchClient.setBasicAuth(loginCouch[0], loginCouch[1]);
-    return couchClient.put('cozy/_security', data, function(err, res, body) {
+    return couchClient.put("" + db.name + "/_security", data, function(err, res, body) {
       return callback(err);
     });
   };
@@ -96,7 +96,7 @@ module.exports = function(callback) {
         if (process.env.NODE_ENV === 'production') {
           loginCouch = initLoginCouch();
           couchClient.setBasicAuth(loginCouch[0], loginCouch[1]);
-          return couchClient.get('cozy/_security', (function(_this) {
+          return couchClient.get("" + db.name + "/_security", (function(_this) {
             return function(err, res, body) {
               var _ref;
               if ((body.admins == null) || body.admins.names[0] !== loginCouch[0] || ((_ref = body.readers) != null ? _ref.names[0] : void 0) !== 'proxy') {

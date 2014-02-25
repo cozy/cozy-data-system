@@ -6,7 +6,10 @@ db = require('../helpers/db_connect_helper').db_connect();
 keys = require('../lib/encryption');
 
 module.exports.create = function(req, res, next) {
-  delete req.body._attachments;
+  var _ref;
+  if ((_ref = req.body) != null) {
+    delete _ref._attachments;
+  }
   if (req.params.id) {
     return db.get(req.params.id, function(err, doc) {
       if (doc) {
@@ -43,7 +46,10 @@ module.exports.create = function(req, res, next) {
 };
 
 module.exports.merge = function(req, res, next) {
-  delete body._attachments;
+  var _ref;
+  if ((_ref = req.body) != null) {
+    delete _ref._attachments;
+  }
   return db.merge(req.params.id, req.body, function(err, response) {
     if (err) {
       console.log("[Merge] err: " + JSON.stringify(err));
