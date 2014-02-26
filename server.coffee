@@ -6,8 +6,8 @@ application = module.exports = (callback) ->
 
     options =
         name: 'data-system'
-        port: process.env.PORT || 9101
-        host: process.env.HOST || "127.0.0.1"
+        port: process.env.PORT or 9101
+        host: process.env.HOST or "127.0.0.1"
         root: __dirname
 
     americano.start options, (app, server) ->

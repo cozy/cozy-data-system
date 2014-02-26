@@ -7,40 +7,34 @@ module.exports = User = (function() {
   function User() {}
 
   User.prototype.initAllView = function(callback) {
-    return db.get("_design/user", (function(_this) {
-      return function(err, res) {
-        var design_doc, map;
-        map = function(doc) {
-          if (doc.docType === "User") {
-            return emit(doc._id, doc);
-          }
-        };
-        design_doc = {
-          all: {
-            map: map.toString()
-          }
-        };
-        if (err && err.error === 'not_found') {
-          return db.save("_design/user", design_doc, function(err, res) {
-            if (err) {
-              return callback(err);
-            } else {
-              return callback(null);
-            }
-          });
-        } else if (res.all == null) {
-          return db.merge("_design/user", design_doc, function(err, res) {
-            if (err) {
-              return callback(err);
-            } else {
-              return callback(null);
-            }
-          });
-        } else {
-          return callback(null);
+    return db.get("_design/user", function(err, res) {
+      var design_doc, map;
+      map = "function(doc) {\n    if(doc.docType.toLowerCase() === \"user\") {\n        return emit(doc._id, doc);\n    }\n}";
+      design_doc = {
+        all: {
+          map: map
         }
       };
-    })(this));
+      if (err && err.error === 'not_found') {
+        return db.save("_design/user", design_doc, function(err, res) {
+          if (err) {
+            return callback(err);
+          } else {
+            return callback(null);
+          }
+        });
+      } else if (res.all == null) {
+        return db.merge("_design/user", design_doc, function(err, res) {
+          if (err) {
+            return callback(err);
+          } else {
+            return callback(null);
+          }
+        });
+      } else {
+        return callback(null);
+      }
+    });
   };
 
   User.prototype.getUser = function(callback) {

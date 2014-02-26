@@ -14,13 +14,12 @@ initLoginCouch = ->
 setup_credentials = ->
     #default credentials
     credentials = {
-        host : 'localhost',
-        port : '5984',
+        host : process.env.COUCH_HOST or 'localhost',
+        port : process.env.COUCH_PORT or '5984',
         cache : false,
         raw: false
-        db: 'cozy'
+        db: process.env.DB_NAME or 'cozy'
     }
-
 
     # credentials retrieved by environment variable
     if process.env.NODE_ENV is 'production'

@@ -1,14 +1,10 @@
 should = require('chai').Should()
-Client = require('request-json').JsonClient
 helpers = require './helpers'
 
 axon = require 'axon'
-db = require('../server/helpers/db_connect_helper').db_connect()
+db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
-helpers.options =
-    serverHost: 'localhost'
-    serverPort: '8888'
-client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
+client = helpers.getClient()
 
 describe "Feed tests", ->
 
@@ -21,7 +17,7 @@ describe "Feed tests", ->
         @subscriber = new helpers.Subscriber()
         @axonSock = axon.socket 'sub-emitter'
         @axonSock.on 'note.*', @subscriber.listener
-        @axonSock.connect 9105, done
+        @axonSock.connect helpers.options.axonPort, done
 
     # Stop application after finishing tests.
 

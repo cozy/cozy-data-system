@@ -23,11 +23,11 @@ initLoginCouch = function() {
 setup_credentials = function() {
   var credentials, loginCouch;
   credentials = {
-    host: 'localhost',
-    port: '5984',
+    host: process.env.COUCH_HOST || 'localhost',
+    port: process.env.COUCH_PORT || '5984',
     cache: false,
     raw: false,
-    db: 'cozy'
+    db: process.env.DB_NAME || 'cozy'
   };
   if (process.env.NODE_ENV === 'production') {
     loginCouch = initLoginCouch();

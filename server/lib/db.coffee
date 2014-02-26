@@ -1,8 +1,11 @@
 fs = require 'fs'
+logger = require('printit')
+    date: false
+    prefix: 'lib:db'
 S = require 'string'
 Client = require("request-json").JsonClient
-couchUrl = "http://localhost:5984/"
-couchClient = new Client couchUrl
+
+
 initTokens = require('../lib/token').init
 request = require('../lib/request')
 
@@ -13,6 +16,8 @@ logger = require('printit')
 module.exports = (callback) ->
     feed = require '../lib/feed'
     db = require('../helpers/db_connect_helper').db_connect()
+    couchUrl = "http://#{db.connection.host}:#{db.connection.port}/"
+    couchClient = new Client couchUrl
 
     ### Helpers ###
 
@@ -33,7 +38,7 @@ module.exports = (callback) ->
                 "names":[loginCouch[0], 'proxy']
                 "roles":[]
         couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
-        couchClient.put 'cozy/_security', data, (err, res, body)->
+        couchClient.put "#{db.name}/_security", data, (err, res, body)->
             callback err
 
     addCozyUser = (callback) ->
@@ -72,12 +77,13 @@ module.exports = (callback) ->
     db_ensure = (callback) ->
         db.exists (err, exists) ->
             if err
-                logger.error "Error:", err
+                couchUrl = "#{db.connection.host}:#{db.connection.port}"
+                logger.error "Error: #{err} (#{couchUrl})"
             else if exists
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
                     couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
-                    couchClient.get 'cozy/_security', (err, res, body)=>
+                    couchClient.get "#{db.name}/_security", (err, res, body)=>
                         if not body.admins? or
                                 body.admins.names[0] isnt loginCouch[0] or
                                 body.readers?.names[0] isnt 'proxy'
@@ -105,7 +111,7 @@ module.exports = (callback) ->
                 db_create(callback)
 
     db_create = (callback)->
-        logger.error "Database #{db.name} on" +
+        logger.info "Database #{db.name} on" +
                 " #{db.connection.host}:#{db.connection.port} doesn't exist."
         db.create (err) ->
             if err
@@ -135,33 +141,59 @@ module.exports = (callback) ->
             if err and err.error is "not_found"
                 db.save '_design/doctypes',
                     all:
-                        map: (doc) ->
-                            if(doc.docType)
-                                emit doc.docType, null
-                        reduce: (key, values) -> # use to make a "distinct"
-                            return true
+                        map: """
+                        function(doc) {
+                            if(doc.docType) {
+                                return emit(doc.docType, null);
+                            }
+                        }
+                        """
+                        # use to make a "distinct"
+                        reduce: """
+                        function(key, values) {
+                            return true;
+                        }
+                        """
 
         db.get '_design/device', (err, doc) =>
             if err and err.error is "not_found"
                 db.save '_design/device',
                     all:
-                        map: (doc) ->
-                            if ((doc.docType) && (doc.docType is "Device"))
-                                emit doc._id, doc
+                        map: """
+                        function(doc) {
+                            if(doc.docType && doc.docType.toLowerCase === "device") {
+                                return emit(doc._id, doc);
+                            }
+                        }
+                        """
                     byLogin:
-                        map: (doc) ->
-                            if ((doc.docType) && (doc.docType is "Device"))
-                                emit doc.login, doc
+                        map: """
+                        function (doc) {
+                            if(doc.docType && doc.docType.toLowerCase() === "device") {
+                                return emit(doc.login, doc)
+                            }
+                        }
+                        """
 
         db.get '_design/tags', (err, doc) =>
             if err and err.error is "not_found"
 
                 db.save '_design/tags',
                     all:
-                        map: (doc) ->
-                            doc.tags?.forEach? (tag) -> emit tag, null
-                        reduce: (key, values) -> # use to make a "distinct"
-                            return true
+                        map: """
+                        function (doc) {
+                        var _ref;
+                        return (_ref = doc.tags) != null ? typeof _ref.forEach === "function" ? _ref.forEach(function(tag) {
+                           return emit(tag, null);
+                            }) : void 0 : void 0;
+                        }
+                        """
+                        # use to make a "distinct"
+                        reduce: """
+                        function(key, values) {
+                            return true;
+                        }
+                        """
 
     feed_start = -> feed.startListening db
 

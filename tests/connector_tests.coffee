@@ -1,16 +1,9 @@
 should = require('chai').Should()
 helpers = require './helpers'
-Client = require('request-json').JsonClient
 
 # connection to DB for "hand work"
-db = require('../server/helpers/db_connect_helper').db_connect()
-
-helpers.options =
-    serverHost: 'localhost'
-    serverPort: '8888'
-client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
-
-process.env.TOKEN = "token"
+db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
+client = helpers.getClient()
 
 describe 'Connectors - Bank / Accounts', ->
 
@@ -44,7 +37,7 @@ describe 'Connectors - Bank / Accounts', ->
                 should.exist body.password
                 return operations
 
-        @indexerServer = indexer.listen 9092, done
+        @indexerServer = indexer.listen helpers.options.indexerPort, done
 
     after -> @indexerServer.close()
     after helpers.stopApp

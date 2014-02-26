@@ -1,17 +1,11 @@
 should = require('chai').Should()
 async = require 'async'
-Client = require('request-json').JsonClient
 helpers = require './helpers'
 
 # connection to DB for "hand work"
-db = require('../server/helpers/db_connect_helper').db_connect()
+db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
-helpers.options =
-    serverHost: 'localhost'
-    serverPort: '8888'
-client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
-
-process.env.TOKEN = "token"
+client = helpers.getClient()
 
 # helpers
 
@@ -56,7 +50,7 @@ describe "Indexation", ->
                 should.exist body.query
                 body.query.should.equal "dragons"
                 return ids: [dragonNoteId]
-        @indexer.listen 9092, done
+        @indexer.listen helpers.options.indexerPort, done
 
 
     after (done) -> @indexer.close done

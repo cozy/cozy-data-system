@@ -1,21 +1,16 @@
 should = require('chai').Should()
-Client = require('request-json').JsonClient
-helpers = require('./helpers')
+helpers = require './helpers'
 
-Crypto = require '../server/lib/crypto_tools'
-User = require '../server/lib/user'
-randomString = require('../server/lib/random.coffee').randomString
-getMasterKey = require('../server/lib/encryption').get
-db = require('../server/helpers/db_connect_helper').db_connect()
-helpers.options =
-    serverHost: 'localhost'
-    serverPort: '8888'
-client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
-
+prefix = helpers.prefix
+Crypto = require "#{prefix}server/lib/crypto_tools"
+User = require "#{prefix}server/lib/user"
+randomString = require("#{prefix}server/lib/random").randomString
+encryption = require "#{prefix}server/lib/encryption"
+getMasterKey = encryption.get
+db = require("#{prefix}server/helpers/db_connect_helper").db_connect()
+client = helpers.getClient()
 crypto = new Crypto()
 user = new User()
-
-process.env.TOKEN = "token"
 
 # helpers
 cleanRequest = ->
@@ -70,7 +65,7 @@ describe "Account handling tests", ->
 
 
     describe "Keys handling tests : ", ->
-        describe "Initialization of the keys and the salt", ->
+        describe "Initialization of the keys and the salt (register/first login)", ->
             before cleanRequest
 
             it "When I send a request to initialize the keys and the salt", \
@@ -106,3 +101,69 @@ describe "Account handling tests", ->
             it "And the length of the slave key should be equal to 32", ->
                 @slaveKey = crypto.decrypt @masterKey, @encryptedSlaveKey
                 @slaveKey.length.should.be.equal 32
+
+        describe "Keys reloading (the user already has master/slave keys)" \
+        , ->
+            before cleanRequest
+            before (done) -> encryption.logOut done
+
+            it "When a request is sent to reload the keys", (done) ->
+                @cozyPwd = "password"
+                data = password: @cozyPwd
+                client.setBasicAuth "proxy", "token"
+                client.post 'accounts/password/', data, (err, res, body) =>
+                    @res = res
+                    done()
+
+            it "And I send a request to check the salt", (done)->
+                client.get 'data/102/', (err, res, body) =>
+                    @body = body
+                    done()
+
+            it "Then the object 'User' have an initialized salt", ->
+                @body.should.have.property 'salt'
+                @salt = @body.salt
+                should.not.equal @salt, undefined
+                @salt.length.should.equal 24
+
+            it "And master key should be initialized", ->
+                @masterKey = crypto.genHashWithSalt @cozyPwd, @salt
+                key = getMasterKey()
+                should.not.equal key, null
+                key.should.equal @masterKey
+
+            it "And object 'User' should have a slave key", ->
+                @body.should.have.property 'slaveKey'
+                @encryptedSlaveKey = @body.slaveKey
+
+            it "And the length of the slave key should be equal to 32", ->
+                @slaveKey = crypto.decrypt @masterKey, @encryptedSlaveKey
+                @slaveKey.length.should.be.equal 32
+
+        describe "If there is no password field", ->
+            before cleanRequest
+
+            it "When a request is sent without the password field", (done) ->
+                @cozyPwd = "password"
+                data = {}
+                client.setBasicAuth "proxy", "token"
+                client.post 'accounts/password/', data, (err, res, body) =>
+                    @res = res
+                    done()
+            it "It should fail with a 400 bad request error", ->
+                @res.statusCode.should.equal 400
+
+    describe "Unauthorized request", ->
+        before cleanRequest
+        it "When I try to initialize the keys without the right token", \
+        (done) ->
+            @cozyPwd = "password"
+            data = password: @cozyPwd
+            client.setBasicAuth "proxy", null
+            client.post 'accounts/password/', data, (err, res, body) =>
+                @res = res
+                done()
+        it "There should be a 403 not authorized error", ->
+            @res.statusCode.should.equal 403
+
+

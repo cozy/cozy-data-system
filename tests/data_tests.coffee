@@ -1,16 +1,9 @@
 should = require('chai').Should()
 async = require('async')
-Client = require('request-json').JsonClient
 helpers = require('./helpers')
 
-db = require('../server/helpers/db_connect_helper').db_connect()
-
-helpers.options =
-    serverHost: 'localhost'
-    serverPort: '8888'
-client = new Client "http://#{helpers.options.serverHost}:#{helpers.options.serverPort}/"
-
-process.env.TOKEN = "token"
+db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
+client = helpers.getClient()
 
 # helpers
 cleanRequest = ->
@@ -32,7 +25,7 @@ describe "Data handling tests", ->
         client.setBasicAuth "home", "token"
         done()
         #indexer = helpers.fakeServer 'deleted', 204
-        #@indexer = indexer.listen 9092, done
+        #@indexer = indexer.listen helpers.options.indexerPort, done
 
     before helpers.startApp
 

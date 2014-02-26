@@ -3,7 +3,7 @@ keys = require '../lib/encryption'
 
 # POST /user/
 module.exports.create = (req, res, next) ->
-    delete req.body._attachments
+    delete req.body?._attachments
     if req.params.id
         db.get req.params.id, (err, doc) -> # this GET needed because of cache
             if doc
@@ -30,7 +30,7 @@ module.exports.create = (req, res, next) ->
 # PUT /user/merge/:id
 module.exports.merge = (req, res, next) ->
     # this version don't take care of conflict (erase DB with the sent value)
-    delete body._attachments
+    delete req.body?._attachments
     db.merge req.params.id, req.body, (err, response) ->
         if err
             # oops unexpected error !

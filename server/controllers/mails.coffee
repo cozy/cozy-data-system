@@ -1,4 +1,7 @@
 nodemailer = require "nodemailer"
+logger = require('printit')
+    date: false
+    prefix: 'controllers:mails'
 User = require '../lib/user'
 user = new User()
 
@@ -39,7 +42,7 @@ module.exports.send = (req, res, next) ->
             mailOptions.attachments = body.attachments
         sendEmail mailOptions, (error, response) ->
             if error
-                console.log "[sendMail] Error : " + error
+                logger.info "[sendMail] Error : " + error
                 next new Error error
             else
                 res.send 200, response
@@ -59,7 +62,7 @@ module.exports.sendToUser = (req, res, next) ->
     else
         user.getUser (err, user) ->
             if err
-                console.log "[sendMailToUser] err: #{err}"
+                logger.info "[sendMailToUser] err: #{err}"
                 next new Error err
             else
                 mailOptions =
@@ -72,7 +75,7 @@ module.exports.sendToUser = (req, res, next) ->
                     mailOptions.attachments = body.attachments
                 sendEmail mailOptions, (error, response) ->
                     if error
-                        console.log "[sendMail] Error : " + error
+                        logger.info "[sendMail] Error : " + error
                         next new Error error
                     else
                         res.send 200, response
@@ -91,7 +94,7 @@ module.exports.sendFromUser = (req, res, next) ->
     else
         user.getUser (err, user) ->
             if err
-                console.log "[sendMailFromUser] err: #{err}"
+                logger.info "[sendMailFromUser] err: #{err}"
                 next new Error err
             else
                 mailOptions =
@@ -104,7 +107,7 @@ module.exports.sendFromUser = (req, res, next) ->
                     mailOptions.attachments = body.attachments
                 sendEmail mailOptions, (error, response) ->
                     if error
-                        console.log "[sendMail] Error : " + error
+                        logger.info "[sendMail] Error : " + error
                         next new Error error
                     else
                         res.send 200, response

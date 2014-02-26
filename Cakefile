@@ -7,6 +7,7 @@ logger = require('printit')
 option '-f', '--file [FILE*]' , 'List of test files to run'
 option '-d', '--dir [DIR*]' , 'Directory of test files to run'
 option '-e' , '--env [ENV]', 'Run tests with NODE_ENV=ENV. Default is test'
+option '' , '--use-js', 'If enabled, tests will run with the built files'
 
 options =  # defaults, will be overwritten by command line options
     file        : no
@@ -42,8 +43,10 @@ task 'tests', "Run tests #{taskDetails}", (opts) ->
     unless options.dir or options.file
         files = walk "tests"
 
-    env = if options['env'] then "NODE_ENV=#{options.env}" else "NODE_ENV=test"
 
+    env = if options['env'] then "NODE_ENV=#{options.env}" else "NODE_ENV=test"
+    env += " DB_NAME=cozy_test AXON_PORT=9223 "
+    env += "USE_JS=true" if options['use-js']? and options['use-js']
     logger.info "Running tests with #{env}..."
     command = "#{env} mocha " + files.join(" ") + " --reporter spec --colors "
     command += "--globals clearImmediate,setImmediate "
@@ -56,6 +59,57 @@ task 'tests', "Run tests #{taskDetails}", (opts) ->
         else
             logger.info "Tests succeeded!"
             process.exit 0
+
+task "coverage", "Generate code coverage of tests", ->
+        logger.options.prefix = 'cake:coverage'
+        files = walk "tests"
+
+        logger.info "Generating instrumented files..."
+        bin = "./node_modules/.bin/coffeeCoverage --path abbr"
+        command = "mkdir instrumented && " + \
+                  "#{bin} server.coffee instrumented/server.js && " + \
+                  "#{bin} server instrumented/server"
+        exec command, (err, stdout, stderr) ->
+
+            if err
+                logger.error err
+                cleanCoverage -> process.exit 1
+            else
+                logger.info "Instrumented files generated."
+                env = "COVERAGE=true NODE_ENV=test " + \
+                      "DB_NAME=cozy_test AXON_PORT=9223"
+                command = "#{env} mocha tests/ " + \
+                          "--compilers coffee:coffee-script/register " + \
+                          "--reporter html-cov > coverage/coverage.html"
+                logger.info "Generating code coverage..."
+                exec command, (err, stdout, stderr) ->
+                    if err
+                        logger.error err
+                        cleanCoverage -> process.exit 1
+                    else
+                        cleanCoverage ->
+                            logger.info "Code coverage generation succeeded!"
+                            process.exit 0
+
+# use exec-sync npm module and use "invoke" in other tasks
+cleanCoverage = (callback) ->
+    logger.info "Cleaning..."
+    command = "rm -rf instrumented"
+    exec command, (err, stdout, stderr) ->
+        if err
+            logger.error err
+            callback err
+        else
+            logger.info "Cleaned!"
+            callback()
+
+task "clean-coverage", "Clean the files generated for coverage report", ->
+    cleanCoverage (err) ->
+        if err
+            process.exit 1
+        else
+            process.exit 0
+
 
 task "lint", "Run Coffeelint", ->
     process.env.TZ = "Europe/Paris"

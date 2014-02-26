@@ -32,11 +32,17 @@
     "chai": "1.9.0",
     "mocha": "1.17.1",
     "request": "2.33.0",
-    "coffee-script": "latest"
+    "coffee-script": "latest",
+    "coffee-coverage": "0.4.2"
   },
   "main": "server.coffee",
   "scripts": {
-    "test": "cake tests",
+    "test": "cake --use-js tests",
     "start": "node build/server.js"
+  },
+  "config": {
+    "blanket": {
+      "pattern": "./server/"
+    }
   }
 }
