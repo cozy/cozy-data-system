@@ -45,4 +45,4 @@ module.exports = class User
                         if res.length > 0
                             callback null, res[0].value
                         else
-                            callback null, new Error("No user found")
+                            callback new Error("No user found")

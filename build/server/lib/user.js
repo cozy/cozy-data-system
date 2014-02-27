@@ -50,7 +50,7 @@ module.exports = User = (function() {
               if (res.length > 0) {
                 return callback(null, res[0].value);
               } else {
-                return callback(null, new Error("No user found"));
+                return callback(new Error("No user found"));
               }
             }
           };
