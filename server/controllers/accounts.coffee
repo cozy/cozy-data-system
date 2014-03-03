@@ -95,10 +95,7 @@ module.exports.resetKeys = (req, res) ->
 
 
 #DELETE /accounts/
+## TODO : Remove this function (wait proxy updating)
 module.exports.deleteKeys = (req, res) ->
-    encryption.logOut (err) ->
-        if err
-            next new Error err
-        else
-            res.send 204, sucess: true
+    res.send 204, sucess: true
 

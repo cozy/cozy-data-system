@@ -94,7 +94,7 @@ module.exports = class Feed
                                     if doc
                                         @db.remove binary, binary_rev, \
                                         (err, doc) =>
-                                            @_publish "binary.delete", doc._id
+                                            @_publish "binary.delete", binary
                             @db.get change.id, (err, document) =>
                                 deleted_ids[change.id] = 'deleted'
                                 @db.remove change.id, document.rev, \

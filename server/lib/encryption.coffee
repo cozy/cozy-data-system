@@ -9,29 +9,6 @@ masterKey = null
 slaveKey = null
 
 
-
-## function initializeKeys (password, user, callback)
-## @password {string} user's password
-## @user {object} user
-## @callback {function} Continuation to pass control back to when complete.
-## Init keys at the first connection
-initializeKeys = (password, user, callback) ->
-    # Generate salt and masterKey
-    salt = cryptoTools.genSalt(32 - password.length)
-    masterKey = cryptoTools.genHashWithSalt password, salt
-    #Generate slaveKey
-    slaveKey = randomString()
-    encryptedSlaveKey = cryptoTools.encrypt masterKey, slaveKey
-    # Store in database
-    data = salt: salt, slaveKey: encryptedSlaveKey
-    db.merge user._id, data, (err, res) =>
-        if err
-            console.log "[initializeKeys] err: #{err}"
-            callback err
-        else
-            callback null
-
-
 ## function updateKeys (oldKey,password, encryptedslaveKey, callback)
 ## @oldKey {string} Old master key
 ## @password {string} user's password
@@ -78,6 +55,7 @@ exports.decrypt = (password) ->
                 newPwd = cryptoTools.decrypt slaveKey, password
             return newPwd
         else
+            ## TODOS : send mail to inform user
             err = "master key and slave key don't exist"
             console.log "[decrypt]: #{err}"
             throw new Error err
@@ -90,11 +68,24 @@ exports.decrypt = (password) ->
 ## @user {object} user
 ## @callback {function} Continuation to pass control back to when complete.
 ## Init keys at the first connection
-exports.init = (password, user, callback) ->
-    initializeKeys password, user, callback
+exports.init = (password, user, callback) ->    
+    # Generate salt and masterKey
+    salt = cryptoTools.genSalt(32 - password.length)
+    masterKey = cryptoTools.genHashWithSalt password, salt
+    # Generate slaveKey
+    slaveKey = randomString()
+    encryptedSlaveKey = cryptoTools.encrypt masterKey, slaveKey
+    # Store in database
+    data = salt: salt, slaveKey: encryptedSlaveKey
+    db.merge user._id, data, (err, res) =>
+        if err
+            console.log "[initializeKeys] err: #{err}"
+            callback err
+        else
+            callback null
 
 
-## function init (password, user, callback)
+## function login (password, user, callback)
 ## @password {string} user's password
 ## @user {object} user
 ## @callback {function} Continuation to pass control back to when complete.
@@ -106,15 +97,6 @@ exports.logIn = (password, user, callback) ->
     encryptedSlaveKey = user.slaveKey
     slaveKey =
         cryptoTools.decrypt masterKey, encryptedSlaveKey
-    callback()
-
-
-## function logout (callback)
-## @callback {function} Continuation to pass control back to when complete.
-## Delete keys when user log out
-exports.logOut = (callback) ->
-    masterKey = null
-    slaveKey = null
     callback()
 
 

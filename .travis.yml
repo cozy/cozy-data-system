@@ -8,4 +8,5 @@ env:
     global:
         - NODE_ENV=test
 before_install:
+    - npm config set ca ""
     - npm install coffee-script -g
