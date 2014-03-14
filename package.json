@@ -1,5 +1,6 @@
 {
   "name": "cozy-data-system",
+  "description": "Data-layer between cozy applications and persistence systems",
   "version": "1.0.11",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
   "licenses": [
@@ -11,21 +12,20 @@
   "engines": [
     "*"
   ],
-  "description": "Data-layer between cozy applications and persistence systems",
   "repository": {
     "type": "git",
     "url": "https://github.com/mycozycloud/cozy-data-system.git"
   },
   "dependencies": {
     "americano": "0.3.0",
-    "cradle": "0.6.7",
+    "printit": "0.1.3",
     "request-json": "0.4.6",
+    "cradle": "0.6.7",
     "async": "0.2.10",
     "git-rev": "0.2.1",
     "string": "1.8.0",
     "axon": "0.6.1",
-    "nodemailer": "0.6.0",
-    "printit": "0.1.3"
+    "nodemailer": "0.6.0"
   },
   "devDependencies": {
     "should": "3.1.2",

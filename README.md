@@ -1,15 +1,30 @@
-## Cozy Data System
+## [Cozy](http://cozy.io) Data System
 
-Little API that act as a middleware between applications and data sent to the
-database, to the indexer and to the file system.
+Little API that act as a middleware between Cozy Platform applications and data
+sent to the database, to the indexer and to the file system.
+It manages application permissions and provide helpers to make Cozy app
+development easier.
 
-## Setup
+
+## Install
+
+To set it up inside your cozy instance:
+
+    # Get cozy monitor
+    npm install cozy-monitor -g
+    cozy-monitor install data-system
+
+## Contribution
+
+i*
+
+## Hack
 
 Install
 [CouchDB](https://github.com/mycozycloud/cozy-data-system/wiki/Couchdb-help)
-(1.2.0),
+(>= 1.2.0),
 [NodeJS](https://github.com/mycozycloud/cozy-data-system/wiki/Nodejs-help)
-(> 0.8.0) then:
+(>= 0.8.0) then:
 
     git clone git://github.com/mycozycloud/cozy-data-system.git
     cd cozy-data-system
@@ -25,14 +40,6 @@ Or you can start it in dev mode with:
 
     coffee server.coffee
 
-## Cozy instance setup
-
-To set it up inside your cozy instance:
-
-    # Get cozy monitor
-    npm install cozy-monitor -g
-    cozy-monitor install data-system
-
 ## Tests
 
 [![Build
@@ -44,6 +51,7 @@ Run tests with following commmand
 
 
 ## Before submitting a pull request
+
 * Make sure the tests pass
 * Make sure you've built your modification:
 
@@ -60,17 +68,28 @@ cp pre-push .git/hooks/
 ```
 
 # About code coverage
+
 The `cake coverage` command requires a bit of explanation. To achieve a proper code coverage, all CouchDB requests must be written in full javascript, otherwise the tests cannot work (since the coffee source is compiled with a special version).
 
-# About Cozy
+## License
 
-Cozy Data System is part of the Cozy platform backend. Cozy is the personal
-server for everyone. It allows you to install your every day web applications
-easily on your server, a single place you control. This means you can manage
-efficiently your data while protecting your privacy without technical skills.
+Cozy Data System is developed by Cozy Cloud and distributed under the AGPL v3 license.
 
-More informations and hosting services on:
-http://www.cozycloud.cc
+## What is Cozy?
 
-# Cozy on IRC
-Feel free to check out our IRC channel (#cozycloud on irc.freenode.org) if you have any technical issues/inquiries or simply to speak about Cozy cloud in general.
+![Cozy Logo](https://raw.github.com/mycozycloud/cozy-setup/gh-pages/assets/images/happycloud.png)
+
+[Cozy](http://cozy.io) is a platform that brings all your web services in the
+same private space.  With it, your web apps and your devices can share data
+easily, providing you
+with a new experience. You can install Cozy on your own hardware where no one
+profiles you. 
+
+## Community 
+
+You can reach the Cozy Community by:
+
+* Chatting with us on IRC #cozycloud on irc.freenode.net
+* Posting on our [Forum](https://groups.google.com/forum/?fromgroups#!forum/cozy-cloud)
+* Posting issues on the [Github repos](https://github.com/mycozycloud/)
+* Mentioning us on [Twitter](http://twitter.com/mycozycloud)
