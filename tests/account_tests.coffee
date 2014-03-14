@@ -105,7 +105,6 @@ describe "Account handling tests", ->
         describe "Keys reloading (the user already has master/slave keys)" \
         , ->
             before cleanRequest
-            before (done) -> encryption.logOut done
 
             it "When a request is sent to reload the keys", (done) ->
                 @cozyPwd = "password"
