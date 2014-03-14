@@ -131,7 +131,7 @@ module.exports = Feed = (function() {
                     }
                     if (doc) {
                       return _this.db.remove(binary, binary_rev, function(err, doc) {
-                        return _this._publish("binary.delete", doc._id);
+                        return _this._publish("binary.delete", binary);
                       });
                     }
                   });

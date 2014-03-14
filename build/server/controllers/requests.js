@@ -66,7 +66,6 @@ module.exports.results = function(req, res, next) {
               password = encryption.decrypt(value.password);
             } catch (_error) {
               error = _error;
-              next(error);
             }
             if (err == null) {
               return value.password = password;

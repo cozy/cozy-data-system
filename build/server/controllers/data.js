@@ -21,7 +21,6 @@ module.exports.encryptPassword = function(req, res, next) {
       password = encryption.encrypt(req.body.password);
     } catch (_error) {
       error = _error;
-      next(error);
     }
     if (password != null) {
       req.body.password = password;
@@ -42,7 +41,6 @@ module.exports.encryptPassword2 = function(req, res, next) {
         password = encryption.encrypt(req.body.password);
       } catch (_error) {
         error = _error;
-        next(error);
       }
       if (password != null) {
         req.body.password = password;
@@ -64,7 +62,6 @@ module.exports.decryptPassword = function(req, res, next) {
       password = encryption.decrypt(req.doc.password);
     } catch (_error) {
       error = _error;
-      next(error);
     }
     if (password != null) {
       req.doc.password = password;
