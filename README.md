@@ -18,7 +18,7 @@ To set it up inside your cozy instance:
 
 You can contribute to the Cozy Data System in many ways:
 
-* Pick up an [issue](https://github.com/mycozycloud/cozy-home/issues?state=open) and solve it.
+* Pick up an [issue](https://github.com/mycozycloud/cozy-data-system/issues?state=open) and solve it.
 * Add bulk features.
 * Improve mass deletion.
 * Write new tests.
