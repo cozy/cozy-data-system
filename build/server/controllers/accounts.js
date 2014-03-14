@@ -127,13 +127,7 @@ module.exports.resetKeys = function(req, res) {
 };
 
 module.exports.deleteKeys = function(req, res) {
-  return encryption.logOut(function(err) {
-    if (err) {
-      return next(new Error(err));
-    } else {
-      return res.send(204, {
-        sucess: true
-      });
-    }
+  return res.send(204, {
+    sucess: true
   });
 };
