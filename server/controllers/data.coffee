@@ -16,7 +16,8 @@ module.exports.encryptPassword = (req, res, next) ->
         try
             password = encryption.encrypt req.body.password
         catch error
-            next error
+            # do nothing to prevent error in apps
+            # todo add a way to send a warning in the http response
 
         req.body.password = password if password?
         next()
@@ -33,7 +34,8 @@ module.exports.encryptPassword2 = (req, res, next) ->
             try
                 password = encryption.encrypt req.body.password
             catch error
-                next error
+                # do nothing to prevent error in apps
+                # todo add a way to send a warning in the http response
 
             req.body.password = password if password?
             next()
@@ -49,7 +51,8 @@ module.exports.decryptPassword = (req, res, next) ->
         try
             password = encryption.decrypt req.doc.password
         catch error
-            next error
+            # do nothing to prevent error in apps
+            # todo add a way to send a warning in the http response
 
         req.doc.password = password if password?
         next()

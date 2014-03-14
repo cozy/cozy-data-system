@@ -59,7 +59,8 @@ module.exports.results = (req, res, next) ->
                         try
                             password = encryption.decrypt value.password
                         catch error
-                            next error
+                            # do nothing to prevt error in apps
+                            # todo add a way to send a warning in the http response
 
                         value.password = password if not err?
 
