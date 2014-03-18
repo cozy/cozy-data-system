@@ -126,7 +126,8 @@ initHomeProxy = function(callback) {
     "user": "authorized",
     "cozyinstance": "authorized",
     "device": "authorized",
-    "usetracker": "authorized"
+    "usetracker": "authorized",
+    "send mail to user": "authorized"
   };
   return callback(null);
 };
