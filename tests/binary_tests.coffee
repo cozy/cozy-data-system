@@ -70,10 +70,14 @@ describe "Binaries", ->
             @client.saveFile "data/321/binaries/test.png", \
                              './tests/fixtures/test-get.png', -> done()
 
-        it "I got the same file I attached before", ->
-            fileStats = fs.statSync './tests/fixtures/test.png'
-            resultStats = fs.statSync './tests/fixtures/test-get.png'
-            resultStats.size.should.equal fileStats.size
+        it "I got the same file I attached before", (done) ->
+            @timeout 5000
+            setTimeout ->
+                fileStats = fs.statSync './tests/fixtures/test.png'
+                resultStats = fs.statSync './tests/fixtures/test-get.png'
+                resultStats.size.should.equal fileStats.size
+                done()
+            , 2000
 
     describe "Remove an attachment", ->
 
