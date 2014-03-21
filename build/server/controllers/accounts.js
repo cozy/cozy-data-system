@@ -78,7 +78,7 @@ module.exports.initializeKeys = function(req, res, next) {
   }
 };
 
-module.exports.updateKeys = function(req, res) {
+module.exports.updateKeys = function(req, res, next) {
   var err;
   if (req.body.password != null) {
     return user.getUser(function(err, user) {
@@ -107,7 +107,7 @@ module.exports.updateKeys = function(req, res) {
   }
 };
 
-module.exports.resetKeys = function(req, res) {
+module.exports.resetKeys = function(req, res, next) {
   return user.getUser(function(err, user) {
     if (err) {
       console.log("[initializeKeys] err: " + err);

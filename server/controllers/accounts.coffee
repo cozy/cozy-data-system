@@ -58,7 +58,7 @@ module.exports.initializeKeys = (req, res, next) ->
 
 
 #PUT /accounts/password/
-module.exports.updateKeys = (req, res) ->
+module.exports.updateKeys = (req, res, next) ->
     if req.body.password?
         user.getUser (err, user) ->
             if err
@@ -81,7 +81,7 @@ module.exports.updateKeys = (req, res) ->
 
 
 #DELETE /accounts/reset/
-module.exports.resetKeys = (req, res) ->
+module.exports.resetKeys = (req, res, next) ->
     user.getUser (err, user) ->
         if err
             console.log "[initializeKeys] err: #{err}"
