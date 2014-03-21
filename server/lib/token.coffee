@@ -129,6 +129,7 @@ initHomeProxy = (callback) ->
         "cozyinstance": "authorized"
         "device": "authorized"
         "usetracker": "authorized"
+        "send mail to user": "authorized"
     callback null
 
 

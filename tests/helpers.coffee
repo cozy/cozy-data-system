@@ -51,7 +51,7 @@ helpers.startApp = (done) ->
 
 helpers.stopApp = (done) ->
 
-    @timeout 1000
+    @timeout 10000
     setTimeout =>
         @app.server.close done
     , 250
