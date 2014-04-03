@@ -121,7 +121,7 @@ module.exports = Feed = (function() {
             return client.get("/" + dbName + "/" + change.id + "?revs_info=true", function(err, res, doc) {
               return _this.db.get(change.id, doc._revs_info[2].rev, function(err, doc) {
                 var binary, binary_rev, _ref;
-                if (doc.docType === 'File' && (((_ref = doc.binary) != null ? _ref.file : void 0) != null)) {
+                if ((doc != null ? doc.docType : void 0) === 'File' && ((doc != null ? (_ref = doc.binary) != null ? _ref.file : void 0 : void 0) != null)) {
                   binary = doc.binary.file.id;
                   binary_rev = doc.binary.file.rev;
                   deleted_ids[binary] = 'deleted';
@@ -141,8 +141,10 @@ module.exports = Feed = (function() {
                   return _this.db.remove(change.id, document.rev, function(err, res) {
                     var doctype, _ref1;
                     doctype = doc != null ? (_ref1 = doc.docType) != null ? _ref1.toLowerCase() : void 0 : void 0;
-                    _this.feed.emit("deletion." + doc._id);
-                    if (doctype != null) {
+                    if (doc != null) {
+                      _this.feed.emit("deletion." + doc._id);
+                    }
+                    if ((doctype != null) && (doc != null)) {
                       _this._publish("" + doctype + ".delete", doc._id);
                     }
                   });
