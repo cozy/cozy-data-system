@@ -85,7 +85,7 @@ module.exports = class Feed
                     client.get "/#{dbName}/#{change.id}?revs_info=true", \
                     (err, res, doc) =>
                         @db.get change.id, doc._revs_info[2].rev, (err, doc) =>
-                            if doc.docType is 'File' and doc.binary?.file?
+                            if doc?.docType is 'File' and doc?.binary?.file?
                                 binary = doc.binary.file.id
                                 binary_rev = doc.binary.file.rev
                                 deleted_ids[binary] = 'deleted'
@@ -100,8 +100,8 @@ module.exports = class Feed
                                 @db.remove change.id, document.rev, \
                                 (err, res) =>
                                     doctype = doc?.docType?.toLowerCase()
-                                    @feed.emit "deletion.#{doc._id}"
-                                    if doctype?
+                                    @feed.emit "deletion.#{doc._id}" if doc?
+                                    if doctype? and doc?
                                         @_publish "#{doctype}.delete", doc._id
                                     return
             else
