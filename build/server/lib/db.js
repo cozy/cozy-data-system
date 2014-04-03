@@ -182,7 +182,7 @@ module.exports = function(callback) {
         if (err && err.error === "not_found") {
           return db.save('_design/device', {
             all: {
-              map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase === \"device\") {\n        return emit(doc._id, doc);\n    }\n}"
+              map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"device\") {\n        return emit(doc._id, doc);\n    }\n}"
             },
             byLogin: {
               map: "function (doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"device\") {\n        return emit(doc.login, doc)\n    }\n}"

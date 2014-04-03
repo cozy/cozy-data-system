@@ -161,7 +161,7 @@ module.exports = (callback) ->
                     all:
                         map: """
                         function(doc) {
-                            if(doc.docType && doc.docType.toLowerCase === "device") {
+                            if(doc.docType && doc.docType.toLowerCase() === "device") {
                                 return emit(doc._id, doc);
                             }
                         }
