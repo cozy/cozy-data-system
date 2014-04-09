@@ -85,6 +85,7 @@ module.exports = (callback) ->
             if err
                 couchUrl = "#{db.connection.host}:#{db.connection.port}"
                 logger.error "Error: #{err} (#{couchUrl})"
+                process.exit(1)
             else if exists
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
@@ -114,7 +115,10 @@ module.exports = (callback) ->
         db.create (err) ->
             if err
                 logError(err)
-                db_create(callback)
+                if err.error is 'unauthorized'
+                    process.exit(1)
+                else
+                    db_create(callback)
             else if (process.env.NODE_ENV is 'production')
                 addCozyUser (err) ->
                     if err
