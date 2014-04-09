@@ -50,8 +50,14 @@ module.exports = (callback) ->
             "roles": [],
             "password": process.env.TOKEN
         couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
-        couchClient.post '_users', data, (err, res, body)->
-            callback err
+        couchClient.get  '_users/org.couchdb.user:proxy', (err, res, body) =>
+            if body?
+                couchClient.del  "_users/org.couchdb.user:proxy?rev=#{body._rev}", (err, res, body) =>
+                    couchClient.post '_users', data, (err, res, body)->
+                        callback err
+            else
+                couchClient.post '_users', data, (err, res, body)->
+                    callback err
 
 
     ### Logger ###
@@ -82,28 +88,20 @@ module.exports = (callback) ->
             else if exists
                 if process.env.NODE_ENV is 'production'
                     loginCouch = initLoginCouch()
-                    couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
-                    couchClient.get "#{db.name}/_security", (err, res, body)=>
-                        if not body.admins? or
-                                body.admins.names[0] isnt loginCouch[0] or
-                                body.readers?.names[0] isnt 'proxy'
-                            addCozyUser (err) ->
+                    addCozyUser (err) ->
+                        if err
+                            logger.error "Error on database" +
+                            " Add user : #{err}"
+                            callback()
+                        else
+                            addCozyAdmin (err) =>
                                 if err
                                     logger.error "Error on database" +
-                                    " Add user : #{err}"
+                                    " Add admin : #{err}"
                                     callback()
                                 else
-                                    addCozyAdmin (err) =>
-                                        if err
-                                            logger.error "Error on database" +
-                                            " Add admin : #{err}"
-                                            callback()
-                                        else
-                                            logFound()
-                                            callback()
-                        else
-                            logFound()
-                            callback()
+                                    logFound()
+                                    callback()
                 else
                     logFound()
                     callback()
