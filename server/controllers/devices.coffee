@@ -3,6 +3,7 @@ feed = require '../lib/feed'
 db = require('../helpers/db_connect_helper').db_connect()
 request = require '../lib/request'
 filter = require '../lib/default_filter'
+dbHelper = require '../lib/db_remove_helper'
 
 ## Helpers ##
 
@@ -90,7 +91,7 @@ module.exports.remove = (req, res, next) ->
             next new Error err.error
             next()
         else
-            db.remove id, req.doc._rev, (err, response) ->
+            dbHelper.remove req.doc, (err, response) ->
                 if err?
                     console.log "[Definition] err: " + JSON.stringify err
                     next new Error err.error

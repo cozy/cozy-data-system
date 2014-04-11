@@ -2,6 +2,7 @@ git = require 'git-rev'
 
 db = require('../helpers/db_connect_helper').db_connect()
 feed = require '../lib/feed'
+dbHelper = require '../lib/db_remove_helper'
 encryption = require '../lib/encryption'
 client = require '../lib/indexer'
 
@@ -156,16 +157,15 @@ module.exports.upsert = (req, res, next) ->
 module.exports.delete = (req, res, next) ->
     id = req.params.id
     send_success = () ->
-        feed.feed.removeListener "deletion.#{id}", send_success
         res.send 204, success: true
         next()
-    db.remove id, req.doc.rev, (err, res) ->
+    dbHelper.remove req.doc, (err, res) ->
         if err?
             next new Error err.error
         else
             # Doc is removed from indexation
             client.del "index/#{id}/", (err, response, resbody) ->
-                feed.feed.on "deletion.#{id}", send_success
+                send_success()
 
 # PUT /data/merge/:id/
 # this doesn't take care of conflict (erase DB with the sent value)

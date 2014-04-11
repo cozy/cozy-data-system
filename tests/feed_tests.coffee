@@ -73,8 +73,6 @@ describe "Feed tests", ->
     describe "Typed Update", ->
 
         it "When I send a request to update a typed doc", (done) ->
-
-
             note =
                 title: "title"
                 content: "content Changed"
@@ -90,14 +88,59 @@ describe "Feed tests", ->
 
     describe "Typed Delete", ->
 
-        it "When I send a request to delete typed document", (done) ->
+        describe "Delete data", ->
 
+            it "When I send a request to delete typed document", (done) ->
+                client.del "data/#{@idT}/", (error, response, body) =>
+                    console.log error if error
+                    response.statusCode.should.equal 204
 
-            client.del "data/#{@idT}/", (error, response, body) =>
-                console.log error if error
-                response.statusCode.should.equal 204
+                @subscriber.wait done
 
-            @subscriber.wait done
+             it "Then I receive a note.delete on my subscriber", ->
+                @subscriber.haveBeenCalled('delete', @idT).should.be.ok
 
-         it "Then I receive a note.delete on my subscriber", ->
-            @subscriber.haveBeenCalled('delete', @idT).should.be.ok
+        describe "Destroy request", ->
+
+            before (done) ->
+                map = (doc) ->
+                    if (doc.docType? && doc.docType is "Note")
+                        emit ["test", doc.num, doc.num], doc
+                    return
+                view = map: map.toString()
+
+                client.put "request/note/all/", view, done
+
+            it "When I create three notes ", (done) ->
+                note1 =
+                    title: "note1"
+                    content: "content Changed"
+                    docType: "Note"
+                note2 = note1
+                note2.title = "note2"
+                note3 = note1
+                note3.title = "note3"
+
+                client.post "data/", note1, (error, response, body) =>
+                    @id1 = body._id
+                    console.log error if error
+                    client.post "data/", note2, (error, response, body) =>
+                        @id2 = body._id
+                        console.log error if error
+                        client.post "data/", note3, (error, response, body) =>
+                            @id3 = body._id
+                            console.log error if error
+                            done()
+
+            it "And I send a request to delete all notes (with request)", (done) ->
+                client.put "request/note/all/destroy/", "", (error, response, body) =>
+                    console.log error if error
+                    response.statusCode.should.equal 204
+                    done()
+
+            it "Then I receive three note.delete on my subscriber", () ->
+                @subscriber.wait () =>
+                    @subscriber.haveBeenCalled('delete', @id1).should.be.ok
+                    @subscriber.haveBeenCalled('delete', @id2).should.be.ok
+                    @subscriber.haveBeenCalled('delete', @id3).should.be.ok
+               
