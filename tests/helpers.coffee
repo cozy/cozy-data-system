@@ -104,7 +104,6 @@ helpers.Subscriber = class Subscriber
         @callback = ->
     haveBeenCalled: (channel, msg) =>
         @calls.some (call) -> 
-            console.log(call)
             call.channel is channel and call.msg is msg
 
 module.exports = helpers
