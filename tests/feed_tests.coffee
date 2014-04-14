@@ -65,7 +65,7 @@ describe "Feed tests", ->
                 console.log error if error
                 @idT = body['_id']
 
-                @subscriber.wait done
+            @subscriber.wait done
 
         it "Then I receive a note.create on my subscriber", ->
             @subscriber.haveBeenCalled('create', @idT).should.be.ok
@@ -80,7 +80,6 @@ describe "Feed tests", ->
 
             client.put "data/#{@idT}/", note, (error, response, body) =>
                 console.log error if error
-
             @subscriber.wait done
 
         it "Then I receive a note.update on my subscriber", ->
@@ -93,8 +92,7 @@ describe "Feed tests", ->
             it "When I send a request to delete typed document", (done) ->
                 client.del "data/#{@idT}/", (error, response, body) =>
                     console.log error if error
-                    response.statusCode.should.equal 204
-
+                    response.statusCode.should.equal 204                
                 @subscriber.wait done
 
              it "Then I receive a note.delete on my subscriber", ->
@@ -135,10 +133,10 @@ describe "Feed tests", ->
             it "And I send a request to delete all notes (with request)", (done) ->
                 client.put "request/note/all/destroy/", "", (error, response, body) =>
                     console.log error if error
-                    response.statusCode.should.equal 204
-                    done()
+                    response.statusCode.should.equal 204 
+                    done()     
 
-            it "Then I receive three note.delete on my subscriber", () ->
+            it "Then I receive three note.delete on my subscriber", () ->           
                 @subscriber.wait () =>
                     @subscriber.haveBeenCalled('delete', @id1).should.be.ok
                     @subscriber.haveBeenCalled('delete', @id2).should.be.ok

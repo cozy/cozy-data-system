@@ -80,7 +80,6 @@ module.exports.create = (req, res, next) ->
 # DELETE /device/:id
 module.exports.remove = (req, res, next) ->
     send_success = () ->
-        feed.feed.removeListener "deletion.#{req.params.id}", send_success
         # status code is 200 because 204 is not transmit by httpProxy
         res.send 200, success: true
         next()
@@ -96,4 +95,4 @@ module.exports.remove = (req, res, next) ->
                     console.log "[Definition] err: " + JSON.stringify err
                     next new Error err.error
                 else
-                    feed.feed.on "deletion.#{req.params.id}", send_success
+                    send_success()

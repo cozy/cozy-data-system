@@ -64,9 +64,21 @@ module.exports = function(callback) {
       "password": process.env.TOKEN
     };
     couchClient.setBasicAuth(loginCouch[0], loginCouch[1]);
-    return couchClient.post('_users', data, function(err, res, body) {
-      return callback(err);
-    });
+    return couchClient.get('_users/org.couchdb.user:proxy', (function(_this) {
+      return function(err, res, body) {
+        if (body != null) {
+          return couchClient.del("_users/org.couchdb.user:proxy?rev=" + body._rev, function(err, res, body) {
+            return couchClient.post('_users', data, function(err, res, body) {
+              return callback(err);
+            });
+          });
+        } else {
+          return couchClient.post('_users', data, function(err, res, body) {
+            return callback(err);
+          });
+        }
+      };
+    })(this));
   };
 
   /* Logger */
@@ -91,39 +103,29 @@ module.exports = function(callback) {
       var loginCouch;
       if (err) {
         couchUrl = "" + db.connection.host + ":" + db.connection.port;
-        return logger.error("Error: " + err + " (" + couchUrl + ")");
+        logger.error("Error: " + err + " (" + couchUrl + ")");
+        return process.exit(1);
       } else if (exists) {
         if (process.env.NODE_ENV === 'production') {
           loginCouch = initLoginCouch();
-          couchClient.setBasicAuth(loginCouch[0], loginCouch[1]);
-          return couchClient.get("" + db.name + "/_security", (function(_this) {
-            return function(err, res, body) {
-              var _ref;
-              if ((body.admins == null) || body.admins.names[0] !== loginCouch[0] || ((_ref = body.readers) != null ? _ref.names[0] : void 0) !== 'proxy') {
-                return addCozyUser(function(err) {
+          return addCozyUser(function(err) {
+            if (err) {
+              logger.error("Error on database" + (" Add user : " + err));
+              return callback();
+            } else {
+              return addCozyAdmin((function(_this) {
+                return function(err) {
                   if (err) {
-                    logger.error("Error on database" + (" Add user : " + err));
+                    logger.error("Error on database" + (" Add admin : " + err));
                     return callback();
                   } else {
-                    return addCozyAdmin((function(_this) {
-                      return function(err) {
-                        if (err) {
-                          logger.error("Error on database" + (" Add admin : " + err));
-                          return callback();
-                        } else {
-                          logFound();
-                          return callback();
-                        }
-                      };
-                    })(this));
+                    logFound();
+                    return callback();
                   }
-                });
-              } else {
-                logFound();
-                return callback();
-              }
-            };
-          })(this));
+                };
+              })(this));
+            }
+          });
         } else {
           logFound();
           return callback();
@@ -138,7 +140,11 @@ module.exports = function(callback) {
     return db.create(function(err) {
       if (err) {
         logError(err);
-        return db_create(callback);
+        if (err.error === 'unauthorized') {
+          return process.exit(1);
+        } else {
+          return db_create(callback);
+        }
       } else if (process.env.NODE_ENV === 'production') {
         return addCozyUser(function(err) {
           if (err) {
