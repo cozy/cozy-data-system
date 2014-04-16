@@ -1,6 +1,7 @@
 fs = require "fs"
 db = require('../helpers/db_connect_helper').db_connect()
 deleteFiles = require('../helpers/utils').deleteFiles
+dbHelper = require '../lib/db_remove_helper'
 
 ## Actions
 
@@ -87,7 +88,7 @@ module.exports.remove = (req, res, next) ->
             delete req.doc.binary
         db.save req.doc, (err) ->
             db.get id, (err, binary) ->
-                db.remove binary.id, binary.rev, (err) ->
+                dbHelper.remove binary, (err) ->
                     if err? and err.error = "not_found"
                         err = new Error "not found"
                         err.status = 404

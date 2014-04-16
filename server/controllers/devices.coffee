@@ -3,6 +3,7 @@ feed = require '../lib/feed'
 db = require('../helpers/db_connect_helper').db_connect()
 request = require '../lib/request'
 filter = require '../lib/default_filter'
+dbHelper = require '../lib/db_remove_helper'
 
 ## Helpers ##
 
@@ -79,7 +80,6 @@ module.exports.create = (req, res, next) ->
 # DELETE /device/:id
 module.exports.remove = (req, res, next) ->
     send_success = () ->
-        feed.feed.removeListener "deletion.#{req.params.id}", send_success
         # status code is 200 because 204 is not transmit by httpProxy
         res.send 200, success: true
         next()
@@ -90,9 +90,9 @@ module.exports.remove = (req, res, next) ->
             next new Error err.error
             next()
         else
-            db.remove id, req.doc._rev, (err, response) ->
+            dbHelper.remove req.doc, (err, response) ->
                 if err?
                     console.log "[Definition] err: " + JSON.stringify err
                     next new Error err.error
                 else
-                    feed.feed.on "deletion.#{req.params.id}", send_success
+                    send_success()

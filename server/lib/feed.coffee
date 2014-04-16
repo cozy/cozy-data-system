@@ -73,39 +73,20 @@ module.exports = class Feed
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
     _onChange: (change) =>
         if change.deleted
-            if not deleted_ids[change.id]
-                #return # this shit isn't working
-                doc =
-                    _id: change.id
-                    _rev: change.changes[0].rev
-
-                # the doc is recreated to retrieve its doctype
-                @db.post doc, (err, doc) =>
-                    dbName = @db.name
-                    client.get "/#{dbName}/#{change.id}?revs_info=true", \
-                    (err, res, doc) =>
-                        @db.get change.id, doc._revs_info[2].rev, (err, doc) =>
-                            if doc?.docType is 'File' and doc?.binary?.file?
-                                binary = doc.binary.file.id
-                                binary_rev = doc.binary.file.rev
-                                deleted_ids[binary] = 'deleted'
-                                @db.get binary, (err, doc) =>
-                                    return if err
-                                    if doc
-                                        @db.remove binary, binary_rev, \
-                                        (err, doc) =>
-                                            @_publish "binary.delete", binary
-                            @db.get change.id, (err, document) =>
-                                deleted_ids[change.id] = 'deleted'
-                                @db.remove change.id, document.rev, \
-                                (err, res) =>
-                                    doctype = doc?.docType?.toLowerCase()
-                                    @feed.emit "deletion.#{doc._id}" if doc?
-                                    if doctype? and doc?
-                                        @_publish "#{doctype}.delete", doc._id
-                                    return
-            else
-                delete deleted_ids[change.id]
+            client.get "/#{process.env.DB_NAME}/#{change.id}?revs_info=true&open_revs=all", (err, res, doc) =>
+                if doc?[0]?.ok?.docType?
+                    doc = doc[0].ok
+                    # Publish deletion
+                    @_publish "#{doc.docType.toLowerCase()}.delete", change.id
+                    # If document has a binary, remove the binary
+                    ## TODOS : Check if binary is not link with an other document
+                    if doc.binary?.file?.id?
+                        binary = doc.binary.file.id
+                        @db.get binary, (err, doc) =>
+                            return if err
+                            if doc
+                                @db.remove binary, binary._rev, (err, doc) =>
+                                    @_publish "binary.delete", binary
         else
             isCreation = change.changes[0].rev.split('-')[0] is '1'
             operation = if isCreation then 'create' else 'update'

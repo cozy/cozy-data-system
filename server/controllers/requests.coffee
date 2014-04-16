@@ -3,6 +3,7 @@ async = require "async"
 db = require('../helpers/db_connect_helper').db_connect()
 request = require '../lib/request'
 encryption = require '../lib/encryption'
+dbHelper = require '../lib/db_remove_helper'
 
 ## Actions
 
@@ -69,7 +70,7 @@ module.exports.results = (req, res, next) ->
 # PUT /request/:type/:req_name/destroy/
 module.exports.removeResults = (req, res, next) ->
     removeFunc = (doc, callback) ->
-        db.remove doc.value._id, doc.value._rev, callback
+        dbHelper.remove doc.value, callback
 
     removeAllDocs = (docs) ->
         async.forEachSeries docs, removeFunc, (err) ->

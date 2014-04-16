@@ -107,55 +107,30 @@ module.exports = Feed = (function() {
   };
 
   Feed.prototype._onChange = function(change) {
-    var doc, isCreation, operation;
+    var isCreation, operation;
     if (change.deleted) {
-      if (!deleted_ids[change.id]) {
-        doc = {
-          _id: change.id,
-          _rev: change.changes[0].rev
-        };
-        return this.db.post(doc, (function(_this) {
-          return function(err, doc) {
-            var dbName;
-            dbName = _this.db.name;
-            return client.get("/" + dbName + "/" + change.id + "?revs_info=true", function(err, res, doc) {
-              return _this.db.get(change.id, doc._revs_info[2].rev, function(err, doc) {
-                var binary, binary_rev, _ref;
-                if ((doc != null ? doc.docType : void 0) === 'File' && ((doc != null ? (_ref = doc.binary) != null ? _ref.file : void 0 : void 0) != null)) {
-                  binary = doc.binary.file.id;
-                  binary_rev = doc.binary.file.rev;
-                  deleted_ids[binary] = 'deleted';
-                  _this.db.get(binary, function(err, doc) {
-                    if (err) {
-                      return;
-                    }
-                    if (doc) {
-                      return _this.db.remove(binary, binary_rev, function(err, doc) {
-                        return _this._publish("binary.delete", binary);
-                      });
-                    }
+      return client.get("/" + process.env.DB_NAME + "/" + change.id + "?revs_info=true&open_revs=all", (function(_this) {
+        return function(err, res, doc) {
+          var binary, _ref, _ref1, _ref2, _ref3;
+          if ((doc != null ? (_ref = doc[0]) != null ? (_ref1 = _ref.ok) != null ? _ref1.docType : void 0 : void 0 : void 0) != null) {
+            doc = doc[0].ok;
+            _this._publish("" + (doc.docType.toLowerCase()) + ".delete", change.id);
+            if (((_ref2 = doc.binary) != null ? (_ref3 = _ref2.file) != null ? _ref3.id : void 0 : void 0) != null) {
+              binary = doc.binary.file.id;
+              return _this.db.get(binary, function(err, doc) {
+                if (err) {
+                  return;
+                }
+                if (doc) {
+                  return _this.db.remove(binary, binary._rev, function(err, doc) {
+                    return _this._publish("binary.delete", binary);
                   });
                 }
-                return _this.db.get(change.id, function(err, document) {
-                  deleted_ids[change.id] = 'deleted';
-                  return _this.db.remove(change.id, document.rev, function(err, res) {
-                    var doctype, _ref1;
-                    doctype = doc != null ? (_ref1 = doc.docType) != null ? _ref1.toLowerCase() : void 0 : void 0;
-                    if (doc != null) {
-                      _this.feed.emit("deletion." + doc._id);
-                    }
-                    if ((doctype != null) && (doc != null)) {
-                      _this._publish("" + doctype + ".delete", doc._id);
-                    }
-                  });
-                });
               });
-            });
-          };
-        })(this));
-      } else {
-        return delete deleted_ids[change.id];
-      }
+            }
+          }
+        };
+      })(this));
     } else {
       isCreation = change.changes[0].rev.split('-')[0] === '1';
       operation = isCreation ? 'create' : 'update';
