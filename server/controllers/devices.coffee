@@ -17,15 +17,14 @@ randomString = (length) ->
 createFilter = (id, callback) ->
     db.get "_design/#{id}", (err, res) ->
         if err && err.error is 'not_found'
-            designDoc = {}
-            filterFunction = filter.get id
-            designDoc.filter = filterFunction
-            filterDocTypeFunction = filter.getDocType id
-            designDoc.filterDocType = filterDocTypeFunction
-            options =
-                views: {}
-                filters: designDoc
-            db.save "_design/#{id}", options, (err, res) ->
+            designDoc =
+                views:
+                    filterView: map: filter.asView id
+                filters:
+                    filter: filter.get id
+                    filterDocType: filter.getDocType id
+
+            db.save "_design/#{id}", designDoc, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
                     callback err.message
@@ -37,7 +36,6 @@ createFilter = (id, callback) ->
 
         else
             designDoc = res.filters
-            filterName = id + "filter"
             filterFunction = filter.get id
             designDoc.filter = filterFunction
             db.merge "_design/#{id}", {filters:designDoc}, (err, res) ->

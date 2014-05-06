@@ -24,18 +24,20 @@ randomString = function(length) {
 
 createFilter = function(id, callback) {
   return db.get("_design/" + id, function(err, res) {
-    var designDoc, filterDocTypeFunction, filterFunction, filterName, options;
+    var designDoc, filterFunction;
     if (err && err.error === 'not_found') {
-      designDoc = {};
-      filterFunction = filter.get(id);
-      designDoc.filter = filterFunction;
-      filterDocTypeFunction = filter.getDocType(id);
-      designDoc.filterDocType = filterDocTypeFunction;
-      options = {
-        views: {},
-        filters: designDoc
+      designDoc = {
+        views: {
+          filterView: {
+            map: filter.asView(id)
+          }
+        },
+        filters: {
+          filter: filter.get(id),
+          filterDocType: filter.getDocType(id)
+        }
       };
-      return db.save("_design/" + id, options, function(err, res) {
+      return db.save("_design/" + id, designDoc, function(err, res) {
         if (err) {
           console.log("[Definition] err: " + JSON.stringify(err));
           return callback(err.message);
@@ -47,7 +49,6 @@ createFilter = function(id, callback) {
       return callback(err.message);
     } else {
       designDoc = res.filters;
-      filterName = id + "filter";
       filterFunction = filter.get(id);
       designDoc.filter = filterFunction;
       return db.merge("_design/" + id, {

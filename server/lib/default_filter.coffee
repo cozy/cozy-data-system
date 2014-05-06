@@ -27,8 +27,22 @@ filterDocType = (id) ->
         "    }\n" +
         "}"
 
+filterAsView = (id) ->
+    return """
+        function (doc) {
+            if (doc._id === '#{id}' || (doc.docType && doc.docType === "File")
+        || (doc.docType && doc.docType === "Folder"))  {
+                emit(doc._id, null);
+            }
+        }
+    """
+
+
 module.exports.get = (id) ->
     return filter id
 
 module.exports.getDocType = (id) ->
     return filterDocType id
+
+module.exports.asView = (id) ->
+    return filterAsView id
