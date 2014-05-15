@@ -113,21 +113,27 @@ module.exports.remove = function(req, res, next) {
     }
     return db.save(req.doc, function(err) {
       return db.get(id, function(err, binary) {
-        return dbHelper.remove(binary, function(err) {
-          if ((err != null) && (err.error = "not_found")) {
-            err = new Error("not found");
-            err.status = 404;
-            return next(err);
-          } else if (err) {
-            console.log("[Attachment] err: " + JSON.stringify(err));
-            return next(new Error(err.error));
-          } else {
-            res.send(204, {
-              success: true
-            });
-            return next();
-          }
-        });
+        if (binary != null) {
+          return dbHelper.remove(binary, function(err) {
+            if ((err != null) && (err.error = "not_found")) {
+              err = new Error("not found");
+              err.status = 404;
+              return next(err);
+            } else if (err) {
+              console.log("[Attachment] err: " + JSON.stringify(err));
+              return next(new Error(err.error));
+            } else {
+              res.send(204, {
+                success: true
+              });
+              return next();
+            }
+          });
+        } else {
+          err = new Error("not found");
+          err.status = 404;
+          return next(err);
+        }
       });
     });
   } else {
