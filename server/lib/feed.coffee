@@ -37,6 +37,9 @@ module.exports = class Feed
         @axonSock.sock.on 'connect', () =>
             @logger.info "An application connected to the change feeds"
 
+        @axonSock.sock.on 'message', (event,id) =>
+            @_publish event.toString(), id.toString()
+
     # define input craddle connection
     # db the craddle connection
     startListening: (db) ->

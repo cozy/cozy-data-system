@@ -58,9 +58,14 @@ module.exports = Feed = (function() {
     axonPort = parseInt(process.env.AXON_PORT || 9105);
     this.axonSock.bind(axonPort);
     this.logger.info('Pub server started');
-    return this.axonSock.sock.on('connect', (function(_this) {
+    this.axonSock.sock.on('connect', (function(_this) {
       return function() {
         return _this.logger.info("An application connected to the change feeds");
+      };
+    })(this));
+    return this.axonSock.sock.on('message', (function(_this) {
+      return function(event, id) {
+        return _this._publish(event.toString(), id.toString());
       };
     })(this));
   };
