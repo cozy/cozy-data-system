@@ -88,17 +88,22 @@ module.exports.remove = (req, res, next) ->
             delete req.doc.binary
         db.save req.doc, (err) ->
             db.get id, (err, binary) ->
-                dbHelper.remove binary, (err) ->
-                    if err? and err.error = "not_found"
-                        err = new Error "not found"
-                        err.status = 404
-                        next err
-                    else if err
-                        console.log "[Attachment] err: " + JSON.stringify err
-                        next new Error err.error
-                    else
-                        res.send 204, success: true
-                        next()
+                if binary?                    
+                    dbHelper.remove binary, (err) ->
+                        if err? and err.error = "not_found"
+                            err = new Error "not found"
+                            err.status = 404
+                            next err
+                        else if err
+                            console.log "[Attachment] err: " + JSON.stringify err
+                            next new Error err.error
+                        else
+                            res.send 204, success: true
+                            next()
+                else                    
+                    err = new Error "not found"
+                    err.status = 404
+                    next err
     else
         err = new Error "not found"
         err.status = 404
