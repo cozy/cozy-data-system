@@ -57,7 +57,7 @@ module.exports.add = function(req, res, next) {
     return controllerClient.get('diskinfo', (function(_this) {
       return function(err, res, body) {
         var binary, name, _ref;
-        if (2 * file.size > body.freeDiskSpace * 1073741824) {
+        if ((err == null) && 2 * file.size > body.freeDiskSpace * 1073741824) {
           err = new Error("Not enough storage space");
           err.status = 400;
           return next(err);

@@ -43,7 +43,7 @@ module.exports.add = (req, res, next) ->
         file = req.files["file"]
         controllerClient.setToken process.env.TOKEN
         controllerClient.get 'diskinfo', (err, res, body) =>
-            if 2*file.size > body.freeDiskSpace*1073741824
+            if not err? and 2*file.size > body.freeDiskSpace*1073741824
                 err = new Error "Not enough storage space"
                 err.status = 400
                 next err
