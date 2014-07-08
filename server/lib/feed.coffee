@@ -76,7 +76,8 @@ module.exports = class Feed
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
     _onChange: (change) =>
         if change.deleted
-            client.get "/#{process.env.DB_NAME}/#{change.id}?revs_info=true&open_revs=all", (err, res, doc) =>
+            dbName = process.env.DB_NAME or 'cozy'
+            client.get "/#{dbName}/#{change.id}?revs_info=true&open_revs=all", (err, res, doc) =>
                 if doc?[0]?.ok?.docType?
                     doc = doc[0].ok
                     # Publish deletion

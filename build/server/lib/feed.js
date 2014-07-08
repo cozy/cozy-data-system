@@ -112,9 +112,10 @@ module.exports = Feed = (function() {
   };
 
   Feed.prototype._onChange = function(change) {
-    var isCreation, operation;
+    var dbName, isCreation, operation;
     if (change.deleted) {
-      return client.get("/" + process.env.DB_NAME + "/" + change.id + "?revs_info=true&open_revs=all", (function(_this) {
+      dbName = process.env.DB_NAME || 'cozy';
+      return client.get("/" + dbName + "/" + change.id + "?revs_info=true&open_revs=all", (function(_this) {
         return function(err, res, doc) {
           var binary, _ref, _ref1, _ref2, _ref3;
           if ((doc != null ? (_ref = doc[0]) != null ? (_ref1 = _ref.ok) != null ? _ref1.docType : void 0 : void 0 : void 0) != null) {
