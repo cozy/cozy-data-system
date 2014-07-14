@@ -15,7 +15,6 @@ deleteFiles = require('../helpers/utils').deleteFiles
 # POST /data/:id/attachments/
 # Add an attachment via uploading a file through a multipart form.
 module.exports.add = (req, res, next) ->
-    files = {}
 
     # Parse given form to extract image blobs.
     form = new multiparty.Form()

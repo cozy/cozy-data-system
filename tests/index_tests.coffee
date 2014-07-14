@@ -56,6 +56,7 @@ describe "Indexation", ->
     after (done) -> @indexer.close done
     after helpers.stopApp
 
+
     describe "Install application which can manage note", ->
 
         it "When I send a request to post an application", (done) ->

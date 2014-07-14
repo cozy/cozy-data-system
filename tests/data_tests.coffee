@@ -29,7 +29,6 @@ describe "Data handling tests", ->
 
     before helpers.startApp
 
-    #after -> @indexer.close()
     after helpers.stopApp
 
     describe "Existence", ->

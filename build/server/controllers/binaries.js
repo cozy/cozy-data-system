@@ -84,8 +84,6 @@ module.exports.get = function(req, res, next) {
         return next(err);
       } else if (err) {
         return next(new Error(err.error));
-      } else {
-        return res.send(200);
       }
     });
     if (req.headers['range'] != null) {
@@ -137,8 +135,8 @@ module.exports.remove = function(req, res, next) {
       });
     });
   } else {
-    err = new Error("not found");
-    err.status = 404;
+    err = new Error("no binary ID is provided");
+    err.status = 400;
     return next(err);
   }
 };
