@@ -25,6 +25,7 @@ describe "Device", ->
                 client.post "device/", login: "work", (err, res, body) =>
                     console.log err if err
                     @response = res
+                    @id = body.id
                     done()
             , 1000
 
@@ -45,6 +46,24 @@ describe "Device", ->
 
         it "Add I got a error message correct", ->
             @body.msg = "This default filter doesn't exist"
+
+    describe "Device's Design doc", ->
+
+        it "When i get the design doc", (done) ->
+            db.get "_design/#{@id}", (err, designDoc) =>
+                return done err if err
+                @designDoc = designDoc
+                done()
+
+        it "has one view and two filters", ->
+            Object.keys(@designDoc.views).should.have.length 1
+            Object.keys(@designDoc.filters).should.have.length 2
+
+        it "And the view works", (done) ->
+            db.view "#{@id}/filterView", (err, docs) =>
+                return done err if err
+                docs.should.have.length 1
+                done()
 
     describe "Remove an existing device", ->
 
