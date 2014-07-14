@@ -1,7 +1,13 @@
 fs = require "fs"
+multiparty = require 'multiparty'
+log =  require('printit')
+    date: true
+    prefix: 'attachment'
+
 db = require('../helpers/db_connect_helper').db_connect()
 deleteFiles = require('../helpers/utils').deleteFiles
 dbHelper = require '../lib/db_remove_helper'
+
 
 ## Actions
 
@@ -13,49 +19,75 @@ dbHelper = require '../lib/db_remove_helper'
 # Allow to create a binary and to link it to given document.
 module.exports.add = (req, res, next) ->
 
-    attach = (binary, name, file, doc) ->
-        fileData =
-            name: name
-            "content-type": file.type
-        stream = db.saveAttachment binary, fileData, (err, binDoc) ->
-            if err
-                console.log "[Attachment] err: " + JSON.stringify err
-                deleteFiles req.files
-                next new Error err.error
+    # Parse given form to extract image blobs.
+    form = new multiparty.Form()
+    form.parse req
 
-            else
+    # We read part one by one to avoid writing the full file to the disk
+    # and send it directly as a stream.
+    form.on 'part', (part) ->
+
+        # It's a field we do nothing
+        unless part.filename?
+            part.resume()
+
+        # It's a file, we pipe it directly to Couch to avoid too much memory
+        # consumption.
+        # The 'file' event stores the file to the disk and we don't want that.
+        else
+            name = part.filename
+
+            # Build file data
+            fileData =
+                name: name
+                "content-type": part.headers['content-type']
+
+            # Update binary list set on given doc then save file to CouchDB
+            # as an attachment via a stream. We do not use 'file' event to
+            # avoid saving file on the disk.
+            attach = (binDoc) ->
                 bin =
                     id: binDoc.id
                     rev: binDoc.rev
-                if doc.binary
-                    newBin = doc.binary
+
+                if req.doc.binary
+                    binList = req.doc.binary
                 else
-                    newBin = {}
+                    binList = {}
+                    binList[name] = bin
 
-                newBin[name] = bin
-                db.merge doc._id, binary: newBin, (err) ->
-                    deleteFiles req.files
-                    res.send 201, success: true
-                    next()
+                    db.merge req.doc._id, binary: binList, (err) ->
+                        log.info "binary #{name} ready for storage"
+                        stream = db.saveAttachment binDoc, fileData, (err, binDoc) ->
+                            if err
+                                log.error "#{JSON.stringify err}"
+                                form.emit 'error', new Error err.error
+                        part.pipe stream
 
-        fs.createReadStream(file.path).pipe stream
+            # Check if binary is already present in the document binary list.
+            # In that case the attachment is replaced with the uploaded file.
+            if req.doc.binary?[name]?
+                db.get req.doc.binary[name].id, (err, binary) ->
+                    attach binary
 
-    if req.files["file"]?
-        file = req.files["file"]
-        if req.body.name? then name = req.body.name else name = file.name
-        if req.doc.binary?[name]?
-            db.get req.doc.binary[name].id, (err, binary) ->
-                attach binary, name, file, req.doc
-        else
-            binary =
-                docType: "Binary"
-            db.save binary, (err, binary) ->
-                attach binary, name, file, req.doc
-    else
-        err = new Error "No file sent"
-        err.status = 400
+            # Else create a new binary to store uploaded file..
+            else
+                binary =
+                    docType: "Binary"
+                db.save binary, (err, binary) ->
+                    attach binary
+
+
+    form.on 'progress', (bytesReceived, bytesExpected) ->
+        # TODO handle progress
+
+    form.on 'error', (err) ->
         next err
 
+    form.on 'close', ->
+        log.info "'add binary' form fully parsed"
+        res.send 201, success: true
+        next()
 
 # GET /data/:id/binaries/:name/
 # Download a the file attached to the binary object.
