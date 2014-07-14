@@ -3,7 +3,6 @@ multiparty = require 'multiparty'
 log =  require('printit')
     date: true
     prefix: 'attachment'
-Readable = require('stream').Readable
 
 db = require('../helpers/db_connect_helper').db_connect()
 deleteFiles = require('../helpers/utils').deleteFiles
@@ -41,12 +40,9 @@ module.exports.add = (req, res, next) ->
             stream = db.saveAttachment req.doc, fileData, (err) ->
                 if err
                     console.log "[Attachment] err: " + JSON.stringify err
-                    next new Error err.error
-                else
+                    form.emit 'error', new Error err.error
                     # We end the request because we expect to have only one
                     # file.
-                    res.send 201, success: true
-                    next()
 
             part.pipe stream
 
@@ -59,6 +55,8 @@ module.exports.add = (req, res, next) ->
 
     form.on 'close', ->
         log.info 'attachement form fully parsed'
+        res.send 201, success: true
+        next()
 
 
 # GET /data/:id/attachments/:name
