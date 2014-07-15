@@ -19,6 +19,9 @@ module.exports.add = (req, res, next) ->
     form = new multiparty.Form()
     form.parse req
 
+    # Dirty hack to end request if no file were sent when form is fully parsed.
+    nofile = true
+
     # We read part one by one to avoid writing the full file to the disk
     # and send it directly as a stream.
     form.on 'part', (part) ->
@@ -29,8 +32,10 @@ module.exports.add = (req, res, next) ->
 
         # It's a file, we pipe it directly to Couch to avoid too much memory
         # consumption.
-        # The 'file' event stores the file to the disk and we don't want that.
+        # The 'file' event from the multiparty form stores automatically
+        # the file to the disk and we don't want that.
         else
+            nofile = false
             fileData =
                 name: part.filename
                 "content-type": part.headers['content-type']
@@ -41,8 +46,11 @@ module.exports.add = (req, res, next) ->
                 if err
                     console.log "[Attachment] err: " + JSON.stringify err
                     form.emit 'error', new Error err.error
+                else
                     # We end the request because we expect to have only one
                     # file.
+                    log.info "Attachment #{name} saved to Couch."
+                    res.send 201, success: true
 
             part.pipe stream
 
@@ -54,8 +62,7 @@ module.exports.add = (req, res, next) ->
         next err
 
     form.on 'close', ->
-        log.info 'attachement form fully parsed'
-        res.send 201, success: true
+        res.send 400, error: 'No file sent' if nofile
         next()
 
 
