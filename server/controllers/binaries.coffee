@@ -2,7 +2,7 @@ fs = require "fs"
 multiparty = require 'multiparty'
 log =  require('printit')
     date: true
-    prefix: 'attachment'
+    prefix: 'binaries'
 
 db = require('../helpers/db_connect_helper').db_connect()
 deleteFiles = require('../helpers/utils').deleteFiles
@@ -26,14 +26,17 @@ module.exports.add = (req, res, next) ->
     # Dirty hack to end request if no file were sent when form is fully parsed.
     nofile = true
 
+    fields = {}
+
     # We read part one by one to avoid writing the full file to the disk
     # and send it directly as a stream.
     form.on 'part', (part) ->
-        log.debug part.name + ' ' + part.filename
 
         # It's a field we do nothing
         unless part.filename?
-            part.resume()
+            fields[part.name] = ''
+            part.on 'data', (buffer) ->
+                fields[part.name] = buffer.toString()
 
         # It's a file, we pipe it directly to Couch to avoid too much memory
         # consumption.
@@ -41,7 +44,10 @@ module.exports.add = (req, res, next) ->
         # the file to the disk and we don't want that.
         else
             nofile = false
-            name = part.filename
+            if fields.name?
+                name = fields.name
+            else
+                name = part.filname
 
             # Build file data
             fileData =
