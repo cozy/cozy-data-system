@@ -7,7 +7,7 @@ multiparty = require('multiparty');
 
 log = require('printit')({
   date: true,
-  prefix: 'attachment'
+  prefix: 'binaries'
 });
 
 db = require('../helpers/db_connect_helper').db_connect();
@@ -17,20 +17,27 @@ deleteFiles = require('../helpers/utils').deleteFiles;
 dbHelper = require('../lib/db_remove_helper');
 
 module.exports.add = function(req, res, next) {
-  var form, nofile;
+  var fields, form, nofile;
   form = new multiparty.Form();
   form.parse(req);
   nofile = true;
+  fields = {};
   form.on('part', function(part) {
     var attach, binary, fileData, name, _ref;
-    log.debug(part.name + ' ' + part.filename);
     if (part.filename == null) {
-      return part.resume();
+      fields[part.name] = '';
+      return part.on('data', function(buffer) {
+        return fields[part.name] = buffer.toString();
+      });
     } else {
       nofile = false;
-      name = part.filename;
+      if (fields.name != null) {
+        name = fields.name;
+      } else {
+        name = part.filname;
+      }
       fileData = {
-        name: name,
+        name: 'file',
         "content-type": part.headers['content-type']
       };
       attach = function(binDoc) {

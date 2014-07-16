@@ -20,16 +20,17 @@ module.exports.add = function(req, res, next) {
   form.parse(req);
   nofile = true;
   form.on('part', function(part) {
-    var fileData, stream;
+    var fileData, name, stream;
     if (part.filename == null) {
       return part.resume();
     } else {
       nofile = false;
+      name = part.filename;
       fileData = {
-        name: part.filename,
+        name: name,
         "content-type": part.headers['content-type']
       };
-      log.info("attachment " + fileData.name + " ready for storage");
+      log.info("attachment " + name + " ready for storage");
       stream = db.saveAttachment(req.doc, fileData, function(err) {
         if (err) {
           console.log("[Attachment] err: " + JSON.stringify(err));
