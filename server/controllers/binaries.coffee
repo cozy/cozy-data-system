@@ -45,7 +45,7 @@ module.exports.add = (req, res, next) ->
 
             # Build file data
             fileData =
-                name: name
+                name: 'file'
                 "content-type": part.headers['content-type']
 
             # Update binary list set on given doc then save file to CouchDB
@@ -88,12 +88,12 @@ module.exports.add = (req, res, next) ->
 
 
     form.on 'progress', (bytesReceived, bytesExpected) ->
-        # TODO handle progress
 
     form.on 'error', (err) ->
         next err
 
     form.on 'close', ->
+        # If no file was found, returns a client error.
         res.send 400, error: 'No file sent' if nofile
         next()
 
