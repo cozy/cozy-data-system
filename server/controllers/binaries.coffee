@@ -29,6 +29,7 @@ module.exports.add = (req, res, next) ->
     # We read part one by one to avoid writing the full file to the disk
     # and send it directly as a stream.
     form.on 'part', (part) ->
+        log.debug part.name + ' ' + part.filename
 
         # It's a field we do nothing
         unless part.filename?
@@ -104,7 +105,7 @@ module.exports.get = (req, res, next) ->
     if req.doc.binary and req.doc.binary[name]
 
         # Build stream for
-        stream = db.getAttachment req.doc.binary[name].id, name, (err) ->
+        stream = db.getAttachment req.doc.binary[name].id, 'file', (err) ->
             if err and err.error = "not_found"
                 err = new Error "not found"
                 err.status = 404
