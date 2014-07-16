@@ -36,11 +36,12 @@ module.exports.add = (req, res, next) ->
         # the file to the disk and we don't want that.
         else
             nofile = false
+            name = part.filename
             fileData =
-                name: part.filename
+                name: name
                 "content-type": part.headers['content-type']
 
-            log.info "attachment #{fileData.name} ready for storage"
+            log.info "attachment #{name} ready for storage"
 
             stream = db.saveAttachment req.doc, fileData, (err) ->
                 if err
