@@ -32,7 +32,8 @@ module.exports.add = (req, res, next) ->
     # and send it directly as a stream.
     form.on 'part', (part) ->
 
-        # It's a field we do nothing
+        # It's a field, we store it in case of the file name is set in the
+        # form
         unless part.filename?
             fields[part.name] = ''
             part.on 'data', (buffer) ->
