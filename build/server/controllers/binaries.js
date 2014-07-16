@@ -17,14 +17,17 @@ deleteFiles = require('../helpers/utils').deleteFiles;
 dbHelper = require('../lib/db_remove_helper');
 
 module.exports.add = function(req, res, next) {
-  var form;
+  var form, nofile;
   form = new multiparty.Form();
   form.parse(req);
+  nofile = true;
   form.on('part', function(part) {
     var attach, binary, fileData, name, _ref;
+    log.debug(part.name + ' ' + part.filename);
     if (part.filename == null) {
       return part.resume();
     } else {
+      nofile = false;
       name = part.filename;
       fileData = {
         name: name,
@@ -50,6 +53,11 @@ module.exports.add = function(req, res, next) {
               if (err) {
                 log.error("" + (JSON.stringify(err)));
                 return form.emit('error', new Error(err.error));
+              } else {
+                log.info("Binary " + name + " stored in Couchdb");
+                return res.send(201, {
+                  success: true
+                });
               }
             });
             return part.pipe(stream);
@@ -75,10 +83,11 @@ module.exports.add = function(req, res, next) {
     return next(err);
   });
   return form.on('close', function() {
-    log.info("'add binary' form fully parsed");
-    res.send(201, {
-      success: true
-    });
+    if (nofile) {
+      res.send(400, {
+        error: 'No file sent'
+      });
+    }
     return next();
   });
 };
@@ -87,7 +96,7 @@ module.exports.get = function(req, res, next) {
   var err, name, stream;
   name = req.params.name;
   if (req.doc.binary && req.doc.binary[name]) {
-    stream = db.getAttachment(req.doc.binary[name].id, name, function(err) {
+    stream = db.getAttachment(req.doc.binary[name].id, 'file', function(err) {
       if (err && (err.error = "not_found")) {
         err = new Error("not found");
         err.status = 404;

@@ -15,14 +15,16 @@ db = require('../helpers/db_connect_helper').db_connect();
 deleteFiles = require('../helpers/utils').deleteFiles;
 
 module.exports.add = function(req, res, next) {
-  var form;
+  var form, nofile;
   form = new multiparty.Form();
   form.parse(req);
+  nofile = true;
   form.on('part', function(part) {
     var fileData, stream;
     if (part.filename == null) {
       return part.resume();
     } else {
+      nofile = false;
       fileData = {
         name: part.filename,
         "content-type": part.headers['content-type']
@@ -32,6 +34,11 @@ module.exports.add = function(req, res, next) {
         if (err) {
           console.log("[Attachment] err: " + JSON.stringify(err));
           return form.emit('error', new Error(err.error));
+        } else {
+          log.info("Attachment " + name + " saved to Couch.");
+          return res.send(201, {
+            success: true
+          });
         }
       });
       return part.pipe(stream);
@@ -42,10 +49,11 @@ module.exports.add = function(req, res, next) {
     return next(err);
   });
   return form.on('close', function() {
-    log.info('attachement form fully parsed');
-    res.send(201, {
-      success: true
-    });
+    if (nofile) {
+      res.send(400, {
+        error: 'No file sent'
+      });
+    }
     return next();
   });
 };
