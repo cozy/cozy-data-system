@@ -20,7 +20,9 @@ dbHelper = require '../lib/db_remove_helper'
 module.exports.add = (req, res, next) ->
 
     # Parse given form to extract image blobs.
-    form = new multiparty.Form()
+    form = new multiparty.Form
+        autoFields: false
+        autoFiles: false
     form.parse req
 
     # Dirty hack to end request if no file were sent when form is fully parsed.
@@ -38,6 +40,7 @@ module.exports.add = (req, res, next) ->
             fields[part.name] = ''
             part.on 'data', (buffer) ->
                 fields[part.name] = buffer.toString()
+            part.resume()
 
         # It's a file, we pipe it directly to Couch to avoid too much memory
         # consumption.
@@ -48,51 +51,54 @@ module.exports.add = (req, res, next) ->
             if fields.name?
                 name = fields.name
             else
-                name = part.filname
+                name = part.filename
 
             # Build file data
             fileData =
                 name: 'file'
                 "content-type": part.headers['content-type']
 
+
+            # Store the binary as an attachment of binary document.
+            attachBinary = (binary) ->
+                log.info "binary #{name} ready for storage"
+                stream = db.saveAttachment binary, fileData, (err, binDoc) ->
+                    if err
+                        log.error "#{JSON.stringify err}"
+                        form.emit 'error', new Error err.error
+                    else
+                        log.info "Binary #{name} stored in Couchdb"
+
+                        # Once binary is stored, it updates doc link to the
+                        # binary.
+                        bin =
+                            id: binDoc.id
+                            rev: binDoc.rev
+
+                        if req.doc.binary
+                            binList = req.doc.binary
+                        else
+                            binList = {}
+                        binList[name] = bin
+                        db.merge req.doc._id, binary: binList, (err) ->
+                            res.send 201, success: true
+                part.pipe stream
+
             # Update binary list set on given doc then save file to CouchDB
             # as an attachment via a stream. We do not use 'file' event to
             # avoid saving file on the disk.
-            attach = (binDoc) ->
-                bin =
-                    id: binDoc.id
-                    rev: binDoc.rev
-
-                if req.doc.binary
-                    binList = req.doc.binary
-                else
-                    binList = {}
-                    binList[name] = bin
-
-                    db.merge req.doc._id, binary: binList, (err) ->
-                        log.info "binary #{name} ready for storage"
-                        stream = db.saveAttachment binDoc, fileData, (err, binDoc) ->
-                            if err
-                                log.error "#{JSON.stringify err}"
-                                form.emit 'error', new Error err.error
-                            else
-                                log.info "Binary #{name} stored in Couchdb"
-                                res.send 201, success: true
-                        part.pipe stream
-
             # Check if binary is already present in the document binary list.
             # In that case the attachment is replaced with the uploaded file.
             if req.doc.binary?[name]?
                 db.get req.doc.binary[name].id, (err, binary) ->
-                    attach binary
+                    attachBinary binary
 
             # Else create a new binary to store uploaded file..
             else
                 binary =
                     docType: "Binary"
-                db.save binary, (err, binary) ->
-                    attach binary
-
+                db.save binary, (err, binDoc) ->
+                    attachBinary binDoc
 
     form.on 'progress', (bytesReceived, bytesExpected) ->
 
@@ -100,8 +106,8 @@ module.exports.add = (req, res, next) ->
         next err
 
     form.on 'close', ->
-        # If no file was found, returns a client error.
         res.send 400, error: 'No file sent' if nofile
+        # If no file was found, returns a client error.
         next()
 
 # GET /data/:id/binaries/:name/

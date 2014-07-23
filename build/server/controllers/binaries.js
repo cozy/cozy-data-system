@@ -18,69 +18,73 @@ dbHelper = require('../lib/db_remove_helper');
 
 module.exports.add = function(req, res, next) {
   var fields, form, nofile;
-  form = new multiparty.Form();
+  form = new multiparty.Form({
+    autoFields: false,
+    autoFiles: false
+  });
   form.parse(req);
   nofile = true;
   fields = {};
   form.on('part', function(part) {
-    var attach, binary, fileData, name, _ref;
+    var attachBinary, binary, fileData, name, _ref;
     if (part.filename == null) {
       fields[part.name] = '';
-      return part.on('data', function(buffer) {
+      part.on('data', function(buffer) {
         return fields[part.name] = buffer.toString();
       });
+      return part.resume();
     } else {
       nofile = false;
       if (fields.name != null) {
         name = fields.name;
       } else {
-        name = part.filname;
+        name = part.filename;
       }
       fileData = {
         name: 'file',
         "content-type": part.headers['content-type']
       };
-      attach = function(binDoc) {
-        var bin, binList;
-        bin = {
-          id: binDoc.id,
-          rev: binDoc.rev
-        };
-        if (req.doc.binary) {
-          return binList = req.doc.binary;
-        } else {
-          binList = {};
-          binList[name] = bin;
-          return db.merge(req.doc._id, {
-            binary: binList
-          }, function(err) {
-            var stream;
-            log.info("binary " + name + " ready for storage");
-            stream = db.saveAttachment(binDoc, fileData, function(err, binDoc) {
-              if (err) {
-                log.error("" + (JSON.stringify(err)));
-                return form.emit('error', new Error(err.error));
-              } else {
-                log.info("Binary " + name + " stored in Couchdb");
-                return res.send(201, {
-                  success: true
-                });
-              }
+      attachBinary = function(binary) {
+        var stream;
+        log.info("binary " + name + " ready for storage");
+        stream = db.saveAttachment(binary, fileData, function(err, binDoc) {
+          var bin, binList;
+          if (err) {
+            log.error("" + (JSON.stringify(err)));
+            return form.emit('error', new Error(err.error));
+          } else {
+            log.info("Binary " + name + " stored in Couchdb");
+            bin = {
+              id: binDoc.id,
+              rev: binDoc.rev
+            };
+            if (req.doc.binary) {
+              binList = req.doc.binary;
+            } else {
+              binList = {};
+            }
+            binList[name] = bin;
+            return db.merge(req.doc._id, {
+              binary: binList
+            }, function(err) {
+              return res.send(201, {
+                success: true
+              });
             });
-            return part.pipe(stream);
-          });
-        }
+          }
+        });
+        return part.pipe(stream);
       };
       if (((_ref = req.doc.binary) != null ? _ref[name] : void 0) != null) {
         return db.get(req.doc.binary[name].id, function(err, binary) {
-          return attach(binary);
+          return attachBinary(binary);
         });
       } else {
         binary = {
           docType: "Binary"
         };
-        return db.save(binary, function(err, binary) {
-          return attach(binary);
+        return db.save(binary, function(err, binDoc) {
+          return attachBinary(binDoc);
         });
       }
     }
