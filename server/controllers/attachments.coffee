@@ -1,37 +1,75 @@
 fs = require "fs"
+multiparty = require 'multiparty'
+log =  require('printit')
+    date: true
+    prefix: 'attachment'
+
 db = require('../helpers/db_connect_helper').db_connect()
 deleteFiles = require('../helpers/utils').deleteFiles
+
+
 
 ## Actions
 
 # POST /data/:id/attachments/
+# Add an attachment via uploading a file through a multipart form.
 module.exports.add = (req, res, next) ->
-    if req.files["file"]?
-        file = req.files["file"]
-        if req.body.name? then name = req.body.name else name = file.name
 
-        fileData =
-            name: name
-            "content-type": file.type
+    # Parse given form to extract image blobs.
+    form = new multiparty.Form()
+    form.parse req
 
-        stream = db.saveAttachment req.doc, fileData, (err) ->
-            if err
-                console.log "[Attachment] err: " + JSON.stringify err
-                deleteFiles req.files
-                next new Error err.error
-            else
-                deleteFiles req.files
-                res.send 201, success: true
-                next()
+    # Dirty hack to end request if no file were sent when form is fully parsed.
+    nofile = true
 
-        fs.createReadStream(file.path).pipe stream
+    # We read part one by one to avoid writing the full file to the disk
+    # and send it directly as a stream.
+    form.on 'part', (part) ->
 
-    else
-        err = new Error "No file sent"
-        err.status = 400
+        # It's a field
+        unless part.filename?
+            part.resume()
+
+        # It's a file, we pipe it directly to Couch to avoid too much memory
+        # consumption.
+        # The 'file' event from the multiparty form stores automatically
+        # the file to the disk and we don't want that.
+        else
+            nofile = false
+            name = part.filename
+            fileData =
+                name: name
+                "content-type": part.headers['content-type']
+
+            log.info "attachment #{name} ready for storage"
+
+            stream = db.saveAttachment req.doc, fileData, (err) ->
+                if err
+                    console.log "[Attachment] err: " + JSON.stringify err
+                    form.emit 'error', new Error err.error
+                else
+                    # We end the request because we expect to have only one
+                    # file.
+                    log.info "Attachment #{name} saved to Couch."
+                    res.send 201, success: true
+
+            part.pipe stream
+
+
+    form.on 'progress', (bytesReceived, bytesExpected) ->
+        # TODO handle progress
+
+    form.on 'error', (err) ->
         next err
 
+    form.on 'close', ->
+        res.send 400, error: 'No file sent' if nofile
+        next()
+
+
 # GET /data/:id/attachments/:name
+# Download given attachment (represented by name) linked to given document
+# (represented by id).
 module.exports.get = (req, res, next) ->
     name = req.params.name
 
@@ -42,18 +80,18 @@ module.exports.get = (req, res, next) ->
             next err
         else if err
             next new Error err.error
-        else
-            res.send 200, success: true
 
     if req.headers['range']?
         stream.setHeader 'range', req.headers['range']
 
-    stream.pipe res
-
     res.on 'close', -> stream.abort()
+
+    stream.pipe res
 
 
 # DELETE /data/:id/attachments/:name
+# Remove given attachment (represented by name) from given document
+# (represented by id).
 module.exports.remove = (req, res, next) ->
     name = req.params.name
 
