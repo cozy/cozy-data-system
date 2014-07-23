@@ -15,17 +15,26 @@ db = require('../helpers/db_connect_helper').db_connect();
 deleteFiles = require('../helpers/utils').deleteFiles;
 
 module.exports.add = function(req, res, next) {
-  var form, nofile;
+  var fields, form, nofile;
   form = new multiparty.Form();
   form.parse(req);
   nofile = true;
+  fields = {};
   form.on('part', function(part) {
     var fileData, name, stream;
     if (part.filename == null) {
+      fields[part.name] = '';
+      part.on('data', function(buffer) {
+        return fields[part.name] = buffer.toString();
+      });
       return part.resume();
     } else {
       nofile = false;
-      name = part.filename;
+      if (fields.name != null) {
+        name = fields.name;
+      } else {
+        name = part.filename;
+      }
       fileData = {
         name: name,
         "content-type": part.headers['content-type']

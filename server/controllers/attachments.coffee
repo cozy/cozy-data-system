@@ -22,12 +22,17 @@ module.exports.add = (req, res, next) ->
     # Dirty hack to end request if no file were sent when form is fully parsed.
     nofile = true
 
+    fields = {}
+
     # We read part one by one to avoid writing the full file to the disk
     # and send it directly as a stream.
     form.on 'part', (part) ->
 
         # It's a field
         unless part.filename?
+            fields[part.name] = ''
+            part.on 'data', (buffer) ->
+                fields[part.name] = buffer.toString()
             part.resume()
 
         # It's a file, we pipe it directly to Couch to avoid too much memory
@@ -36,7 +41,11 @@ module.exports.add = (req, res, next) ->
         # the file to the disk and we don't want that.
         else
             nofile = false
-            name = part.filename
+            if fields.name?
+                name = fields.name
+            else
+                name = part.filename
+
             fileData =
                 name: name
                 "content-type": part.headers['content-type']
