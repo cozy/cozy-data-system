@@ -7,6 +7,7 @@ log =  require('printit')
 db = require('../helpers/db_connect_helper').db_connect()
 deleteFiles = require('../helpers/utils').deleteFiles
 dbHelper = require '../lib/db_remove_helper'
+downloader = require '../lib/downloader'
 
 
 ## Actions
@@ -118,11 +119,10 @@ module.exports.get = (req, res, next) ->
     name = req.params.name
     if req.doc.binary and req.doc.binary[name]
 
-        if req.headers['range']?
-            stream.setHeader 'range', req.headers['range']
-
-        # Build stream for fetching file from the database.
-        stream = db.getAttachment req.doc.binary[name].id, 'file', (err) ->
+        # Build stream for fetching file from the database. Use a custom lib
+        # instead of cradle to avoid too high memory consumption.
+        id = req.doc.binary[name].id
+        stream = downloader.download id, 'file', (err, stream) ->
             if err and err.error = "not_found"
                 err = new Error "not found"
                 err.status = 404
@@ -130,11 +130,11 @@ module.exports.get = (req, res, next) ->
             else if err
                 next new Error err.error
 
-        # Use streaming to avoid high memory consumption.
-        stream.pipe res
+            if req.headers['range']?
+                stream.setHeader 'range', req.headers['range']
 
-        # Abort streaming if response is prematurely sent.
-        res.on 'close', -> stream.abort()
+            # Use streaming to avoid high memory consumption.
+            stream.pipe res
 
     # No binary found, error is returned.
     else
