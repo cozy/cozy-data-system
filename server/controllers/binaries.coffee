@@ -59,9 +59,30 @@ module.exports.add = (req, res, next) ->
                 name: 'file'
                 "content-type": part.headers['content-type']
 
-
             # Store the binary as an attachment of binary document.
             attachBinary = (binary) ->
+                log.info "binary #{name} ready for storage"
+                stream = db.saveAttachment binary, fileData, (err, binDoc) ->
+                    if err
+                        log.error "#{JSON.stringify err}"
+                        form.emit 'error', new Error err.error
+                    else
+                        log.info "Binary #{name} stored in Couchdb"
+
+                        # Once binary is stored, it updates doc link to the
+                        # binary.
+                        bin =
+                            id: binDoc.id
+                            rev: binDoc.rev
+
+                        if req.doc.binary
+                            binList = req.doc.binary
+                        else
+                            binList = {}
+                        binList[name] = bin
+                        db.merge req.doc._id, binary: binList, (err) ->
+                            res.send 201, success: true
+                part.pipe stream
 
             # Update binary list set on given doc then save file to CouchDB
             # as an attachment via a stream. We do not use 'file' event to
@@ -77,29 +98,7 @@ module.exports.add = (req, res, next) ->
                 binary =
                     docType: "Binary"
                 db.save binary, (err, binDoc) ->
-                    binary = binDoc
-                    log.info "binary #{name} ready for storage"
-                    stream = db.saveAttachment binary, fileData, (err, binDoc) ->
-                        if err
-                            log.error "#{JSON.stringify err}"
-                            form.emit 'error', new Error err.error
-                        else
-                            log.info "Binary #{name} stored in Couchdb"
-
-                            # Once binary is stored, it updates doc link to the
-                            # binary.
-                            bin =
-                                id: binDoc.id
-                                rev: binDoc.rev
-
-                            if req.doc.binary
-                                binList = req.doc.binary
-                            else
-                                binList = {}
-                            binList[name] = bin
-                            db.merge req.doc._id, binary: binList, (err) ->
-                                res.send 201, success: true
-                    part.pipe stream
+                    attachBinary binDoc
 
     form.on 'progress', (bytesReceived, bytesExpected) ->
 
