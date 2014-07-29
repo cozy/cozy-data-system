@@ -115,25 +115,18 @@ module.exports.get = function(req, res, next) {
       if (err && err.error === "not_found") {
         err = new Error("not found");
         err.status = 404;
-        return next(err);
+        next(err);
       } else if (err) {
-        return next(new Error(err.error));
+        next(new Error(err.error));
       } else {
-        return db.get(id, function(err, binDoc) {
-          var length, type;
-          if (err) {
-            return next(err);
-          }
-          length = binDoc._attachments[name].length;
-          type = binDoc._attachments[name]['content-type'];
-          res.setHeader('Content-Length', length);
-          res.setHeader('Content-Type', type);
-          if (req.headers['range'] != null) {
-            stream.setHeader('range', req.headers['range']);
-          }
-          return stream.pipe(res);
-        });
+
       }
+      res.setHeader('Content-Length', stream.headers['content-length']);
+      res.setHeader('Content-Type', stream.headers['content-type']);
+      if (req.headers['range'] != null) {
+        stream.setHeader('range', req.headers['range']);
+      }
+      return stream.pipe(res);
     });
   } else {
     err = new Error("not found");
