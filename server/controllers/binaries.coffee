@@ -114,26 +114,39 @@ module.exports.add = (req, res, next) ->
 # GET /data/:id/binaries/:name/
 # Download a the file attached to the binary object.
 module.exports.get = (req, res, next) ->
-
     name = req.params.name
-    if req.doc.binary and req.doc.binary[name]
+    binary = req.doc.binary
+
+    if binary and binary[name]
 
         # Build stream for fetching file from the database. Use a custom lib
         # instead of cradle to avoid too high memory consumption.
-        id = req.doc.binary[name].id
-        stream = downloader.download id, name, (err, stream) ->
-            if err and err.error = "not_found"
-                err = new Error "not found"
-                err.status = 404
-                next err
-            else if err
-                next new Error err.error
+        id = binary[name].id
 
-            if req.headers['range']?
-                stream.setHeader 'range', req.headers['range']
 
-            # Use streaming to avoid high memory consumption.
-            stream.pipe res
+        db.get id, (err, binDoc) ->
+            return next err if err
+
+            # Set response header from attachment infos
+            length = binDoc._attachments[name].length
+            type = binDoc._attachments[name]['content-type']
+            res.setHeader 'Content-Length', length
+            res.setHeader 'Content-Type', type
+
+            # Run the downlaod with Node low level api.
+            stream = downloader.download id, name, (err, stream) ->
+                if err and err.error == "not_found"
+                    err = new Error "not found"
+                    err.status = 404
+                    next err
+                else if err
+                    next new Error err.error
+
+                if req.headers['range']?
+                    stream.setHeader 'range', req.headers['range']
+
+                # Use streaming to avoid high memory consumption.
+                stream.pipe res
 
     # No binary found, error is returned.
     else
