@@ -122,7 +122,7 @@ module.exports.get = (req, res, next) ->
         # Build stream for fetching file from the database. Use a custom lib
         # instead of cradle to avoid too high memory consumption.
         id = req.doc.binary[name].id
-        stream = downloader.download id, 'file', (err, stream) ->
+        stream = downloader.download id, name, (err, stream) ->
             if err and err.error = "not_found"
                 err = new Error "not found"
                 err.status = 404

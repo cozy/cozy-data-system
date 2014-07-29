@@ -37,7 +37,7 @@ module.exports =
                     path: path
 
                 # Add couch credentials only in production environment.
-                if not err and process.NODE_ENV is 'production'
+                if not err and process.env.NODE_ENV is 'production'
                     id = couchCredentials[0]
                     pwd = couchCredentials[1]
 
