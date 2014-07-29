@@ -43,7 +43,7 @@ module.exports.add = function(req, res, next) {
         name = part.filename;
       }
       fileData = {
-        name: 'file',
+        name: name,
         "content-type": part.headers['content-type']
       };
       attachBinary = function(binary) {
@@ -106,22 +106,34 @@ module.exports.add = function(req, res, next) {
 };
 
 module.exports.get = function(req, res, next) {
-  var err, id, name, stream;
+  var binary, err, id, name, stream;
   name = req.params.name;
-  if (req.doc.binary && req.doc.binary[name]) {
-    id = req.doc.binary[name].id;
+  binary = req.doc.binary;
+  if (binary && binary[name]) {
+    id = binary[name].id;
     return stream = downloader.download(id, name, function(err, stream) {
-      if (err && (err.error = "not_found")) {
+      if (err && err.error === "not_found") {
         err = new Error("not found");
         err.status = 404;
-        next(err);
+        return next(err);
       } else if (err) {
-        next(new Error(err.error));
+        return next(new Error(err.error));
+      } else {
+        return db.get(id, function(err, binDoc) {
+          var length, type;
+          if (err) {
+            return next(err);
+          }
+          length = binDoc._attachments[name].length;
+          type = binDoc._attachments[name]['content-type'];
+          res.setHeader('Content-Length', length);
+          res.setHeader('Content-Type', type);
+          if (req.headers['range'] != null) {
+            stream.setHeader('range', req.headers['range']);
+          }
+          return stream.pipe(res);
+        });
       }
-      if (req.headers['range'] != null) {
-        stream.setHeader('range', req.headers['range']);
-      }
-      return stream.pipe(res);
     });
   } else {
     err = new Error("not found");
