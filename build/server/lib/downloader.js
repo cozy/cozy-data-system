@@ -35,7 +35,7 @@ module.exports = {
           port: process.env.COUCH_PORT || 5984,
           path: path
         };
-        if (!err && process.NODE_ENV === 'production') {
+        if (!err && process.env.NODE_ENV === 'production') {
           id = couchCredentials[0];
           pwd = couchCredentials[1];
           credentialsBuffer = new Buffer("" + id + ":" + pwd);

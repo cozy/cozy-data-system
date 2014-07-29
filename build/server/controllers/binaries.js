@@ -109,7 +109,7 @@ module.exports.get = function(req, res, next) {
   name = req.params.name;
   if (req.doc.binary && req.doc.binary[name]) {
     id = req.doc.binary[name].id;
-    return stream = downloader.download(id, 'file', function(err, stream) {
+    return stream = downloader.download(id, name, function(err, stream) {
       if (err && (err.error = "not_found")) {
         err = new Error("not found");
         err.status = 404;
