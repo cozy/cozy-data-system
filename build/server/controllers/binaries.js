@@ -46,7 +46,37 @@ module.exports.add = function(req, res, next) {
         name: 'file',
         "content-type": part.headers['content-type']
       };
-      attachBinary = function(binary) {};
+      attachBinary = function(binary) {
+        var stream;
+        log.info("binary " + name + " ready for storage");
+        stream = db.saveAttachment(binary, fileData, function(err, binDoc) {
+          var bin, binList;
+          if (err) {
+            log.error("" + (JSON.stringify(err)));
+            return form.emit('error', new Error(err.error));
+          } else {
+            log.info("Binary " + name + " stored in Couchdb");
+            bin = {
+              id: binDoc.id,
+              rev: binDoc.rev
+            };
+            if (req.doc.binary) {
+              binList = req.doc.binary;
+            } else {
+              binList = {};
+            }
+            binList[name] = bin;
+            return db.merge(req.doc._id, {
+              binary: binList
+            }, function(err) {
+              return res.send(201, {
+                success: true
+              });
+            });
+          }
+        });
+        return part.pipe(stream);
+      };
       if (((_ref = req.doc.binary) != null ? _ref[name] : void 0) != null) {
         return db.get(req.doc.binary[name].id, function(err, binary) {
           return attachBinary(binary);
@@ -56,36 +86,7 @@ module.exports.add = function(req, res, next) {
           docType: "Binary"
         };
         return db.save(binary, function(err, binDoc) {
-          var stream;
-          binary = binDoc;
-          log.info("binary " + name + " ready for storage");
-          stream = db.saveAttachment(binary, fileData, function(err, binDoc) {
-            var bin, binList;
-            if (err) {
-              log.error("" + (JSON.stringify(err)));
-              return form.emit('error', new Error(err.error));
-            } else {
-              log.info("Binary " + name + " stored in Couchdb");
-              bin = {
-                id: binDoc.id,
-                rev: binDoc.rev
-              };
-              if (req.doc.binary) {
-                binList = req.doc.binary;
-              } else {
-                binList = {};
-              }
-              binList[name] = bin;
-              return db.merge(req.doc._id, {
-                binary: binList
-              }, function(err) {
-                return res.send(201, {
-                  success: true
-                });
-              });
-            }
-          });
-          return part.pipe(stream);
+          return attachBinary(binDoc);
         });
       }
     }
