@@ -132,21 +132,16 @@ module.exports.get = (req, res, next) ->
             else if err
                 next new Error err.error
             else
-                # retrieve attachment infos
-                db.get id, (err, binDoc) ->
-                    return next err if err
 
-                    # Set response header from attachment infos
-                    length = binDoc._attachments[name].length
-                    type = binDoc._attachments[name]['content-type']
-                    res.setHeader 'Content-Length', length
-                    res.setHeader 'Content-Type', type
+            # Set response header from attachment infos
+            res.setHeader 'Content-Length', stream.headers['content-length']
+            res.setHeader 'Content-Type', stream.headers['content-type']
 
-                    if req.headers['range']?
-                        stream.setHeader 'range', req.headers['range']
+            if req.headers['range']?
+                stream.setHeader 'range', req.headers['range']
 
-                    # Use streaming to avoid high memory consumption.
-                    stream.pipe res
+            # Use streaming to avoid high memory consumption.
+            stream.pipe res
 
     # No binary found, error is returned.
     else
