@@ -56,7 +56,7 @@ module.exports.add = (req, res, next) ->
 
             # Build file data
             fileData =
-                name: 'file'
+                name: name
                 "content-type": part.headers['content-type']
 
             # Store the binary as an attachment of binary document.
@@ -123,30 +123,30 @@ module.exports.get = (req, res, next) ->
         # instead of cradle to avoid too high memory consumption.
         id = binary[name].id
 
+        # Run the download with Node low level api.
+        stream = downloader.download id, name, (err, stream) ->
+            if err and err.error == "not_found"
+                err = new Error "not found"
+                err.status = 404
+                next err
+            else if err
+                next new Error err.error
+            else
+                # retrieve attachment infos
+                db.get id, (err, binDoc) ->
+                    return next err if err
 
-        db.get id, (err, binDoc) ->
-            return next err if err
+                    # Set response header from attachment infos
+                    length = binDoc._attachments[name].length
+                    type = binDoc._attachments[name]['content-type']
+                    res.setHeader 'Content-Length', length
+                    res.setHeader 'Content-Type', type
 
-            # Set response header from attachment infos
-            length = binDoc._attachments[name].length
-            type = binDoc._attachments[name]['content-type']
-            res.setHeader 'Content-Length', length
-            res.setHeader 'Content-Type', type
+                    if req.headers['range']?
+                        stream.setHeader 'range', req.headers['range']
 
-            # Run the downlaod with Node low level api.
-            stream = downloader.download id, name, (err, stream) ->
-                if err and err.error == "not_found"
-                    err = new Error "not found"
-                    err.status = 404
-                    next err
-                else if err
-                    next new Error err.error
-
-                if req.headers['range']?
-                    stream.setHeader 'range', req.headers['range']
-
-                # Use streaming to avoid high memory consumption.
-                stream.pipe res
+                    # Use streaming to avoid high memory consumption.
+                    stream.pipe res
 
     # No binary found, error is returned.
     else

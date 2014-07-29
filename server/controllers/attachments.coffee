@@ -83,10 +83,6 @@ module.exports.get = (req, res, next) ->
     name = req.params.name
     id = req.doc.id
 
-    # Set response header from attachment infos
-    res.setHeader 'Content-Length', req.doc._attachments[name].length
-    res.setHeader 'Content-Type', req.doc._attachments[name]['content-type']
-
     # Perform downloading via the low level downloader to avoir too high
     # memory consumption.
     downloader.download id, name, (err, stream) ->
@@ -96,11 +92,17 @@ module.exports.get = (req, res, next) ->
             next err
         else if err
             next new Error err.error
+        else
+            if req.headers['range']?
+                stream.setHeader 'range', req.headers['range']
 
-        if req.headers['range']?
-            stream.setHeader 'range', req.headers['range']
+            # Set response header from attachment infos
+            length = req.doc._attachments[name].length
+            type = req.doc._attachments[name]['content-type']
+            res.setHeader 'Content-Length', length
+            res.setHeader 'Content-Type', type
 
-        stream.pipe res
+            stream.pipe res
 
 
 # DELETE /data/:id/attachments/:name
