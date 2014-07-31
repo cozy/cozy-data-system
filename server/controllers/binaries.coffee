@@ -125,23 +125,22 @@ module.exports.get = (req, res, next) ->
 
         # Run the download with Node low level api.
         stream = downloader.download id, name, (err, stream) ->
-            if err and err.error == "not_found"
+            if err and err.error is "not_found"
                 err = new Error "not found"
                 err.status = 404
                 next err
             else if err
                 next new Error err.error
             else
+                # Set response header from attachment infos
+                res.setHeader 'Content-Length', stream.headers['content-length']
+                res.setHeader 'Content-Type', stream.headers['content-type']
 
-            # Set response header from attachment infos
-            res.setHeader 'Content-Length', stream.headers['content-length']
-            res.setHeader 'Content-Type', stream.headers['content-type']
+                if req.headers['range']?
+                    stream.setHeader 'range', req.headers['range']
 
-            if req.headers['range']?
-                stream.setHeader 'range', req.headers['range']
-
-            # Use streaming to avoid high memory consumption.
-            stream.pipe res
+                # Use streaming to avoid high memory consumption.
+                stream.pipe res
 
     # No binary found, error is returned.
     else
