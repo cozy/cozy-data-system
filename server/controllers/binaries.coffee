@@ -7,6 +7,7 @@ log =  require('printit')
 db = require('../helpers/db_connect_helper').db_connect()
 deleteFiles = require('../helpers/utils').deleteFiles
 dbHelper = require '../lib/db_remove_helper'
+downloader = require '../lib/downloader'
 
 
 ## Actions
@@ -55,9 +56,8 @@ module.exports.add = (req, res, next) ->
 
             # Build file data
             fileData =
-                name: 'file'
+                name: name
                 "content-type": part.headers['content-type']
-
 
             # Store the binary as an attachment of binary document.
             attachBinary = (binary) ->
@@ -110,30 +110,38 @@ module.exports.add = (req, res, next) ->
         # If no file was found, returns a client error.
         next()
 
+
 # GET /data/:id/binaries/:name/
 # Download a the file attached to the binary object.
 module.exports.get = (req, res, next) ->
-
     name = req.params.name
-    if req.doc.binary and req.doc.binary[name]
+    binary = req.doc.binary
 
-        # Build stream for
-        stream = db.getAttachment req.doc.binary[name].id, 'file', (err) ->
-            if err and err.error = "not_found"
+    if binary and binary[name]
+
+        # Build stream for fetching file from the database. Use a custom lib
+        # instead of cradle to avoid too high memory consumption.
+        id = binary[name].id
+
+        # Run the download with Node low level api.
+        stream = downloader.download id, name, (err, stream) ->
+            if err and err.error == "not_found"
                 err = new Error "not found"
                 err.status = 404
                 next err
             else if err
                 next new Error err.error
+            else
 
-        if req.headers['range']?
-            stream.setHeader 'range', req.headers['range']
+            # Set response header from attachment infos
+            res.setHeader 'Content-Length', stream.headers['content-length']
+            res.setHeader 'Content-Type', stream.headers['content-type']
 
-        # Use streaming to avoid high memory consumption.
-        stream.pipe res
+            if req.headers['range']?
+                stream.setHeader 'range', req.headers['range']
 
-        # Abort streaming if response is prematurely sent.
-        res.on 'close', -> stream.abort()
+            # Use streaming to avoid high memory consumption.
+            stream.pipe res
 
     # No binary found, error is returned.
     else

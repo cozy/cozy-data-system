@@ -6,7 +6,7 @@ log =  require('printit')
 
 db = require('../helpers/db_connect_helper').db_connect()
 deleteFiles = require('../helpers/utils').deleteFiles
-
+downloader = require '../lib/downloader'
 
 
 ## Actions
@@ -81,21 +81,28 @@ module.exports.add = (req, res, next) ->
 # (represented by id).
 module.exports.get = (req, res, next) ->
     name = req.params.name
+    id = req.doc.id
 
-    stream = db.getAttachment req.doc.id, name, (err) ->
-        if err? and err.error = "not_found"
+    # Perform downloading via the low level downloader to avoir too high
+    # memory consumption.
+    downloader.download id, name, (err, stream) ->
+        if err? and err.error is "not_found"
             err = new Error "not found"
             err.status = 404
             next err
         else if err
             next new Error err.error
+        else
+            if req.headers['range']?
+                stream.setHeader 'range', req.headers['range']
 
-    if req.headers['range']?
-        stream.setHeader 'range', req.headers['range']
+            # Set response header from attachment infos
+            length = req.doc._attachments[name].length
+            type = req.doc._attachments[name]['content-type']
+            res.setHeader 'Content-Length', length
+            res.setHeader 'Content-Type', type
 
-    res.on 'close', -> stream.abort()
-
-    stream.pipe res
+            stream.pipe res
 
 
 # DELETE /data/:id/attachments/:name
