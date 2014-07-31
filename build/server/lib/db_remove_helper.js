@@ -5,7 +5,7 @@ db = require('../helpers/db_connect_helper').db_connect();
 
 exports.remove = (function(_this) {
   return function(doc, callback) {
-    var deletedDoc, _ref;
+    var deletedDoc;
     deletedDoc = {
       "_rev": doc.rev,
       "_deleted": true
@@ -13,7 +13,7 @@ exports.remove = (function(_this) {
     if (doc.docType != null) {
       deletedDoc.docType = doc.docType;
     }
-    if (((_ref = doc.binary) != null ? _ref.file : void 0) != null) {
+    if (doc.binary != null) {
       deletedDoc.binary = doc.binary;
     }
     return db.save(doc._id, deletedDoc, callback);

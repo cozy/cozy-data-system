@@ -115,18 +115,17 @@ module.exports.get = function(req, res, next) {
       if (err && err.error === "not_found") {
         err = new Error("not found");
         err.status = 404;
-        next(err);
+        return next(err);
       } else if (err) {
-        next(new Error(err.error));
+        return next(new Error(err.error));
       } else {
-
+        res.setHeader('Content-Length', stream.headers['content-length']);
+        res.setHeader('Content-Type', stream.headers['content-type']);
+        if (req.headers['range'] != null) {
+          stream.setHeader('range', req.headers['range']);
+        }
+        return stream.pipe(res);
       }
-      res.setHeader('Content-Length', stream.headers['content-length']);
-      res.setHeader('Content-Type', stream.headers['content-type']);
-      if (req.headers['range'] != null) {
-        stream.setHeader('range', req.headers['range']);
-      }
-      return stream.pipe(res);
     });
   } else {
     err = new Error("not found");
