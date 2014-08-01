@@ -61,6 +61,7 @@ module.exports.add = (req, res, next) ->
                     # file.
                     log.info "Attachment #{name} saved to Couch."
                     res.send 201, success: true
+                    next()
 
             part.pipe stream
 
@@ -72,8 +73,10 @@ module.exports.add = (req, res, next) ->
         next err
 
     form.on 'close', ->
-        res.send 400, error: 'No file sent' if nofile
-        next()
+        if nofile
+            err = new Error 'no file sent'
+            err.status = 400
+            next err
 
 
 # GET /data/:id/attachments/:name
@@ -103,6 +106,7 @@ module.exports.get = (req, res, next) ->
             res.setHeader 'Content-Type', type
 
             stream.pipe res
+
 
 
 # DELETE /data/:id/attachments/:name
