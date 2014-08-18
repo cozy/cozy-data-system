@@ -1,4 +1,5 @@
 americano = require 'americano'
+
 config =
     common:
         use: [

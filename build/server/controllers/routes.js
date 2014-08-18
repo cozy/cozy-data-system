@@ -34,7 +34,7 @@ module.exports = {
     get: [utils.getDoc, utils.checkPermissionsByDoc, data.decryptPassword, data.find],
     post: [utils.checkPermissionsByBody, data.encryptPassword, data.create],
     put: [utils.lockRequest, utils.checkPermissionsByBody, utils.getDoc, data.encryptPassword, data.update, utils.unlockRequest],
-    del: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, data["delete"], utils.unlockRequest]
+    "delete": [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, data["delete"], utils.unlockRequest]
   },
   'data/exist/:id/': {
     get: data.exist
@@ -48,7 +48,7 @@ module.exports = {
   'request/:type/:req_name/': {
     post: [utils.checkPermissionsByType, requests.results],
     put: [utils.checkPermissionsByType, utils.lockRequest, requests.definition, utils.unlockRequest],
-    del: [utils.checkPermissionsByType, utils.lockRequest, requests.remove, utils.unlockRequest]
+    "delete": [utils.checkPermissionsByType, utils.lockRequest, requests.remove, utils.unlockRequest]
   },
   'request/:type/:req_name/destroy/': {
     put: [utils.checkPermissionsByType, requests.removeResults]
@@ -64,14 +64,14 @@ module.exports = {
   },
   'data/:id/attachments/:name': {
     get: [utils.getDoc, utils.checkPermissionsByDoc, attachments.get],
-    del: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, attachments.remove, utils.unlockRequest]
+    "delete": [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, attachments.remove, utils.unlockRequest]
   },
   'data/:id/binaries/': {
     post: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, binaries.add, utils.unlockRequest]
   },
   'data/:id/binaries/:name': {
     get: [utils.getDoc, utils.checkPermissionsByDoc, binaries.get],
-    del: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, binaries.remove, utils.unlockRequest]
+    "delete": [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, binaries.remove, utils.unlockRequest]
   },
   'connectors/bank/:name/': {
     post: connectors.bank
@@ -83,17 +83,17 @@ module.exports = {
     post: [utils.checkPermissionsFactory('device'), devices.create]
   },
   'device/:id/': {
-    del: [utils.checkPermissionsFactory('device'), utils.lockRequest, utils.getDoc, devices.remove, utils.unlockRequest]
+    "delete": [utils.checkPermissionsFactory('device'), utils.lockRequest, utils.getDoc, devices.remove, utils.unlockRequest]
   },
   'data/index/:id': {
     post: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, indexer.index, utils.unlockRequest],
-    del: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, indexer.remove, utils.unlockRequest]
+    "delete": [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, indexer.remove, utils.unlockRequest]
   },
   'data/search/:type': {
     post: [utils.checkPermissionsByType, indexer.search]
   },
   'data/index/clear-all/': {
-    del: [utils.checkPermissionsFactory('all'), indexer.removeAll]
+    "delete": [utils.checkPermissionsFactory('all'), indexer.removeAll]
   },
   'mail/': {
     post: [utils.checkPermissionsFactory('send mail'), mails.send]
@@ -115,9 +115,9 @@ module.exports = {
     put: [account.checkPermissions, account.updateKeys]
   },
   'accounts/reset/': {
-    del: [account.checkPermissions, account.resetKeys]
+    "delete": [account.checkPermissions, account.resetKeys]
   },
   'accounts/': {
-    del: [account.checkPermissions, account.deleteKeys]
+    "delete": [account.checkPermissions, account.deleteKeys]
   }
 };

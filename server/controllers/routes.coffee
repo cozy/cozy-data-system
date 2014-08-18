@@ -20,10 +20,10 @@ module.exports =
 
     # Data management
     'data/': post: [
-                utils.checkPermissionsByBody
-                data.encryptPassword
-                data.create
-            ]
+            utils.checkPermissionsByBody
+            data.encryptPassword
+            data.create
+        ]
     'data/:id/':
         get: [
             utils.getDoc
@@ -44,7 +44,7 @@ module.exports =
             data.update
             utils.unlockRequest
         ]
-        del: [
+        delete: [
             utils.lockRequest
             utils.getDoc
             utils.checkPermissionsByDoc
@@ -78,7 +78,7 @@ module.exports =
             requests.definition
             utils.unlockRequest
         ]
-        del: [
+        delete: [
             utils.checkPermissionsByType
             utils.lockRequest
             requests.remove
@@ -106,7 +106,7 @@ module.exports =
     ]
     'data/:id/attachments/:name':
         get: [utils.getDoc, utils.checkPermissionsByDoc, attachments.get]
-        del: [
+        delete: [
             utils.lockRequest
             utils.getDoc
             utils.checkPermissionsByDoc
@@ -123,7 +123,7 @@ module.exports =
     ]
     'data/:id/binaries/:name':
         get: [utils.getDoc, utils.checkPermissionsByDoc, binaries.get]
-        del: [
+        delete: [
             utils.lockRequest
             utils.getDoc
             utils.checkPermissionsByDoc
@@ -137,7 +137,7 @@ module.exports =
 
     # Device management
     'device/': post: [utils.checkPermissionsFactory('device'), devices.create]
-    'device/:id/': del: [
+    'device/:id/': delete: [
         utils.checkPermissionsFactory('device')
         utils.lockRequest
         utils.getDoc
@@ -154,7 +154,7 @@ module.exports =
             indexer.index
             utils.unlockRequest
         ]
-        del: [
+        delete: [
             utils.lockRequest
             utils.getDoc
             utils.checkPermissionsByDoc
@@ -162,7 +162,7 @@ module.exports =
             utils.unlockRequest
         ]
     'data/search/:type': post: [utils.checkPermissionsByType, indexer.search]
-    'data/index/clear-all/': del: [
+    'data/index/clear-all/': delete: [
         utils.checkPermissionsFactory('all')
         indexer.removeAll
     ]
@@ -192,5 +192,5 @@ module.exports =
     'accounts/password/':
         post: [account.checkPermissions, account.initializeKeys]
         put: [account.checkPermissions, account.updateKeys]
-    'accounts/reset/': del: [account.checkPermissions, account.resetKeys]
-    'accounts/': del: [account.checkPermissions, account.deleteKeys]
+    'accounts/reset/': delete: [account.checkPermissions, account.resetKeys]
+    'accounts/': delete: [account.checkPermissions, account.deleteKeys]
