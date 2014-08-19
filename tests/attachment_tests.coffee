@@ -66,6 +66,27 @@ describe "Attachments", ->
 
             resultStats.size.should.equal fileStats.size
 
+    describe "Retrieve an attachment with special chars", ->
+
+        it "When I post an attachment with special chars", (done) ->
+            @client.sendFile "data/321/attachments/", "./tests/fixtures/tesà ç.png", \
+                            (err, res, body) =>
+                console.log err if err
+                @response = res
+                done()
+
+        it "When I claim this attachment", (done) ->
+            @client = new Client serverUrl
+            @client.setBasicAuth "home", "token"
+            @client.saveFile "data/321/attachments/tesà ç.png", \
+                             './tests/fixtures/test-get.png', -> done()
+
+        it "I got the same file I attached before", ->
+            fileStats = fs.statSync('./tests/fixtures/tesà ç.png')
+            resultStats = fs.statSync('./tests/fixtures/test-get.png')
+
+            resultStats.size.should.equal fileStats.size
+
     describe "Remove an attachment", ->
 
         it "When I remove this attachment", (done) ->

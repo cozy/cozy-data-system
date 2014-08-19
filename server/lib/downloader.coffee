@@ -1,7 +1,11 @@
 http = require 'http'
 fs = require 'fs'
+querystring = require 'querystring'
 S = require 'string'
 
+log =  require('printit')
+    date: true
+    prefix: 'downloader'
 
 # Get Couch credentials from config file.
 initLoginCouch = (callback) ->
@@ -21,8 +25,9 @@ module.exports =
     # Returns the attachment in a callback as a readable stream of data.
     download: (id, attachment, callback) ->
 
-        # Build couch patch to fetch attachements.
+        # Build couch path to fetch attachements.
         dbName = process.env.DB_NAME or 'cozy'
+        attachment = querystring.escape attachment
         path = "/#{dbName}/#{id}/#{attachment}"
 
         initLoginCouch (err, couchCredentials) ->
