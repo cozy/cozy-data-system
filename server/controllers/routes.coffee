@@ -162,6 +162,7 @@ module.exports =
             utils.unlockRequest
         ]
     'data/search/:type': post: [utils.checkPermissionsByType, indexer.search]
+    'data/search/': post: [utils.checkPermissionsFactory('all'), indexer.search]
     'data/index/clear-all/': delete: [
         utils.checkPermissionsFactory('all')
         indexer.removeAll

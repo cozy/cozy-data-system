@@ -23,9 +23,14 @@ module.exports.index = (req, res, next) ->
 # POST /data/search/
 # Returns documents matching given text query
 module.exports.search = (req, res, next) ->
+
+    doctypes = req.params.type or req.body.doctypes or []
+
     data =
-        docType: req.params.type
+        docType: doctypes
         query: req.body.query
+        numPage: req.body.numPage
+        numByPage: req.body.numByPage
 
     client.post "search/", data, (err, response, body) ->
         if err

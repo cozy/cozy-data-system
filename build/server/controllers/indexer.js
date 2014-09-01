@@ -27,10 +27,13 @@ module.exports.index = function(req, res, next) {
 };
 
 module.exports.search = function(req, res, next) {
-  var data;
+  var data, doctypes;
+  doctypes = req.params.type || req.body.doctypes || [];
   data = {
-    docType: req.params.type,
-    query: req.body.query
+    docType: doctypes,
+    query: req.body.query,
+    numPage: req.body.numPage,
+    numByPage: req.body.numByPage
   };
   return client.post("search/", data, function(err, response, body) {
     if (err) {
