@@ -47,6 +47,17 @@ module.exports.send = function(req, res, next) {
       to: body.to,
       from: body.from,
       subject: body.subject,
+      cc: body.cc,
+      bcc: body.bcc,
+      replyTo: body.replyTo,
+      inReplyTo: body.inReplyTo,
+      references: body.references,
+      headers: body.headers,
+      alternatives: body.alternatives,
+      envelope: body.envelope,
+      messageId: body.messageId,
+      date: body.date,
+      encoding: body.encoding,
       text: body.content,
       html: body.html || void 0
     };
