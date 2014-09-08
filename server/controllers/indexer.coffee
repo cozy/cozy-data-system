@@ -9,9 +9,12 @@ db = require('../helpers/db_connect_helper').db_connect()
 # Index given fields of document matching id.
 module.exports.index = (req, res, next) ->
     req.doc.id = req.doc._id
+
     data =
         doc: req.doc
         fields: req.body.fields
+        fieldsType: req.body.fieldsType
+
     client.post "index/", data, (err, response, body) ->
         if err or response.statusCode isnt 200
             next new Error err
