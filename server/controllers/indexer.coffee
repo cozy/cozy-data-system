@@ -34,7 +34,7 @@ module.exports.search = (req, res, next) ->
 
     doctypes = req.params.type or req.body.doctypes or []
 
-    showNumResults = req.body.numResults
+    showNumResults = req.body.showNumResults
     data =
         docType: doctypes
         query: req.body.query
