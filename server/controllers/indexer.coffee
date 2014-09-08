@@ -10,6 +10,11 @@ db = require('../helpers/db_connect_helper').db_connect()
 module.exports.index = (req, res, next) ->
     req.doc.id = req.doc._id
 
+    # if the app has sent mapped values, we replace the actual values
+    # by the mapped ones
+    if req.body.mappedValues?
+        for field, mappedValue of req.body.mappedValues
+            req.doc[field] = mappedValue
     data =
         doc: req.doc
         fields: req.body.fields
