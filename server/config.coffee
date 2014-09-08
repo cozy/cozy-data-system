@@ -3,7 +3,7 @@ americano = require 'americano'
 config =
     common:
         use: [
-            americano.bodyParser()
+            americano.bodyParser limit: '1gb'
             americano.methodOverride()
             americano.errorHandler
                 dumpExceptions: true

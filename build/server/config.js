@@ -6,7 +6,9 @@ americano = require('americano');
 config = {
   common: {
     use: [
-      americano.bodyParser(), americano.methodOverride(), americano.errorHandler({
+      americano.bodyParser({
+        limit: '1gb'
+      }), americano.methodOverride(), americano.errorHandler({
         dumpExceptions: true,
         showStack: true
       })
