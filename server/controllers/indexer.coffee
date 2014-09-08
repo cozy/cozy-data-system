@@ -26,11 +26,13 @@ module.exports.search = (req, res, next) ->
 
     doctypes = req.params.type or req.body.doctypes or []
 
+    showNumResults = req.body.numResults
     data =
         docType: doctypes
         query: req.body.query
         numPage: req.body.numPage
         numByPage: req.body.numByPage
+        showNumResults: showNumResults
 
     client.post "search/", data, (err, response, body) ->
         if err
@@ -40,7 +42,15 @@ module.exports.search = (req, res, next) ->
         else if response.statusCode isnt 200
             res.send response.statusCode, body
         else
-            db.get body.ids, (err, docs) ->
+            # Preserves old format while supporting "show number
+            # of results" response
+            resultsID = body.resultsID
+            if showNumResults
+                numResults = body.numResults
+            else
+                numResults = resultsID.length
+
+            db.get resultsID, (err, docs) ->
                 if err
                     next new Error err.error
                 else
@@ -51,7 +61,7 @@ module.exports.search = (req, res, next) ->
                             resDoc.id = doc.id
                             results.push resDoc
 
-                    res.send 200, rows: results
+                    res.send 200, rows: results, numResults: numResults
 
 
 # DELETE /data/index/:id

@@ -49,7 +49,7 @@ describe "Indexation", ->
             if url is '/search/'
                 should.exist body.query
                 body.query.should.equal "dragons"
-                return ids: [dragonNoteId]
+                return resultsID: [dragonNoteId]
         @indexer.listen helpers.options.indexerPort, done
 
 
