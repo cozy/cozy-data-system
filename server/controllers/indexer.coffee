@@ -50,15 +50,8 @@ module.exports.search = (req, res, next) ->
         else if response.statusCode isnt 200
             res.send response.statusCode, body
         else
-            # Preserves old format while supporting "show number
-            # of results" response
-            resultsID = body.resultsID
-            if showNumResults
-                numResults = body.numResults
-            else
-                numResults = resultsID.length
 
-            db.get resultsID, (err, docs) ->
+            db.get body.ids, (err, docs) ->
                 if err
                     next new Error err.error
                 else
@@ -69,7 +62,15 @@ module.exports.search = (req, res, next) ->
                             resDoc.id = doc.id
                             results.push resDoc
 
-                    res.send 200, rows: results, numResults: numResults
+
+                    resultObject = rows: results
+
+                    # Preserves old format while supporting "show number
+                    # of results" response
+                    if showNumResults
+                        resultObject.numResults = body.numResults
+
+                    res.send 200, resultObject
 
 
 # DELETE /data/index/:id
