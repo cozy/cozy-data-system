@@ -50,7 +50,11 @@ module.exports.send = (req, res, next) ->
             html: body.html or undefined
 
         if body.attachments?
-            mailOptions.attachments = body.attachments
+            mailOptions.attachments = body.attachments.map (attachment) ->
+                newAttach =
+                    filename: attachment.filename
+                    contents: new Buffer attachment.content.split(",")[1], 'base64'
+
         sendEmail mailOptions, (error, response) ->
             if error
                 logger.info "[sendMail] Error : " + error
