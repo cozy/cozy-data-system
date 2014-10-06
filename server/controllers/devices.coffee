@@ -60,8 +60,8 @@ module.exports.create = (req, res, next) ->
             "Folder": "all"
     # Check if an other device hasn't the same name
     db.view 'device/byLogin', key: device.login, (err, response) ->
-        if err?
-            next new Error err
+        if err
+            next err
         else if response.length isnt 0
             err = new Error "This name is already used"
             err.status = 400

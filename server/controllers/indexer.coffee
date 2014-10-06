@@ -9,9 +9,17 @@ db = require('../helpers/db_connect_helper').db_connect()
 # Index given fields of document matching id.
 module.exports.index = (req, res, next) ->
     req.doc.id = req.doc._id
+
+    # if the app has sent mapped values, we replace the actual values
+    # by the mapped ones
+    if req.body.mappedValues?
+        for field, mappedValue of req.body.mappedValues
+            req.doc[field] = mappedValue
     data =
         doc: req.doc
         fields: req.body.fields
+        fieldsType: req.body.fieldsType
+
     client.post "index/", data, (err, response, body) ->
         if err or response.statusCode isnt 200
             next new Error err
@@ -23,9 +31,16 @@ module.exports.index = (req, res, next) ->
 # POST /data/search/
 # Returns documents matching given text query
 module.exports.search = (req, res, next) ->
+
+    doctypes = req.params.type or req.body.doctypes or []
+
+    showNumResults = req.body.showNumResults
     data =
-        docType: req.params.type
+        docType: doctypes
         query: req.body.query
+        numPage: req.body.numPage
+        numByPage: req.body.numByPage
+        showNumResults: showNumResults
 
     client.post "search/", data, (err, response, body) ->
         if err
@@ -35,6 +50,7 @@ module.exports.search = (req, res, next) ->
         else if response.statusCode isnt 200
             res.send response.statusCode, body
         else
+
             db.get body.ids, (err, docs) ->
                 if err
                     next new Error err.error
@@ -46,7 +62,15 @@ module.exports.search = (req, res, next) ->
                             resDoc.id = doc.id
                             results.push resDoc
 
-                    res.send 200, rows: results
+
+                    resultObject = rows: results
+
+                    # Preserves old format while supporting "show number
+                    # of results" response
+                    if showNumResults
+                        resultObject.numResults = body.numResults
+
+                    res.send 200, resultObject
 
 
 # DELETE /data/index/:id

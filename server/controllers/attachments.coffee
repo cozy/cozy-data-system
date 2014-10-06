@@ -1,4 +1,5 @@
 fs = require "fs"
+querystring = require "querystring"
 multiparty = require 'multiparty'
 log =  require('printit')
     date: true
@@ -47,7 +48,7 @@ module.exports.add = (req, res, next) ->
                 name = part.filename
 
             fileData =
-                name: name
+                name: querystring.escape name
                 "content-type": part.headers['content-type']
 
             log.info "attachment #{name} ready for storage"
@@ -94,6 +95,7 @@ module.exports.get = (req, res, next) ->
             err.status = 404
             next err
         else if err
+            console.log err
             next new Error err.error
         else
             if req.headers['range']?
@@ -106,7 +108,6 @@ module.exports.get = (req, res, next) ->
             res.setHeader 'Content-Type', type
 
             stream.pipe res
-
 
 
 # DELETE /data/:id/attachments/:name

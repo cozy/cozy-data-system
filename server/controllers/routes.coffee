@@ -146,6 +146,12 @@ module.exports =
     ]
 
     # Indexer management
+    'data/index/clear-all/':
+        'delete': [
+            utils.checkPermissionsFactory('all')
+            indexer.removeAll
+        ]
+
     'data/index/:id':
         post: [
             utils.lockRequest
@@ -154,7 +160,7 @@ module.exports =
             indexer.index
             utils.unlockRequest
         ]
-        delete: [
+        'delete': [
             utils.lockRequest
             utils.getDoc
             utils.checkPermissionsByDoc
@@ -162,10 +168,7 @@ module.exports =
             utils.unlockRequest
         ]
     'data/search/:type': post: [utils.checkPermissionsByType, indexer.search]
-    'data/index/clear-all/': delete: [
-        utils.checkPermissionsFactory('all')
-        indexer.removeAll
-    ]
+    'data/search/': post: [utils.checkPermissionsFactory('all'), indexer.search]
 
     # Mail management
     'mail/': post: [utils.checkPermissionsFactory('send mail'), mails.send]
