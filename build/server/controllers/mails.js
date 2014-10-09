@@ -128,34 +128,26 @@ module.exports.sendFromUser = function(req, res, next) {
   } else {
     domain = "cozycloud.cc";
     return db.view('cozyinstance/all', function(err, instance) {
-      var _ref;
+      var mailOptions, _ref;
       if ((instance != null ? (_ref = instance[0]) != null ? _ref.value.domain : void 0 : void 0) != null) {
         domain = instance[0].value.domain;
       }
-      return user.getUser(function(err, user) {
-        var mailOptions;
-        if (err) {
-          logger.info("[sendMailFromUser] err: " + err);
-          return next(new Error(err));
+      mailOptions = {
+        to: body.to,
+        from: "noreply@" + domain,
+        subject: body.subject,
+        text: body.content,
+        html: body.html || void 0
+      };
+      if (body.attachments != null) {
+        mailOptions.attachments = body.attachments;
+      }
+      return sendEmail(mailOptions, function(error, response) {
+        if (error) {
+          logger.info("[sendMail] Error : " + error);
+          return next(new Error(error));
         } else {
-          mailOptions = {
-            to: body.to,
-            from: "noreply@" + domain,
-            subject: body.subject,
-            text: body.content,
-            html: body.html || void 0
-          };
-          if (body.attachments != null) {
-            mailOptions.attachments = body.attachments;
-          }
-          return sendEmail(mailOptions, function(error, response) {
-            if (error) {
-              logger.info("[sendMail] Error : " + error);
-              return next(new Error(error));
-            } else {
-              return res.send(200, response);
-            }
-          });
+          return res.send(200, response);
         }
       });
     });

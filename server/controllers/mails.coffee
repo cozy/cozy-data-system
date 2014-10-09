@@ -108,22 +108,17 @@ module.exports.sendFromUser = (req, res, next) ->
         db.view 'cozyinstance/all', (err, instance) ->
             if instance?[0]?.value.domain?
                 domain = instance[0].value.domain
-            user.getUser (err, user) ->
-                if err
-                    logger.info "[sendMailFromUser] err: #{err}"
-                    next new Error err
+            mailOptions =
+                to: body.to
+                from: "noreply@#{domain}"
+                subject: body.subject
+                text: body.content
+                html: body.html or undefined
+            if body.attachments?
+                mailOptions.attachments = body.attachments
+            sendEmail mailOptions, (error, response) ->
+                if error
+                    logger.info "[sendMail] Error : " + error
+                    next new Error error
                 else
-                    mailOptions =
-                        to: body.to
-                        from: "noreply@#{domain}"
-                        subject: body.subject
-                        text: body.content
-                        html: body.html or undefined
-                    if body.attachments?
-                        mailOptions.attachments = body.attachments
-                    sendEmail mailOptions, (error, response) ->
-                        if error
-                            logger.info "[sendMail] Error : " + error
-                            next new Error error
-                        else
-                            res.send 200, response
+                    res.send 200, response
