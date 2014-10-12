@@ -5,16 +5,11 @@ db = require('../helpers/db_connect_helper').db_connect()
 # Prepare the deletion doc. It's required to make couch raised the required
 # events.
 getDeletedDoc = (doc) ->
-    deletedDoc =
-        "_id": doc._id
-        "_rev": doc._rev
-        "_deleted": true
-    if doc.docType?
-        deletedDoc.docType = doc.docType
-    if doc.binary?
-        deletedDoc.binary = doc.binary
-
-    deletedDoc
+    _id: doc._id
+    _rev: doc._rev
+    _deleted: true
+    docType: doc.docType
+    binary: doc.binary
 
 
 # Remove givend document.

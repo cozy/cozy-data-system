@@ -4,19 +4,13 @@ var db, getDeletedDoc;
 db = require('../helpers/db_connect_helper').db_connect();
 
 getDeletedDoc = function(doc) {
-  var deletedDoc;
-  deletedDoc = {
-    "_id": doc._id,
-    "_rev": doc._rev,
-    "_deleted": true
+  return {
+    _id: doc._id,
+    _rev: doc._rev,
+    _deleted: true,
+    docType: doc.docType,
+    binary: doc.binary
   };
-  if (doc.docType != null) {
-    deletedDoc.docType = doc.docType;
-  }
-  if (doc.binary != null) {
-    deletedDoc.binary = doc.binary;
-  }
-  return deletedDoc;
 };
 
 exports.remove = (function(_this) {
