@@ -5,6 +5,9 @@ request = require '../lib/request'
 encryption = require '../lib/encryption'
 dbHelper = require '../lib/db_remove_helper'
 
+log = require('printit')
+    prefix: 'requests'
+
 ## Actions
 
 # GET /doctypes
@@ -71,15 +74,26 @@ module.exports.results = (req, res, next) ->
 module.exports.removeResults = (req, res, next) ->
 
     options = JSON.parse JSON.stringify req.body
-    options.limit = 100
+    #options.limit = 100
     viewName = null
 
     delFunc = ->
         db.view viewName, options, (err, docs) ->
             if err?
-                err = new Error "Request #{path} was not found"
-                err.status = 404
-                next err
+                if err.error is "not_found"
+                    err = new Error "Request #{viewName} was not found"
+                    err.status = 404
+                    next err
+                else
+                    log.error "Deletion by request failed for #{viewName}"
+                    log.error err
+                    # The fact that no docs with the proper key exsits raised
+                    # an error. But that's what we are seeking for: removing
+                    # all docs. That's why we ignore the error.
+                    if options.startkey?
+                        res.send 204, success: true
+                    else
+                        next new Error "#{err.error} #{err.reason}"
             else
                 if docs.length > 0
                     # Put a timeout to give some breath because each doc
