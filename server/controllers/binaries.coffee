@@ -42,7 +42,6 @@ module.exports.add = (req, res, next) ->
             part.on 'data', (buffer) ->
                 fields[part.name] = buffer.toString()
             part.resume()
-
         # It's a file, we pipe it directly to Couch to avoid too much memory
         # consumption.
         # The 'file' event from the multiparty form stores automatically

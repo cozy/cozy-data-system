@@ -79,8 +79,8 @@ module.exports.create = function(req, res, next) {
   return db.view('device/byLogin', {
     key: device.login
   }, function(err, response) {
-    if (err != null) {
-      return next(new Error(err));
+    if (err) {
+      return next(err);
     } else if (response.length !== 0) {
       err = new Error("This name is already used");
       err.status = 400;
