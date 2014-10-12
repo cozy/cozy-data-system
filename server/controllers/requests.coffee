@@ -74,7 +74,7 @@ module.exports.results = (req, res, next) ->
 module.exports.removeResults = (req, res, next) ->
 
     options = JSON.parse JSON.stringify req.body
-    #options.limit = 100
+    options.limit = 100
     viewName = null
 
     delFunc = ->
