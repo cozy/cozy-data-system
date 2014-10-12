@@ -81,42 +81,33 @@ module.exports.results = function(req, res, next) {
 };
 
 module.exports.removeResults = function(req, res, next) {
-  var delFunc, removeAllDocs, removeFunc;
-  removeFunc = function(doc, callback) {
-    return dbHelper.remove(doc.value, callback);
-  };
-  removeAllDocs = function(docs) {
-    return async.forEachSeries(docs, removeFunc, function(err) {
+  var delFunc, options, viewName;
+  options = JSON.parse(JSON.stringify(req.body));
+  options.limit = 100;
+  viewName = null;
+  delFunc = function() {
+    return db.view(viewName, options, function(err, docs) {
       if (err != null) {
-        return next(new Error(err));
+        err = new Error("Request " + path + " was not found");
+        err.status = 404;
+        return next(err);
       } else {
-        return delFunc();
+        if (docs.length > 0) {
+          return dbHelper.removeAll(docs, function() {
+            return setTimeout(delFunc, 500);
+          });
+        } else {
+          return res.send(204, {
+            success: true
+          });
+        }
       }
     });
   };
-  delFunc = function() {
-    var query;
-    query = JSON.parse(JSON.stringify(req.body));
-    return request.get(req.appName, req.params, function(path) {
-      path = ("" + req.params.type + "/") + path;
-      return db.view(path, query, function(err, docs) {
-        if (err != null) {
-          err = new Error("not found");
-          err.status = 404;
-          return next(err);
-        } else {
-          if (docs.length > 0) {
-            return removeAllDocs(docs);
-          } else {
-            return res.send(204, {
-              success: true
-            });
-          }
-        }
-      });
-    });
-  };
-  return delFunc();
+  return request.get(req.appName, req.params, function(path) {
+    viewName = "" + req.params.type + "/" + path;
+    return delFunc();
+  });
 };
 
 module.exports.definition = function(req, res, next) {

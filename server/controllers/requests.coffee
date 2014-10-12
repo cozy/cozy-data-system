@@ -69,33 +69,30 @@ module.exports.results = (req, res, next) ->
 
 # PUT /request/:type/:req_name/destroy/
 module.exports.removeResults = (req, res, next) ->
-    removeFunc = (doc, callback) ->
-        dbHelper.remove doc.value, callback
 
-    removeAllDocs = (docs) ->
-        async.forEachSeries docs, removeFunc, (err) ->
-            if err?
-                next new Error err
-            else
-                delFunc()
+    options = JSON.parse JSON.stringify req.body
+    options.limit = 100
+    viewName = null
 
     delFunc = ->
-        # db.view seems to alter the options object
-        # cloning the object before each query prevents that
-        query = JSON.parse JSON.stringify req.body
-        request.get req.appName, req.params, (path) ->
-            path = "#{req.params.type}/" + path
-            db.view path, query, (err, docs) ->
-                if err?
-                    err = new Error "not found"
-                    err.status = 404
-                    next err
+        db.view viewName, options, (err, docs) ->
+            if err?
+                err = new Error "Request #{path} was not found"
+                err.status = 404
+                next err
+            else
+                if docs.length > 0
+                    # Put a timeout to give some breath because each doc
+                    # deletion raises an event.
+                    dbHelper.removeAll docs, ->
+                        setTimeout delFunc, 500
                 else
-                    if docs.length > 0
-                        removeAllDocs docs
-                    else
-                        res.send 204, success: true
-    delFunc()
+                    res.send 204, success: true
+
+    request.get req.appName, req.params, (path) ->
+        viewName = "#{req.params.type}/#{path}"
+        delFunc()
+
 
 # PUT /request/:type/:req_name/
 module.exports.definition = (req, res, next) ->
