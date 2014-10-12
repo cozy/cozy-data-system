@@ -87,6 +87,7 @@ module.exports.results = function(req, res, next) {
 module.exports.removeResults = function(req, res, next) {
   var delFunc, options, viewName;
   options = JSON.parse(JSON.stringify(req.body));
+  options.limit = 100;
   viewName = null;
   delFunc = function() {
     return db.view(viewName, options, function(err, docs) {
