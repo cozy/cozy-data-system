@@ -42,17 +42,17 @@ module.exports.getDoc = (req, res, next) ->
 
 # For arbitrary stuff like "send mail to user"
 module.exports.checkPermissionsFactory = (permission) -> (req, res, next) ->
-    checkPermissions permission, req.header('authorization'), next
+    checkPermissions req, permission, next
 
 # Get the permission from a retrieved document.
 # Required to be processed after "get doc"
 module.exports.checkPermissionsByDoc = (req, res, next) ->
-    checkPermissions req.doc.docType, req.header('authorization'), next
+    checkPermissions req, req.doc.docType, next
 
 # Get the permission from the request's body
 module.exports.checkPermissionsByBody = (req, res, next) ->
-    checkPermissions req.body.docType, req.header('authorization'), next
+    checkPermissions req, req.body.docType, next
 
 # Get the permission from the request's params
 module.exports.checkPermissionsByType = (req, res, next) ->
-    checkPermissions req.params.type, req.header('authorization'), next
+    checkPermissions req, req.params.type, next
