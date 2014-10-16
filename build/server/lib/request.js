@@ -38,10 +38,10 @@ module.exports.create = (function(_this) {
             if (err != null) {
               console.log("[Definition] err: " + err.message);
             }
-            return storeRam(req.req_name(callback));
+            return storeRam(req.req_name, callback);
           });
         } else {
-          return storeRam(req.req_name(callback));
+          return storeRam(req.req_name, callback);
         }
       }
     } else {
