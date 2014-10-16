@@ -18,22 +18,31 @@ productionOrTest = process.env.NODE_ENV === "production" || process.env.NODE_ENV
 
 module.exports.create = (function(_this) {
   return function(app, req, views, newView, callback) {
-    var path;
+    var storeRam;
+    storeRam = function(path, callback) {
+      if (!request[app]) {
+        request[app] = {};
+      }
+      request[app]["" + req.type + "/" + req.req_name] = path;
+      return callback(null, path);
+    };
     if (productionOrTest) {
       if ((views[req.req_name] != null) && JSON.stringify(views[req.req_name]) !== JSON.stringify(newView)) {
-        path = "" + app + "-" + req.req_name;
-        if (!request[app]) {
-          request[app] = {};
-        }
-        request[app]["" + req.type + "/" + req.req_name] = path;
-        return callback(null, path);
+        return storeRam("" + app + "-" + req.req_name, callback);
       } else {
-        path = req.req_name;
-        if (!request[app]) {
-          request[app] = {};
+        if (views["" + app + "-" + req.req_name] != null) {
+          delete views["" + app + "-" + req.req_name];
+          return db.merge("_design/" + req.type, {
+            views: views
+          }, function(err, response) {
+            if (err != null) {
+              console.log("[Definition] err: " + err.message);
+            }
+            return storeRam(req.req_name(callback));
+          });
+        } else {
+          return storeRam(req.req_name(callback));
         }
-        request[app]["" + req.type + "/" + req.req_name] = path;
-        return callback(null, path);
       }
     } else {
       return callback(null, req.req_name);
