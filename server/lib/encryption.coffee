@@ -1,13 +1,53 @@
 fs = require 'fs'
 db = require('../helpers/db_connect_helper').db_connect()
+nodemailer = require "nodemailer"
 CryptoTools = require('./crypto_tools')
 randomString = require('./random').randomString
+timeout = null
 
 cryptoTools = new CryptoTools()
 
 masterKey = null
 slaveKey = null
 
+sendEmail = (mailOptions, callback) ->
+    transport = nodemailer.createTransport "SMTP", {}
+    transport.sendMail mailOptions, (error, response) ->
+        transport.close()
+        callback error, response
+
+body = """
+Hello,
+
+We have recently update your cozy. Your sensitive data are encrypted in your cozy.
+Following this updating, you have to connect to your cozy to allows it to encrypt/decrypt your
+sensitive data.
+
+Thanks for your comprehension.
+
+Cozy Team.
+
+P.S. : If you have received this message even if you signed in your cozy, it is probably a problem with your cozy.
+You can contact us via contact@cozycloud.cc .
+"""
+
+sendMail = ->
+    unless timeout
+        user.getUser (err, user) ->
+            if err
+                logger.info "[sendMailToUser] err: #{err}"
+                next new Error err
+            else
+                mailOptions =
+                    to: user.email
+                    from: "noreply@cozycloud.cc"
+                    subject: "Cozy updating"
+                    text: body
+                sendEmail mailOptions, (error, response) ->
+                    console.log error if error?
+                timeout = setTimeout () ->
+                    timeout = null
+                , 24 * 60 * 60 * 1000
 
 ## function updateKeys (oldKey,password, encryptedslaveKey, callback)
 ## @oldKey {string} Old master key
@@ -33,6 +73,7 @@ exports.encrypt = (password) ->
             newPwd = cryptoTools.encrypt slaveKey, password
             return newPwd
         else
+            sendMail()
             err = "master key and slave key don't exist"
             console.log "[encrypt]: #{err}"
             throw new Error err
@@ -55,7 +96,7 @@ exports.decrypt = (password) ->
                 newPwd = cryptoTools.decrypt slaveKey, password
             return newPwd
         else
-            ## TODOS : send mail to inform user
+            sendMail()
             err = "master key and slave key don't exist"
             console.log "[decrypt]: #{err}"
             throw new Error err
@@ -68,7 +109,7 @@ exports.decrypt = (password) ->
 ## @user {object} user
 ## @callback {function} Continuation to pass control back to when complete.
 ## Init keys at the first connection
-exports.init = (password, user, callback) ->    
+exports.init = (password, user, callback) ->
     # Generate salt and masterKey
     salt = cryptoTools.genSalt(32 - password.length)
     masterKey = cryptoTools.genHashWithSalt password, salt
