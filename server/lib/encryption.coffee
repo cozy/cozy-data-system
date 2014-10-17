@@ -5,6 +5,9 @@ CryptoTools = require('./crypto_tools')
 randomString = require('./random').randomString
 timeout = null
 
+User = require './user'
+user = new User()
+
 cryptoTools = new CryptoTools()
 
 masterKey = null
@@ -32,7 +35,7 @@ You can contact us via contact@cozycloud.cc .
 """
 
 sendMail = ->
-    unless timeout
+    unless timeout is null
         user.getUser (err, user) ->
             if err
                 logger.info "[sendMailToUser] err: #{err}"
