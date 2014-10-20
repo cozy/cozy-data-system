@@ -19,8 +19,8 @@ module.exports.deleteFiles = function(files) {
   }
 };
 
-module.exports.checkPermissions = function(permission, auth, next) {
-  return checkDocType(auth, permission, function(err, appName, isAuthorized) {
+module.exports.checkPermissions = function(req, permission, next) {
+  return checkDocType(req.header('authorization'), permission, function(err, appName, isAuthorized) {
     if (!appName) {
       err = new Error("Application is not authenticated");
       err.status = 401;
@@ -31,6 +31,7 @@ module.exports.checkPermissions = function(permission, auth, next) {
       return next(err);
     } else {
       feed.publish('usage.application', appName);
+      req.appName = appName;
       return next();
     }
   });

@@ -17,22 +17,32 @@ productionOrTest = process.env.NODE_ENV is "production" or
 ## @views {Object} contains all existing view for this type
 ## @newView {Object} contains function map/reduce of new view
 ## @callback {function} Continuation to pass control back to when complete.
-## Store new request name in case of conflict
-## Callback new request name
+## Store new view with name <app>-request name in case of conflict
+## Callback view name (req.req_name or name-req.req_name)
 module.exports.create = (app, req, views, newView, callback) =>
+    storeRam = (path) =>
+        request[app] ?= {}
+        request[app]["#{req.type}/#{req.req_name}"] = path
+        callback null, path
+
     if productionOrTest
+        # If classic view already exists and view is different :
+        # store in app-req.req_name
         if views[req.req_name]? and
                 JSON.stringify(views[req.req_name]) isnt JSON.stringify(newView)
-            path = "#{app}-#{req.req_name}"
-            # store in RAM
-            request[app] = {} if not request[app]
-            request[app]["#{req.type}/#{req.req_name}"] = path
-            callback null, path
+            storeRam "#{app}-#{req.req_name}"
         else
-            path = req.req_name
-            request[app] = {} if not request[app]
-            request[app]["#{req.type}/#{req.req_name}"] = path
-            callback null, path
+            # Else store view in classic path (req.req_name)
+            if views["#{app}-#{req.req_name}"]?
+                # If views app-req.req_name exists, remove it.
+                delete views["#{app}-#{req.req_name}"]
+                db.merge "_design/#{req.type}", views: views, \
+                (err, response) ->
+                    if err?
+                        console.log "[Definition] err: " + err.message
+                    storeRam req.req_name
+            else
+                storeRam req.req_name
     else
         callback null, req.req_name
 
