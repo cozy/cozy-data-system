@@ -19,8 +19,8 @@ productionOrTest = process.env.NODE_ENV === "production" || process.env.NODE_ENV
 module.exports.create = (function(_this) {
   return function(app, req, views, newView, callback) {
     var storeRam;
-    storeRam = function(path, callback) {
-      if (!request[app]) {
+    storeRam = function(path) {
+      if (request[app] == null) {
         request[app] = {};
       }
       request[app]["" + req.type + "/" + req.req_name] = path;
@@ -28,7 +28,7 @@ module.exports.create = (function(_this) {
     };
     if (productionOrTest) {
       if ((views[req.req_name] != null) && JSON.stringify(views[req.req_name]) !== JSON.stringify(newView)) {
-        return storeRam("" + app + "-" + req.req_name, callback);
+        return storeRam("" + app + "-" + req.req_name);
       } else {
         if (views["" + app + "-" + req.req_name] != null) {
           delete views["" + app + "-" + req.req_name];
@@ -38,10 +38,10 @@ module.exports.create = (function(_this) {
             if (err != null) {
               console.log("[Definition] err: " + err.message);
             }
-            return storeRam(req.req_name, callback);
+            return storeRam(req.req_name);
           });
         } else {
-          return storeRam(req.req_name, callback);
+          return storeRam(req.req_name);
         }
       }
     } else {

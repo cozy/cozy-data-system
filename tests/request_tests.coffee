@@ -149,7 +149,7 @@ describe "Request handling tests", ->
         describe "Creation of a clonfict view", ->
             before cleanRequest
 
-            it "When I send a request to create view even_num", (done) ->
+            it "When I send a request which conflict with view even_num", (done) ->
                 map = (doc) ->
                     emit doc._id, doc if (doc.num? && (doc.num % 2) is 0)
                     return
@@ -162,7 +162,7 @@ describe "Request handling tests", ->
                     response.statusCode.should.equal 200
                     done()
 
-            it "Then the design document should exist and contain the views", \
+            it "Then the design document should exist and contain the views (add conflict view)", \
                     (done) ->
                 db.get '_design/all', (err, res) ->
                     should.not.exist err
@@ -172,10 +172,10 @@ describe "Request handling tests", ->
                     res.views.should.have.property 'test2-even_num', @viewEven
                     done()
 
-        describe "Update clonfict view in main view", ->
+        describe "Update clonfict view with the same function than main view", ->
             before cleanRequest
 
-            it "When I send a request to create view even_num", (done) ->
+            it "When I send a request to update conflict view", (done) ->
                 map = (doc) ->
                     emit doc.num, doc if (doc.num? && (doc.num % 2) is 0)
                     return
@@ -186,7 +186,7 @@ describe "Request handling tests", ->
                     response.statusCode.should.equal 200
                     done()
 
-            it "Then the design document should exist and contain the views", \
+            it "Then the design document should exist and contain the views (remove conflict view)", \
                     (done) ->
                 db.get '_design/all', (err, res) ->
                     should.not.exist err
