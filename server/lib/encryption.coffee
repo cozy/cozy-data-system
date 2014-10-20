@@ -35,7 +35,7 @@ You can contact us via contact@cozycloud.cc .
 """
 
 sendMail = ->
-    unless timeout is null
+    if timeout is null
         user.getUser (err, user) ->
             if err
                 logger.info "[sendMailToUser] err: #{err}"
