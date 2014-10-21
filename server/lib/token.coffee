@@ -118,6 +118,7 @@ initHomeProxy = (callback) ->
         "user": "authorized"
         "device": "authorized"
         "alarm": "authorized"
+        "event": "authorized"
         "userpreference": "authorized"
         "cozyinstance": "authorized"
         "encryptedkeys": "authorized"
