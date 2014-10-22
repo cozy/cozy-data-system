@@ -107,15 +107,21 @@ module.exports.init = (callback) =>
     if productionOrTest
         recoverApp (apps) =>
             recoverDesignDocs (docs) =>
-                for app in apps
-                    for doc in docs
-                        for view, body of doc.views
-                            # Search if view start with application name
-                            if view.indexOf(app + '-') is 0
-                                type = doc._id.substr 8, doc._id.length-1
-                                req_name = view.split('-')[1]
-                                request[app] = {} if not request[app]
-                                request[app]["#{type}/#{req_name}"] = view
+                for doc in docs
+                    for view, body of doc.views
+                        # Search if view start with application name
+                        if view.indexOf('-') isnt -1 and view.split('-')[0] in apps
+                            app = view.split('-')[0]
+                            type = doc._id.substr 8, doc._id.length-1
+                            req_name = view.split('-')[1]
+                            request[app] = {} if not request[app]
+                            request[app]["#{type}/#{req_name}"] = view
+                        if view.indexOf('undefined-') is 0
+                            delete doc.views[view]
+                            db.merge doc._id, views: doc.views, \
+                            (err, response) ->
+                                if err?
+                                    console.log "[Definition] err: " + err.message
                 callback null
     else
         callback null
