@@ -114,7 +114,7 @@ module.exports.init = (function(_this) {
     if (productionOrTest) {
       return recoverApp(function(apps) {
         return recoverDesignDocs(function(docs) {
-          var app, body, doc, req_name, type, view, _i, _len, _ref, _ref1;
+          var app, body, doc, req_name, type, view, _i, _len, _ref, _ref1, _ref2;
           for (_i = 0, _len = docs.length; _i < _len; _i++) {
             doc = docs[_i];
             _ref = doc.views;
@@ -129,7 +129,7 @@ module.exports.init = (function(_this) {
                 }
                 request[app]["" + type + "/" + req_name] = view;
               }
-              if (view.indexOf('undefined-') === 0) {
+              if (view.indexOf('undefined-') === 0 || (view.indexOf('-') !== -1 && !(_ref2 = view.split('-')[0], __indexOf.call(apps, _ref2) >= 0))) {
                 delete doc.views[view];
                 db.merge(doc._id, {
                   views: doc.views
