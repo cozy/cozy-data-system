@@ -122,6 +122,7 @@ initHomeProxy = (callback) ->
         "userpreference": "authorized"
         "cozyinstance": "authorized"
         "encryptedkeys": "authorized"
+        "stackapplication": "authorized"
         "send mail to user": "authorized"
     # Add proxy token and permissions
     tokens['proxy'] = token
