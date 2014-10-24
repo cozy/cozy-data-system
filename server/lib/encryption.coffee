@@ -19,38 +19,59 @@ sendEmail = (mailOptions, callback) ->
         transport.close()
         callback error, response
 
-body = """
-Hello,
+getBody = (domain) ->
+    body =  """
+        Hello,
 
-We have recently update your cozy. Your sensitive data are encrypted in your cozy.
-Following this updating, you have to connect to your cozy to allows it to encrypt/decrypt your
-sensitive data.
+        Your Cozy has been recently restarted. For security reasons, a restart disables 
+        its ability to encrypt and decrypt your sensitive data (like your banking account credentials). 
+        As a result, some applications may not be working properly anymore.
 
-Thanks for your comprehension.
+        All you need to do is login once to re-enable encryption and decryption so your applications 
+        can securely use your data again. 
+        """
+    if domain?
+        body += "Click here to login #{domain}."
 
-Cozy Team.
+    body += """
 
-P.S. : If you have received this message even if you signed in your cozy, it is probably a problem with your cozy.
-You can contact us via contact@cozycloud.cc .
-"""
+        Cozy Team.
+
+        P.S.: if yo receive this message while your signed in into your Cozy, there is probably a problem? 
+        Let us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.
+
+        """
+    return body
+
 
 sendMail = ->
     if timeout is null
-        user.getUser (err, user) ->
-            if err
-                logger.info "[sendMailToUser] err: #{err}"
-                next new Error err
+        timeout = setTimeout () ->
+            if not (masterKey? and slaveKey?)
+                user.getUser (err, user) ->
+                    if err
+                        logger.info "[sendMailToUser] err: #{err}"
+                        next new Error err
+                    else
+                        db.view 'cozyinstance/all', (err, instance) ->
+                            if instance?[0]?.value.domain?
+                                domain = instance[0].value.domain
+                            else
+                                domain = false
+                            mailOptions =
+                                to: user.email
+                                from: "noreply@cozycloud.cc"
+                                subject: "Your Cozy has been restarted"
+                                text: getBody(domain)
+                            sendEmail mailOptions, (error, response) ->
+                                console.log error if error?
+                            timeout = setTimeout () ->
+                                timeout = null
+                            , 24 * 60 * 60 * 1000
             else
-                mailOptions =
-                    to: user.email
-                    from: "noreply@cozycloud.cc"
-                    subject: "Cozy updating"
-                    text: body
-                sendEmail mailOptions, (error, response) ->
-                    console.log error if error?
-                timeout = setTimeout () ->
-                    timeout = null
-                , 24 * 60 * 60 * 1000
+                timeout = null
+        , 5 * 60 * 1000
+
 
 ## function updateKeys (oldKey,password, encryptedslaveKey, callback)
 ## @oldKey {string} Old master key

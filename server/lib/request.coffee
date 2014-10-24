@@ -17,11 +17,11 @@ productionOrTest = process.env.NODE_ENV is "production" or
 ## @views {Object} contains all existing view for this type
 ## @newView {Object} contains function map/reduce of new view
 ## @callback {function} Continuation to pass control back to when complete.
-## Store new request name in case of conflict
-## Callback new request name
+## Store new view with name <app>-request name in case of conflict
+## Callback view name (req.req_name or name-req.req_name)
 module.exports.create = (app, req, views, newView, callback) =>
-    storeRam = (path, callback) =>
-        request[app] = {} if not request[app]
+    storeRam = (path) =>
+        request[app] ?= {}
         request[app]["#{req.type}/#{req.req_name}"] = path
         callback null, path
 
@@ -30,7 +30,7 @@ module.exports.create = (app, req, views, newView, callback) =>
         # store in app-req.req_name
         if views[req.req_name]? and
                 JSON.stringify(views[req.req_name]) isnt JSON.stringify(newView)
-            storeRam "#{app}-#{req.req_name}", callback
+            storeRam "#{app}-#{req.req_name}"
         else
             # Else store view in classic path (req.req_name)
             if views["#{app}-#{req.req_name}"]?
@@ -40,9 +40,9 @@ module.exports.create = (app, req, views, newView, callback) =>
                 (err, response) ->
                     if err?
                         console.log "[Definition] err: " + err.message
-                    storeRam req.req_name, callback
+                    storeRam req.req_name
             else
-                storeRam req.req_name, callback
+                storeRam req.req_name
     else
         callback null, req.req_name
 
@@ -107,15 +107,22 @@ module.exports.init = (callback) =>
     if productionOrTest
         recoverApp (apps) =>
             recoverDesignDocs (docs) =>
-                for app in apps
-                    for doc in docs
-                        for view, body of doc.views
-                            # Search if view start with application name
-                            if view.indexOf(app + '-') is 0
-                                type = doc._id.substr 8, doc._id.length-1
-                                req_name = view.split('-')[1]
-                                request[app] = {} if not request[app]
-                                request[app]["#{type}/#{req_name}"] = view
+                for doc in docs
+                    for view, body of doc.views
+                        # Search if view start with application name
+                        if view.indexOf('-') isnt -1 and view.split('-')[0] in apps
+                            app = view.split('-')[0]
+                            type = doc._id.substr 8, doc._id.length-1
+                            req_name = view.split('-')[1]
+                            request[app] = {} if not request[app]
+                            request[app]["#{type}/#{req_name}"] = view
+                        if view.indexOf('undefined-') is 0 or
+                            (view.indexOf('-') isnt -1 and not (view.split('-')[0] in apps))
+                                delete doc.views[view]
+                                db.merge doc._id, views: doc.views, \
+                                (err, response) ->
+                                    if err?
+                                        console.log "[Definition] err: " + err.message
                 callback null
     else
         callback null
