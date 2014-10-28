@@ -37,7 +37,7 @@ getBody = (domain) ->
 
         Cozy Team.
 
-        P.S.: if yo receive this message while your signed in into your Cozy, there is probably a problem? 
+        P-S: If you receive this message while your signed in into your Cozy, there is probably a problem ? 
         Let us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.
 
         """
@@ -67,10 +67,10 @@ sendMail = ->
                                 console.log error if error?
                             timeout = setTimeout () ->
                                 timeout = null
-                            , 24 * 60 * 60 * 1000
+                            , 3 * 24 * 60 * 60 * 1000
             else
                 timeout = null
-        , 5 * 60 * 1000
+        , 24 * 60 * 60 * 1000
 
 
 ## function updateKeys (oldKey,password, encryptedslaveKey, callback)

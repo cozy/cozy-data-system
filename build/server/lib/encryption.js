@@ -38,7 +38,7 @@ getBody = function(domain) {
   if (domain != null) {
     body += "Click here to login " + domain + ".";
   }
-  body += "\nCozy Team.\n\nP.S.: if yo receive this message while your signed in into your Cozy, there is probably a problem? \nLet us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.\n";
+  body += "\nCozy Team.\n\nP-S: If you receive this message while your signed in into your Cozy, there is probably a problem ? \nLet us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.\n";
   return body;
 };
 
@@ -71,14 +71,14 @@ sendMail = function() {
               });
               return timeout = setTimeout(function() {
                 return timeout = null;
-              }, 24 * 60 * 60 * 1000);
+              }, 3 * 24 * 60 * 60 * 1000);
             });
           }
         });
       } else {
         return timeout = null;
       }
-    }, 5 * 60 * 1000);
+    }, 24 * 60 * 60 * 1000);
   }
 };
 
