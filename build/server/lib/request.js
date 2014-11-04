@@ -28,10 +28,10 @@ module.exports.create = (function(_this) {
       return callback(null, path);
     };
     if (productionOrTest) {
-      if ((views[req.req_name] != null) && JSON.stringify(views[req.req_name]) !== JSON.stringify(newView)) {
+      if (((views != null ? views[req.req_name] : void 0) != null) && JSON.stringify(views[req.req_name]) !== JSON.stringify(newView)) {
         return storeRam("" + app + "-" + req.req_name);
       } else {
-        if (views["" + app + "-" + req.req_name] != null) {
+        if ((views != null ? views["" + app + "-" + req.req_name] : void 0) != null) {
           delete views["" + app + "-" + req.req_name];
           return db.merge("_design/" + req.type, {
             views: views
@@ -111,6 +111,16 @@ recoverDesignDocs = (function(_this) {
 
 module.exports.init = (function(_this) {
   return function(callback) {
+    var removeEmptyView;
+    removeEmptyView = function(doc) {
+      if (Object.keys(doc.views).length === 0 || ((doc != null ? doc.views : void 0) == null)) {
+        return db.remove(doc._id, doc._rev, function(err, response) {
+          if (err != null) {
+            return console.log("[Definition] err: " + err.message);
+          }
+        });
+      }
+    };
     if (productionOrTest) {
       return recoverApp(function(apps) {
         return recoverDesignDocs(function(docs) {
@@ -135,11 +145,13 @@ module.exports.init = (function(_this) {
                   views: doc.views
                 }, function(err, response) {
                   if (err != null) {
-                    return console.log("[Definition] err: " + err.message);
+                    console.log("[Definition] err: " + err.message);
                   }
+                  return removeEmptyView(doc);
                 });
               }
             }
+            removeEmptyView(doc);
           }
           return callback(null);
         });

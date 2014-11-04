@@ -28,12 +28,12 @@ module.exports.create = (app, req, views, newView, callback) =>
     if productionOrTest
         # If classic view already exists and view is different :
         # store in app-req.req_name
-        if views[req.req_name]? and
+        if views?[req.req_name]? and
                 JSON.stringify(views[req.req_name]) isnt JSON.stringify(newView)
             storeRam "#{app}-#{req.req_name}"
         else
             # Else store view in classic path (req.req_name)
-            if views["#{app}-#{req.req_name}"]?
+            if views?["#{app}-#{req.req_name}"]?
                 # If views app-req.req_name exists, remove it.
                 delete views["#{app}-#{req.req_name}"]
                 db.merge "_design/#{req.type}", views: views, \
@@ -104,6 +104,12 @@ recoverDesignDocs = (callback) =>
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize request
 module.exports.init = (callback) =>
+    removeEmptyView = (doc) ->
+        if Object.keys(doc.views).length is 0 or not doc?.views?
+            db.remove doc._id, doc._rev, (err, response) ->
+                if err?
+                    console.log "[Definition] err: " + err.message
+
     if productionOrTest
         recoverApp (apps) =>
             recoverDesignDocs (docs) =>
@@ -123,6 +129,8 @@ module.exports.init = (callback) =>
                                 (err, response) ->
                                     if err?
                                         console.log "[Definition] err: " + err.message
+                                    removeEmptyView(doc)
+                    removeEmptyView(doc)
                 callback null
     else
         callback null
