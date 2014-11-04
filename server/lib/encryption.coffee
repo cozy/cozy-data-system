@@ -3,6 +3,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 nodemailer = require "nodemailer"
 CryptoTools = require('./crypto_tools')
 randomString = require('./random').randomString
+logger = require('printit')()
 timeout = null
 
 User = require './user'
@@ -50,7 +51,9 @@ sendMail = ->
             if not (masterKey? and slaveKey?)
                 user.getUser (err, user) ->
                     if err
-                        logger.info "[sendMailToUser] err: #{err}"
+                        logger.error "[sendMailToUser] an error occured while" +
+                            " retrieving user data from database:"
+                        logger.raw err
                         next new Error err
                     else
                         db.view 'cozyinstance/all', (err, instance) ->
@@ -64,7 +67,7 @@ sendMail = ->
                                 subject: "Your Cozy has been restarted"
                                 text: getBody(domain)
                             sendEmail mailOptions, (error, response) ->
-                                console.log error if error?
+                                logger.error error if error?
                             timeout = setTimeout () ->
                                 timeout = null
                             , 3 * 24 * 60 * 60 * 1000
@@ -99,7 +102,7 @@ exports.encrypt = (password) ->
         else
             sendMail()
             err = "master key and slave key don't exist"
-            console.log "[encrypt]: #{err}"
+            logger.error "[encrypt]: #{err}"
             throw new Error err
     else
         return password
@@ -122,7 +125,7 @@ exports.decrypt = (password) ->
         else
             sendMail()
             err = "master key and slave key don't exist"
-            console.log "[decrypt]: #{err}"
+            logger.error "[decrypt]: #{err}"
             throw new Error err
     else
         return password
@@ -144,7 +147,7 @@ exports.init = (password, user, callback) ->
     data = salt: salt, slaveKey: encryptedSlaveKey
     db.merge user._id, data, (err, res) =>
         if err
-            console.log "[initializeKeys] err: #{err}"
+            logger.error "[initializeKeys] err: #{err}"
             callback err
         else
             callback null
@@ -174,19 +177,19 @@ exports.update = (password, user, callback) ->
     if masterKey? and slaveKey?
         if masterKey.length isnt 32
             err = "password to initialize keys is different than user password"
-            console.log "[update] : #{err}"
+            logger.error "[update] : #{err}"
             callback err
         else
             updateKeys masterKey, password, slaveKey, (data) =>
                 db.merge user._id, data, (err, res) =>
                     if err
-                        console.log "[update] : #{err}"
+                        logger.error "[update] : #{err}"
                         callback err
                     else
                         callback null
     else
         err = "masterKey and slaveKey don't exist"
-        console.log "[update] : #{err}"
+        logger.error "[update] : #{err}"
         callback 400
 
 
