@@ -1,12 +1,79 @@
 fs = require 'fs'
 db = require('../helpers/db_connect_helper').db_connect()
+nodemailer = require "nodemailer"
 CryptoTools = require('./crypto_tools')
 randomString = require('./random').randomString
+logger = require('printit')()
+timeout = null
+
+User = require './user'
+user = new User()
 
 cryptoTools = new CryptoTools()
 
 masterKey = null
 slaveKey = null
+
+sendEmail = (mailOptions, callback) ->
+    transport = nodemailer.createTransport "SMTP", {}
+    transport.sendMail mailOptions, (error, response) ->
+        transport.close()
+        callback error, response
+
+getBody = (domain) ->
+    body =  """
+        Hello,
+
+        Your Cozy has been recently restarted. For security reasons, a restart disables 
+        its ability to encrypt and decrypt your sensitive data (like your banking account credentials). 
+        As a result, some applications may not be working properly anymore.
+
+        All you need to do is login once to re-enable encryption and decryption so your applications 
+        can securely use your data again. 
+        """
+    if domain?
+        body += "Click here to login #{domain}."
+
+    body += """
+
+        Cozy Team.
+
+        P-S: If you receive this message while your signed in into your Cozy, there is probably a problem ? 
+        Let us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.
+
+        """
+    return body
+
+
+sendMail = ->
+    if timeout is null
+        timeout = setTimeout () ->
+            if not (masterKey? and slaveKey?)
+                user.getUser (err, user) ->
+                    if err
+                        logger.error "[sendMailToUser] an error occured while" +
+                            " retrieving user data from database:"
+                        logger.raw err
+                        next new Error err
+                    else
+                        db.view 'cozyinstance/all', (err, instance) ->
+                            if instance?[0]?.value.domain?
+                                domain = instance[0].value.domain
+                            else
+                                domain = false
+                            mailOptions =
+                                to: user.email
+                                from: "noreply@cozycloud.cc"
+                                subject: "Your Cozy has been restarted"
+                                text: getBody(domain)
+                            sendEmail mailOptions, (error, response) ->
+                                logger.error error if error?
+                            timeout = setTimeout () ->
+                                timeout = null
+                            , 3 * 24 * 60 * 60 * 1000
+            else
+                timeout = null
+        , 24 * 60 * 60 * 1000
 
 
 ## function updateKeys (oldKey,password, encryptedslaveKey, callback)
@@ -33,8 +100,9 @@ exports.encrypt = (password) ->
             newPwd = cryptoTools.encrypt slaveKey, password
             return newPwd
         else
+            sendMail()
             err = "master key and slave key don't exist"
-            console.log "[encrypt]: #{err}"
+            logger.error "[encrypt]: #{err}"
             throw new Error err
     else
         return password
@@ -55,9 +123,9 @@ exports.decrypt = (password) ->
                 newPwd = cryptoTools.decrypt slaveKey, password
             return newPwd
         else
-            ## TODOS : send mail to inform user
+            sendMail()
             err = "master key and slave key don't exist"
-            console.log "[decrypt]: #{err}"
+            logger.error "[decrypt]: #{err}"
             throw new Error err
     else
         return password
@@ -68,7 +136,7 @@ exports.decrypt = (password) ->
 ## @user {object} user
 ## @callback {function} Continuation to pass control back to when complete.
 ## Init keys at the first connection
-exports.init = (password, user, callback) ->    
+exports.init = (password, user, callback) ->
     # Generate salt and masterKey
     salt = cryptoTools.genSalt(32 - password.length)
     masterKey = cryptoTools.genHashWithSalt password, salt
@@ -79,7 +147,7 @@ exports.init = (password, user, callback) ->
     data = salt: salt, slaveKey: encryptedSlaveKey
     db.merge user._id, data, (err, res) =>
         if err
-            console.log "[initializeKeys] err: #{err}"
+            logger.error "[initializeKeys] err: #{err}"
             callback err
         else
             callback null
@@ -109,19 +177,19 @@ exports.update = (password, user, callback) ->
     if masterKey? and slaveKey?
         if masterKey.length isnt 32
             err = "password to initialize keys is different than user password"
-            console.log "[update] : #{err}"
+            logger.error "[update] : #{err}"
             callback err
         else
             updateKeys masterKey, password, slaveKey, (data) =>
                 db.merge user._id, data, (err, res) =>
                     if err
-                        console.log "[update] : #{err}"
+                        logger.error "[update] : #{err}"
                         callback err
                     else
                         callback null
     else
         err = "masterKey and slaveKey don't exist"
-        console.log "[update] : #{err}"
+        logger.error "[update] : #{err}"
         callback 400
 
 
