@@ -66,6 +66,9 @@ module.exports = {
     get: [utils.getDoc, utils.checkPermissionsByDoc, attachments.get],
     "delete": [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, attachments.remove, utils.unlockRequest]
   },
+  'data/:id/binaries/convert': {
+    get: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, binaries.convert, utils.unlockRequest]
+  },
   'data/:id/binaries/': {
     post: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, binaries.add, utils.unlockRequest]
   },

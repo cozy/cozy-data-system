@@ -114,6 +114,14 @@ module.exports =
             utils.unlockRequest
         ]
 
+    'data/:id/binaries/convert': get: [
+        utils.lockRequest
+        utils.getDoc
+        utils.checkPermissionsByDoc
+        binaries.convert
+        utils.unlockRequest
+    ]
+
     'data/:id/binaries/': post: [
         utils.lockRequest
         utils.getDoc

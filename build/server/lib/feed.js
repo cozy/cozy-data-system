@@ -123,26 +123,18 @@ module.exports = Feed = (function() {
             _this._publish("" + (doc.docType.toLowerCase()) + ".delete", change.id);
           }
           if (doc.binary != null) {
-            console.log("binary");
-            console.log(doc.binary);
             _ref2 = Object.keys(doc.binary);
             _results = [];
             for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
               name = _ref2[_i];
               file = doc.binary[name];
-              console.log("nmae : ");
-              console.log(name);
-              console.log("file : ");
-              console.log(file);
               binary = file.id;
               _results.push(_this.db.get(binary, function(err, doc) {
                 if (err) {
                   return;
                 }
-                console.log(doc);
                 if (doc) {
                   return _this.db.remove(doc._id, doc._rev, function(err, doc) {
-                    console.log(doc);
                     if (err == null) {
                       return _this._publish("binary.delete", doc.id);
                     }

@@ -103,3 +103,59 @@ describe "Binaries", ->
             @client.get 'data/321/', (err, res, body) =>
                 should.not.exist body.binary["test.png"]
                 done()
+
+    describe "Convert attachment to binary", ->
+        it "When I create a document with two attachments", (done) ->
+            db.save '321', value: "val", (err, res, body) =>
+                path = "data/321/attachments/"
+                file = "./tests/fixtures/test.png"
+                @client.sendFile path, file, (err, res, body) =>
+                    file = "./tests/fixtures/test-get.png"
+                    @client.sendFile path, file, (err, res, body) =>
+                        done()
+
+        it "And I convert document", (done) ->
+            @client.get 'data/321/binaries/convert', (err, res, body) ->
+                @err = err
+                done()
+
+        it "Then document should have only binary", (done) ->
+            @client.get 'data/321/', (err, res, doc) =>
+                should.exist doc.binaries
+                should.not.exist doc._attachment
+                should.exist doc.binaries['test.png']
+                should.exist doc.binaries['test-get.png']
+                @binary1 = doc.binaries['test.png'].id
+                @binary2 = doc.binaries['test-get.png'].id
+                done()
+
+        it "And add an application to access to binary", (done) ->
+            app =
+                "name": "test"
+                "slug": "test"
+                "state": "installed"
+                "password": "secret"
+                "permissions":
+                    "Binary":
+                        "description": "This application needs manage binary because ..."
+                "docType": "Application"
+            @client.post 'data/', app, (err, res, doc) =>
+                @client.setBasicAuth 'test', 'secret'
+                done()
+
+        it "And document wich contain first binary should exist", (done) ->
+            @client.setBasicAuth 'test', 'secret'
+            @client.get "data/#{@binary1}/", (err, res, doc) =>
+                should.exist doc._attachments
+                should.exist doc._attachments['test.png']
+                should.exist doc.docType
+                doc.docType.should.equal 'Binary'
+                done()
+
+        it "And document wich contain second binary should exist", (done) ->
+            @client.get "data/#{@binary2}/", (err, res, doc) ->
+                should.exist doc._attachments
+                should.exist doc._attachments['test-get.png']
+                should.exist doc.docType
+                doc.docType.should.equal 'Binary'
+                done()
