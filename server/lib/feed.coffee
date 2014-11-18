@@ -82,15 +82,18 @@ module.exports = class Feed
                     doc = doc[0].ok
                     # Publish deletion
                     @_publish "#{doc.docType.toLowerCase()}.delete", change.id
-                    # If document has a binary, remove the binary
-                    ## TODOS : Check if binary is not link with an other document
-                    if doc.binary?.file?.id?
-                        binary = doc.binary.file.id
+                # If document has a binary, remove the binary
+                ## TODOS : Check if binary is not link with an other document
+                if doc.binary?
+                    for name in Object.keys(doc.binary)
+                        file = doc.binary[name]
+                        binary = file.id
                         @db.get binary, (err, doc) =>
                             return if err
                             if doc
-                                @db.remove binary, binary._rev, (err, doc) =>
-                                    @_publish "binary.delete", binary
+                                @db.remove doc._id, doc._rev, (err, doc) =>
+                                    if not err?
+                                        @_publish "binary.delete", doc.id
         else
             isCreation = change.changes[0].rev.split('-')[0] is '1'
             operation = if isCreation then 'create' else 'update'

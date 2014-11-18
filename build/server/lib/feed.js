@@ -117,23 +117,40 @@ module.exports = Feed = (function() {
       dbName = process.env.DB_NAME || 'cozy';
       return client.get("/" + dbName + "/" + change.id + "?revs_info=true&open_revs=all", (function(_this) {
         return function(err, res, doc) {
-          var binary, _ref, _ref1, _ref2, _ref3;
+          var binary, file, name, _i, _len, _ref, _ref1, _ref2, _results;
           if ((doc != null ? (_ref = doc[0]) != null ? (_ref1 = _ref.ok) != null ? _ref1.docType : void 0 : void 0 : void 0) != null) {
             doc = doc[0].ok;
             _this._publish("" + (doc.docType.toLowerCase()) + ".delete", change.id);
-            if (((_ref2 = doc.binary) != null ? (_ref3 = _ref2.file) != null ? _ref3.id : void 0 : void 0) != null) {
-              binary = doc.binary.file.id;
-              return _this.db.get(binary, function(err, doc) {
+          }
+          if (doc.binary != null) {
+            console.log("binary");
+            console.log(doc.binary);
+            _ref2 = Object.keys(doc.binary);
+            _results = [];
+            for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+              name = _ref2[_i];
+              file = doc.binary[name];
+              console.log("nmae : ");
+              console.log(name);
+              console.log("file : ");
+              console.log(file);
+              binary = file.id;
+              _results.push(_this.db.get(binary, function(err, doc) {
                 if (err) {
                   return;
                 }
+                console.log(doc);
                 if (doc) {
-                  return _this.db.remove(binary, binary._rev, function(err, doc) {
-                    return _this._publish("binary.delete", binary);
+                  return _this.db.remove(doc._id, doc._rev, function(err, doc) {
+                    console.log(doc);
+                    if (err == null) {
+                      return _this._publish("binary.delete", doc.id);
+                    }
                   });
                 }
-              });
+              }));
             }
+            return _results;
           }
         };
       })(this));
