@@ -1,5 +1,6 @@
 fs = require 'fs'
 S = require 'string'
+async = require 'async'
 Client = require('request-json').JsonClient
 client = null
 setCouchCredentials = ->
@@ -85,15 +86,29 @@ module.exports = class Feed
                 # If document has a binary, remove the binary
                 ## TODOS : Check if binary is not link with an other document
                 if doc.binary?
-                    for name in Object.keys(doc.binary)
+                    removeBinary = (name, callback) =>
                         file = doc.binary[name]
                         binary = file.id
-                        @db.get binary, (err, doc) =>
-                            return if err
-                            if doc
-                                @db.remove doc._id, doc._rev, (err, doc) =>
-                                    if not err?
-                                        @_publish "binary.delete", doc.id
+                        # Check if another file use this binary
+                        @db.view 'binary/byDoc', {key: binary}, (err, res) =>
+                            if res.length is 0
+                                # Retrieve binary and remove it
+                                @db.get binary, (err, doc) =>
+                                    return callback err if err?
+                                    if doc
+                                        @db.remove doc._id, doc._rev, (err, doc) =>
+                                            if not err?
+                                                @_publish "binary.delete", doc.id
+                                            callback err
+                                    else
+                                        callback()
+                            else
+                                callback()
+
+                    # Check all binary
+                    async.each Object.keys(doc.binary), removeBinary, (err) ->
+                        console.log err if err?
+
         else
             isCreation = change.changes[0].rev.split('-')[0] is '1'
             operation = if isCreation then 'create' else 'update'

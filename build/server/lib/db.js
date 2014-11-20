@@ -197,6 +197,17 @@ module.exports = function(callback) {
         }
       };
     })(this));
+    db.get('_design/binary', (function(_this) {
+      return function(err, doc) {
+        if (err && err.error === "not_found") {
+          return db.save('_design/binary', {
+            byDoc: {
+              map: "function(doc) {\n    if(doc.binary) {\n        for (bin in doc.binary) {\n            emit(doc.binary[bin].id, doc._id);\n        }\n    }\n}"
+            }
+          });
+        }
+      };
+    })(this));
     return db.get('_design/tags', (function(_this) {
       return function(err, doc) {
         if (err && err.error === "not_found") {

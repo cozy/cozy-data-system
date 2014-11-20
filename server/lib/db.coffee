@@ -177,6 +177,20 @@ module.exports = (callback) ->
                         }
                         """
 
+        db.get '_design/binary', (err, doc) =>
+            if err and err.error is "not_found"
+                db.save '_design/binary',
+                    byDoc:
+                        map: """
+                        function(doc) {
+                            if(doc.binary) {
+                                for (bin in doc.binary) {
+                                    emit(doc.binary[bin].id, doc._id);
+                                }
+                            }
+                        }
+                        """
+
         db.get '_design/tags', (err, doc) =>
             if err and err.error is "not_found"
 
