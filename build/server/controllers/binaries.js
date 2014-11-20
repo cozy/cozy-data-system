@@ -146,29 +146,37 @@ module.exports.remove = function(req, res, next) {
       delete req.doc.binary;
     }
     return db.save(req.doc, function(err) {
-      return db.get(id, function(err, binary) {
-        if (binary != null) {
-          return dbHelper.remove(binary, function(err) {
-            if ((err != null) && (err.error = "not_found")) {
-              err = new Error("not found");
-              err.status = 404;
-              return next(err);
-            } else if (err) {
-              console.log("[Attachment] err: " + JSON.stringify(err));
-              return next(new Error(err.error));
-            } else {
-              res.send(204, {
-                success: true
-              });
-              return next();
-            }
-          });
-        } else {
-          err = new Error("not found");
-          err.status = 404;
-          return next(err);
-        }
-      });
+      return db.view('binary/byDoc', {
+        key: id
+      }, (function(_this) {
+        return function(err, res) {
+          if (res.length === 0) {
+            return db.get(id, function(err, binary) {
+              if (binary != null) {
+                return dbHelper.remove(binary, function(err) {
+                  if ((err != null) && (err.error = "not_found")) {
+                    err = new Error("not found");
+                    err.status = 404;
+                    return next(err);
+                  } else if (err) {
+                    console.log("[Attachment] err: " + JSON.stringify(err));
+                    return next(new Error(err.error));
+                  } else {
+                    res.send(204, {
+                      success: true
+                    });
+                    return next();
+                  }
+                });
+              } else {
+                err = new Error("not found");
+                err.status = 404;
+                return next(err);
+              }
+            });
+          }
+        };
+      })(this));
     });
   } else {
     err = new Error("no binary ID is provided");
@@ -247,12 +255,12 @@ module.exports.convert = function(req, res, next) {
         return next(err);
       } else {
         return db.get(req.doc.id, function(err, doc) {
-          doc.binaries = binaries;
+          doc.binary = binaries;
           return db.save(doc, function(err, doc) {
             if (err) {
               return next(err);
             } else {
-              res.send(204, {
+              res.send(200, {
                 success: true
               });
               return next();
@@ -262,7 +270,7 @@ module.exports.convert = function(req, res, next) {
       }
     });
   } else {
-    res.send(204, {
+    res.send(200, {
       success: true
     });
     return next();

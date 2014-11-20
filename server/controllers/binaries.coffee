@@ -164,27 +164,33 @@ module.exports.remove = (req, res, next) ->
 
         # Save updated doc
         db.save req.doc, (err) ->
+            # Check if binary is used by another document
+            db.view 'binary/byDoc', {key: id}, (err, result) =>
+                if result.length is 0
+                    # Then delete binary document.
+                    db.get id, (err, binary) ->
+                        if binary?
+                            dbHelper.remove binary, (err) ->
+                                if err? and err.error = "not_found"
+                                    err = new Error "not found"
+                                    err.status = 404
+                                    next err
+                                else if err
+                                    console.log "[Attachment] err: " +
+                                        JSON.stringify err
+                                    next new Error err.error
+                                else
+                                    res.send 204, success: true
+                                    next()
 
-            # Then delete binary document.
-            db.get id, (err, binary) ->
-                if binary?
-                    dbHelper.remove binary, (err) ->
-                        if err? and err.error = "not_found"
+                        # No binary found, error is returned.
+                        else
                             err = new Error "not found"
                             err.status = 404
                             next err
-                        else if err
-                            console.log "[Attachment] err: " + JSON.stringify err
-                            next new Error err.error
-                        else
-                            res.send 204, success: true
-                            next()
-
-                # No binary found, error is returned.
                 else
-                    err = new Error "not found"
-                    err.status = 404
-                    next err
+                    res.send 204, success: true
+                    next()
 
     # No binary given, error is returned.
     else
@@ -245,13 +251,13 @@ module.exports.convert = (req, res, next) ->
             else
                 # Store binaries
                 db.get req.doc.id, (err, doc) ->
-                    doc.binaries = binaries
+                    doc.binary = binaries
                     db.save doc, (err, doc) ->
                         if err
                             next err
                         else
-                            res.send 204, success: true
+                            res.send 200, success: true
                             next()
     else
-        res.send 204, success: true
+        res.send 200, success: true
         next()
