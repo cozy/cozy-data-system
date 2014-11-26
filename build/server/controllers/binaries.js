@@ -149,8 +149,8 @@ module.exports.remove = function(req, res, next) {
       return db.view('binary/byDoc', {
         key: id
       }, (function(_this) {
-        return function(err, res) {
-          if (res.length === 0) {
+        return function(err, result) {
+          if (result.length === 0) {
             return db.get(id, function(err, binary) {
               if (binary != null) {
                 return dbHelper.remove(binary, function(err) {
@@ -174,6 +174,11 @@ module.exports.remove = function(req, res, next) {
                 return next(err);
               }
             });
+          } else {
+            res.send(204, {
+              success: true
+            });
+            return next();
           }
         };
       })(this));

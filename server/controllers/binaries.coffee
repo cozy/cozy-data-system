@@ -168,9 +168,9 @@ module.exports.remove = (req, res, next) ->
             db.view 'binary/byDoc', {key: id}, (err, result) =>
                 if result.length is 0
                     # Then delete binary document.
-                    db.get id, (err, binary) ->
+                    db.get id, (err, binary) =>
                         if binary?
-                            dbHelper.remove binary, (err) ->
+                            dbHelper.remove binary, (err) =>
                                 if err? and err.error = "not_found"
                                     err = new Error "not found"
                                     err.status = 404

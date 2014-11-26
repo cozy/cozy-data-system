@@ -83,7 +83,7 @@ describe "Binaries", ->
 
         it "When I remove this binary", (done) ->
             delete @response
-            @client.del 'data/321/binaries/test.png', (err, res) =>
+            @client.del 'data/321/binaries/test.png', (err, res, body) =>
                 @response = res
                 done()
 
