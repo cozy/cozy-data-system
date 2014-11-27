@@ -1,4 +1,5 @@
 fs = require "fs"
+querystring = require 'querystring'
 multiparty = require 'multiparty'
 log =  require('printit')
     date: true
@@ -56,7 +57,7 @@ module.exports.add = (req, res, next) ->
 
             # Build file data
             fileData =
-                name: name
+                name: querystring.escape name
                 "content-type": part.headers['content-type']
 
             # Store the binary as an attachment of binary document.

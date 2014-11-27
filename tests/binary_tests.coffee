@@ -62,6 +62,31 @@ describe "Binaries", ->
                     body._rev.should.be.equal rev
                     done()
 
+        it "When I post an attachment with a complex name", (done) ->
+            path = "data/321/binaries/"
+            file = "./tests/fixtures/test.png"
+            name = name: "Drôle de fichier ひらが envoyé.png"
+            @client.sendFile path, file, name, (err, res, body) =>
+                console.log err if err?
+                @response = res
+                done()
+
+        it "Then I got a success response", ->
+            @response.statusCode.should.equal 201
+
+        it "And the file doesn't stay in the ./tmp folder", ->
+            files = fs.readdirSync '/tmp'
+            @nbOfFileInTmpFolder.should.equal files.length
+
+        it "And id and revision of binary should be updated", (done)->
+            @client.get "data/321/", (err, res, body) =>
+                console.log err if err
+                id = body.binary["Drôle de fichier ひらが envoyé.png"].id
+                rev = body.binary["Drôle de fichier ひらが envoyé.png"].rev
+                db.get id, (err, body) ->
+                    body._rev.should.be.equal rev
+                    done()
+
     describe "Retrieve a binary", ->
 
         it "When I claim this binary", (done) ->
@@ -75,6 +100,22 @@ describe "Binaries", ->
             setTimeout ->
                 fileStats = fs.statSync './tests/fixtures/test.png'
                 resultStats = fs.statSync './tests/fixtures/test-get.png'
+                resultStats.size.should.equal fileStats.size
+                done()
+            , 2000
+
+        it "When I claim the weird binary", (done) ->
+            @client = new Client serverUrl
+            @client.setBasicAuth "home", "token"
+            name = encodeURIComponent "Drôle de fichier ひらが envoyé.png"
+            file = './tests/fixtures/test-get2.png'
+            @client.saveFile "data/321/binaries/#{name}", file, -> done()
+
+        it "I got the same file I attached before", (done) ->
+            @timeout 5000
+            setTimeout ->
+                fileStats = fs.statSync './tests/fixtures/test.png'
+                resultStats = fs.statSync './tests/fixtures/test-get2.png'
                 resultStats.size.should.equal fileStats.size
                 done()
             , 2000
