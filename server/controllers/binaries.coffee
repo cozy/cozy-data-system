@@ -9,6 +9,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 deleteFiles = require('../helpers/utils').deleteFiles
 dbHelper = require '../lib/db_remove_helper'
 downloader = require '../lib/downloader'
+async = require 'async'
 
 
 ## Actions
@@ -164,30 +165,100 @@ module.exports.remove = (req, res, next) ->
 
         # Save updated doc
         db.save req.doc, (err) ->
+            # Check if binary is used by another document
+            db.view 'binary/byDoc', {key: id}, (err, result) =>
+                if result.length is 0
+                    # Then delete binary document.
+                    db.get id, (err, binary) =>
+                        if binary?
+                            dbHelper.remove binary, (err) =>
+                                if err? and err.error = "not_found"
+                                    err = new Error "not found"
+                                    err.status = 404
+                                    next err
+                                else if err
+                                    console.log "[Attachment] err: " +
+                                        JSON.stringify err
+                                    next new Error err.error
+                                else
+                                    res.send 204, success: true
+                                    next()
 
-            # Then delete binary document.
-            db.get id, (err, binary) ->
-                if binary?
-                    dbHelper.remove binary, (err) ->
-                        if err? and err.error = "not_found"
+                        # No binary found, error is returned.
+                        else
                             err = new Error "not found"
                             err.status = 404
                             next err
-                        else if err
-                            console.log "[Attachment] err: " + JSON.stringify err
-                            next new Error err.error
-                        else
-                            res.send 204, success: true
-                            next()
-
-                # No binary found, error is returned.
                 else
-                    err = new Error "not found"
-                    err.status = 404
-                    next err
+                    res.send 204, success: true
+                    next()
 
     # No binary given, error is returned.
     else
         err = new Error "no binary ID is provided"
         err.status = 400
         next err
+
+module.exports.convert = (req, res, next) ->
+    binaries = {}
+    id = req.doc.id
+
+    removeOldAttach = (attach, binaryId, callback) =>
+        db.get req.doc.id, (err, doc) ->
+            if err?
+                callback err
+            else
+                db.removeAttachment doc, attach, (err) ->
+                    if err?
+                        callback err
+                    else
+                        db.get binaryId, (err, doc) ->
+                            if err?
+                                callback err
+                            else
+                                callback null, doc
+
+    createBinary = (attach, callback) =>
+        # Create binary
+        binary =
+            docType: "Binary"
+        db.save binary, (err, binDoc) =>
+            # Get attachment
+            readStream = db.getAttachment req.doc.id, attach, (err) =>
+                console.log err if err?
+
+            attachmentData =
+                name: attach
+                body: ''
+            # Attach document to binary
+            writeStream  = db.saveAttachment binDoc, attachmentData, (err, res) =>
+                return callback err if err?
+                # Remove attachment from documents
+                removeOldAttach attach, binDoc._id, (err, doc) ->
+                    if err?
+                        callback err
+                    else
+                        # Store binaries information
+                        binaries[attach] =
+                            id: doc._id
+                            rev: doc._rev
+                        callback()
+            readStream.pipe(writeStream)
+
+    if req.doc._attachments?
+        async.eachSeries Object.keys(req.doc._attachments), createBinary, (err) ->
+            if err?
+                next err
+            else
+                # Store binaries
+                db.get req.doc.id, (err, doc) ->
+                    doc.binary = binaries
+                    db.save doc, (err, doc) ->
+                        if err
+                            next err
+                        else
+                            res.send 200, success: true
+                            next()
+    else
+        res.send 200, success: true
+        next()
