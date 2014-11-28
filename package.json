@@ -1,7 +1,7 @@
 {
   "name": "cozy-data-system",
   "description": "Data-layer between cozy applications and persistence systems",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
   "licenses": [
     {
