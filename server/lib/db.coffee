@@ -190,10 +190,21 @@ module.exports = (callback) ->
                             }
                         }
                         """
+            else
+                doc.views['byDoc'] =
+                    map: """
+                    function(doc) {
+                        if(doc.binary) {
+                            for (bin in doc.binary) {
+                                emit(doc.binary[bin].id, doc._id);
+                            }
+                        }
+                    }
+                    """
+                db.save '_design/binary', doc._rev, doc
 
         db.get '_design/tags', (err, doc) =>
             if err and err.error is "not_found"
-
                 db.save '_design/tags',
                     all:
                         map: """

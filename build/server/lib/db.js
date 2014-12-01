@@ -205,6 +205,11 @@ module.exports = function(callback) {
               map: "function(doc) {\n    if(doc.binary) {\n        for (bin in doc.binary) {\n            emit(doc.binary[bin].id, doc._id);\n        }\n    }\n}"
             }
           });
+        } else {
+          doc.views['byDoc'] = {
+            map: "function(doc) {\n    if(doc.binary) {\n        for (bin in doc.binary) {\n            emit(doc.binary[bin].id, doc._id);\n        }\n    }\n}"
+          };
+          return db.save('_design/binary', doc._rev, doc);
         }
       };
     })(this));
