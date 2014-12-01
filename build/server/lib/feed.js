@@ -132,7 +132,9 @@ module.exports = Feed = (function() {
               return _this.db.view('binary/byDoc', {
                 key: binary
               }, function(err, res) {
-                if (res.length === 0) {
+                if (err) {
+                  return callback(err);
+                } else if ((res != null ? res.length : void 0) === 0) {
                   return _this.db.get(binary, function(err, doc) {
                     if (err != null) {
                       return callback(err);
