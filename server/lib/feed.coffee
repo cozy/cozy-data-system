@@ -91,7 +91,10 @@ module.exports = class Feed
                         binary = file.id
                         # Check if another file use this binary
                         @db.view 'binary/byDoc', {key: binary}, (err, res) =>
-                            if res.length is 0
+                            if err
+                                callback err
+
+                            else if res?.length is 0
                                 # Retrieve binary and remove it
                                 @db.get binary, (err, doc) =>
                                     return callback err if err?
@@ -102,6 +105,7 @@ module.exports = class Feed
                                             callback err
                                     else
                                         callback()
+
                             else
                                 callback()
 
