@@ -24,12 +24,10 @@ getBody = (domain) ->
     body =  """
         Hello,
 
-        Your Cozy has been recently restarted. For security reasons, a restart disables 
-        its ability to encrypt and decrypt your sensitive data (like your banking account credentials). 
-        As a result, some applications may not be working properly anymore.
-
-        All you need to do is login once to re-enable encryption and decryption so your applications 
-        can securely use your data again. 
+        Your Cozy has been recently restarted.
+        For security reasons, a restart disables encryption and decryption.
+        Some features of your applications are therefore desactivated.
+        They will be reactivated automatically when you will log into your Cozy instance.
         """
     if domain?
         body += "Click here to login #{domain}."
@@ -38,8 +36,7 @@ getBody = (domain) ->
 
         Cozy Team.
 
-        P-S: If you receive this message while your signed in into your Cozy, there is probably a problem ? 
-        Let us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.
+        P-S: If you have any question, let us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.
 
         """
     return body

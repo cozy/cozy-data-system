@@ -36,11 +36,11 @@ sendEmail = function(mailOptions, callback) {
 
 getBody = function(domain) {
   var body;
-  body = "Hello,\n\nYour Cozy has been recently restarted. For security reasons, a restart disables \nits ability to encrypt and decrypt your sensitive data (like your banking account credentials). \nAs a result, some applications may not be working properly anymore.\n\nAll you need to do is login once to re-enable encryption and decryption so your applications \ncan securely use your data again. ";
+  body = "Hello,\n\nYour Cozy has been recently restarted.\nFor security reasons, a restart disables encryption and decryption.\nSome features of your applications are therefore desactivated.\nThey will be reactivated automatically when you will log into your Cozy instance.";
   if (domain != null) {
     body += "Click here to login " + domain + ".";
   }
-  body += "\nCozy Team.\n\nP-S: If you receive this message while your signed in into your Cozy, there is probably a problem ? \nLet us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.\n";
+  body += "\nCozy Team.\n\nP-S: If you have any question, let us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.\n";
   return body;
 };
 
