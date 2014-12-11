@@ -84,7 +84,7 @@ module.exports = class Feed
                     # Publish deletion
                     @_publish "#{doc.docType.toLowerCase()}.delete", change.id
                 # If document has a binary, remove the binary
-                ## TODOS : Check if binary is not link with an other document
+                ## TODOS: Check if binary is not link with an other document
                 if doc.binary?
                     removeBinary = (name, callback) =>
                         file = doc.binary[name]
