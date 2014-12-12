@@ -134,27 +134,36 @@ module.exports.sendFromUser = function(req, res, next) {
   } else {
     domain = "cozycloud.cc";
     return db.view('cozyinstance/all', function(err, instance) {
-      var mailOptions, _ref;
-      if ((instance != null ? (_ref = instance[0]) != null ? _ref.value.domain : void 0 : void 0) != null) {
-        domain = instance[0].value.domain;
-      }
-      mailOptions = {
-        to: body.to,
-        from: "noreply@" + domain,
-        subject: body.subject,
-        text: body.content,
-        html: body.html || void 0
-      };
-      if (body.attachments != null) {
-        mailOptions.attachments = body.attachments;
-      }
-      return sendEmail(mailOptions, function(error, response) {
-        if (error) {
-          logger.info("[sendMail] Error : " + error);
-          return next(new Error(error));
+      return db.view('user/all', function(err, users) {
+        var displayName, mailOptions, _ref, _ref1;
+        if ((instance != null ? (_ref = instance[0]) != null ? _ref.value.domain : void 0 : void 0) != null) {
+          domain = instance[0].value.domain;
         } else {
-          return res.send(200, response);
+          domain = "";
         }
+        if ((users != null ? (_ref1 = users[0]) != null ? _ref1.value.public_name : void 0 : void 0) != null) {
+          displayName = users[0].value.public_name;
+          displayName = displayName.toLowerCase().replace(' ', '-');
+          displayName += "-";
+        }
+        mailOptions = {
+          to: body.to,
+          from: "" + displayName + "noreply@" + domain,
+          subject: body.subject,
+          text: body.content,
+          html: body.html || void 0
+        };
+        if (body.attachments != null) {
+          mailOptions.attachments = body.attachments;
+        }
+        return sendEmail(mailOptions, function(error, response) {
+          if (error) {
+            logger.info("[sendMail] Error : " + error);
+            return next(new Error(error));
+          } else {
+            return res.send(200, response);
+          }
+        });
       });
     });
   }
