@@ -110,19 +110,30 @@ module.exports.sendFromUser = (req, res, next) ->
     else
         domain = "cozycloud.cc"
         db.view 'cozyinstance/all', (err, instance) ->
-            if instance?[0]?.value.domain?
-                domain = instance[0].value.domain
-            mailOptions =
-                to: body.to
-                from: "noreply@#{domain}"
-                subject: body.subject
-                text: body.content
-                html: body.html or undefined
-            if body.attachments?
-                mailOptions.attachments = body.attachments
-            sendEmail mailOptions, (error, response) ->
-                if error
-                    logger.info "[sendMail] Error : " + error
-                    next new Error error
+            db.view 'user/all', (err, users) ->
+                if instance?[0]?.value.domain?
+                    domain = instance[0].value.domain
                 else
-                    res.send 200, response
+                    domain = ""
+
+                # retrieves and slugifies the username if it exists
+                if users?[0]?.value.public_name?
+                    displayName = users[0].value.public_name
+                    displayName = displayName.toLowerCase()
+                                             .replace ' ', '-'
+                    displayName += "-"
+
+                mailOptions =
+                    to: body.to
+                    from: "#{displayName}noreply@#{domain}"
+                    subject: body.subject
+                    text: body.content
+                    html: body.html or undefined
+                if body.attachments?
+                    mailOptions.attachments = body.attachments
+                sendEmail mailOptions, (error, response) ->
+                    if error
+                        logger.info "[sendMail] Error : " + error
+                        next new Error error
+                    else
+                        res.send 200, response
