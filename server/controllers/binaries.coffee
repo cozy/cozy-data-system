@@ -177,8 +177,8 @@ module.exports.remove = (req, res, next) ->
 
                     dbHelper.remove binary, (err) =>
                         if err
-                            console.log "[Attachment] err: " +
-                                JSON.stringify err
+                            console.log "[Attachment] err: " + \
+                                                        JSON.stringify err
                             next err
                         else
                             res.send 204, success: true
