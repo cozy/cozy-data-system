@@ -136,7 +136,7 @@ module.exports = Feed = (function() {
                   return callback(err);
                 } else if ((res != null ? res.length : void 0) === 0) {
                   return _this.db.get(binary, function(err, doc) {
-                    if (err != null) {
+                    if (err) {
                       return callback(err);
                     }
                     if (doc) {
@@ -156,7 +156,7 @@ module.exports = Feed = (function() {
               });
             };
             return async.each(Object.keys(doc.binary), removeBinary, function(err) {
-              if (err != null) {
+              if (err) {
                 return console.log(err);
               }
             });
@@ -169,7 +169,7 @@ module.exports = Feed = (function() {
       return this.db.get(change.id, (function(_this) {
         return function(err, doc) {
           var doctype, _ref;
-          if (err != null) {
+          if (err) {
             _this.logger.error(err);
           }
           doctype = doc != null ? (_ref = doc.docType) != null ? _ref.toLowerCase() : void 0 : void 0;

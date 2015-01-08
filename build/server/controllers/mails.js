@@ -75,7 +75,7 @@ module.exports.send = function(req, res, next) {
     return sendEmail(mailOptions, function(error, response) {
       if (error) {
         logger.info("[sendMail] Error : " + error);
-        return next(new Error(error));
+        return next(error);
       } else {
         return res.send(200, response);
       }
@@ -97,7 +97,7 @@ module.exports.sendToUser = function(req, res, next) {
       var mailOptions;
       if (err) {
         logger.info("[sendMailToUser] err: " + err);
-        return next(new Error(err));
+        return next(err);
       } else {
         mailOptions = {
           to: user.email,
@@ -112,7 +112,7 @@ module.exports.sendToUser = function(req, res, next) {
         return sendEmail(mailOptions, function(error, response) {
           if (error) {
             logger.info("[sendMail] Error : " + error);
-            return next(new Error(error));
+            return next(error);
           } else {
             return res.send(200, response);
           }
@@ -123,7 +123,7 @@ module.exports.sendToUser = function(req, res, next) {
 };
 
 module.exports.sendFromUser = function(req, res, next) {
-  var attrs, body, domain, err, missingAttributes;
+  var attrs, body, err, missingAttributes;
   body = req.body;
   missingAttributes = checkBody(body, ['to', 'subject', 'content']);
   if (missingAttributes.length > 0) {
@@ -132,10 +132,9 @@ module.exports.sendFromUser = function(req, res, next) {
     err.status = 400;
     return next(err);
   } else {
-    domain = "cozycloud.cc";
     return db.view('cozyinstance/all', function(err, instance) {
       return db.view('user/all', function(err, users) {
-        var displayName, mailOptions, _ref, _ref1;
+        var displayName, domain, mailOptions, _ref, _ref1;
         if ((instance != null ? (_ref = instance[0]) != null ? _ref.value.domain : void 0 : void 0) != null) {
           domain = instance[0].value.domain;
         } else {
@@ -159,7 +158,7 @@ module.exports.sendFromUser = function(req, res, next) {
         return sendEmail(mailOptions, function(error, response) {
           if (error) {
             logger.info("[sendMail] Error : " + error);
-            return next(new Error(error));
+            return next(error);
           } else {
             return res.send(200, response);
           }

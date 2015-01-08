@@ -36,7 +36,7 @@ module.exports.create = (function(_this) {
           return db.merge("_design/" + req.type, {
             views: views
           }, function(err, response) {
-            if (err != null) {
+            if (err) {
               console.log("[Definition] err: " + err.message);
             }
             return storeRam(req.req_name);
@@ -115,7 +115,7 @@ module.exports.init = (function(_this) {
     removeEmptyView = function(doc) {
       if (Object.keys(doc.views).length === 0 || ((doc != null ? doc.views : void 0) == null)) {
         return db.remove(doc._id, doc._rev, function(err, response) {
-          if (err != null) {
+          if (err) {
             return console.log("[Definition] err: " + err.message);
           }
         });
@@ -144,7 +144,7 @@ module.exports.init = (function(_this) {
                 db.merge(doc._id, {
                   views: doc.views
                 }, function(err, response) {
-                  if (err != null) {
+                  if (err) {
                     console.log("[Definition] err: " + err.message);
                   }
                   return removeEmptyView(doc);

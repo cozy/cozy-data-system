@@ -8,8 +8,8 @@ module.exports.bank = function(req, res, next) {
   if ((req.body.login != null) && (req.body.password != null)) {
     path = "connectors/bank/" + req.params.name + "/";
     return client.post(path, req.body, function(err, response, body) {
-      if (err != null) {
-        return next(new Error(err));
+      if (err) {
+        return next(err);
       } else if (response == null) {
         return next(new Error("Response not found"));
       } else if (response.statusCode !== 200) {
@@ -30,8 +30,8 @@ module.exports.bankHistory = function(req, res, next) {
   if ((req.body.login != null) && (req.body.password != null)) {
     path = "connectors/bank/" + req.params.name + "/history/";
     return client.post(path, req.body, function(err, response, body) {
-      if (err != null) {
-        return next(new Error(err));
+      if (err) {
+        return next(err);
       } else if (response == null) {
         return next(new Error("Response not found"));
       } else if (response.statusCode !== 200) {
