@@ -27,6 +27,8 @@ describe "Feed tests", ->
 
     after helpers.stopApp
 
+    idT = null
+
     describe "Install application which can manage note", ->
 
         it "When I send a request to post an application", (done) ->
@@ -63,12 +65,13 @@ describe "Feed tests", ->
             client.setBasicAuth "test", "token"
             client.post "data/", note, (error, response, body) =>
                 console.log error if error
-                @idT = body['_id']
+                response.statusCode.should.equal 201
+                idT = body['_id']
 
             @subscriber.wait done
 
         it "Then I receive a note.create on my subscriber", ->
-            @subscriber.haveBeenCalled('create', @idT).should.be.ok
+            @subscriber.haveBeenCalled('create', idT).should.be.ok
 
     describe "Typed Update", ->
 
@@ -78,27 +81,30 @@ describe "Feed tests", ->
                 content: "content Changed"
                 docType: "Note"
 
-            client.put "data/#{@idT}/", note, (error, response, body) =>
+            client.put "data/#{idT}/", note, (error, response, body) =>
                 console.log error if error
+                response.statusCode.should.equal 200
             @subscriber.wait done
 
         it "Then I receive a note.update on my subscriber", ->
-            @subscriber.haveBeenCalled('update', @idT).should.be.ok
+            @subscriber.haveBeenCalled('update', idT).should.be.ok
 
     describe "Typed Delete", ->
 
         describe "Delete data", ->
 
             it "When I send a request to delete typed document", (done) ->
-                client.del "data/#{@idT}/", (error, response, body) =>
+                client.del "data/#{idT}/", (error, response, body) =>
                     console.log error if error
-                    response.statusCode.should.equal 204                
+                    response.statusCode.should.equal 204
                 @subscriber.wait done
 
              it "Then I receive a note.delete on my subscriber", ->
-                @subscriber.haveBeenCalled('delete', @idT).should.be.ok
+                @subscriber.haveBeenCalled('delete', idT).should.be.ok
 
         describe "Destroy request", ->
+
+            ids = []
 
             before (done) ->
                 map = (doc) ->
@@ -120,25 +126,23 @@ describe "Feed tests", ->
                 note3.title = "note3"
 
                 client.post "data/", note1, (error, response, body) =>
-                    @id1 = body._id
+                    ids.push body._id
                     console.log error if error
                     client.post "data/", note2, (error, response, body) =>
-                        @id2 = body._id
+                        ids.push body._id
                         console.log error if error
                         client.post "data/", note3, (error, response, body) =>
-                            @id3 = body._id
+                            ids.push body._id
                             console.log error if error
                             done()
 
             it "And I send a request to delete all notes (with request)", (done) ->
                 client.put "request/note/all/destroy/", "", (error, response, body) =>
                     console.log error if error
-                    response.statusCode.should.equal 204 
-                    done()     
+                    response.statusCode.should.equal 204
+                    done()
 
-            it "Then I receive three note.delete on my subscriber", () ->           
+            it "Then I receive three note.delete on my subscriber", () ->
                 @subscriber.wait () =>
-                    @subscriber.haveBeenCalled('delete', @id1).should.be.ok
-                    @subscriber.haveBeenCalled('delete', @id2).should.be.ok
-                    @subscriber.haveBeenCalled('delete', @id3).should.be.ok
-               
+                    for id in ids
+                        @subscriber.haveBeenCalled('delete', id).should.be.ok

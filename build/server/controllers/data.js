@@ -95,7 +95,7 @@ module.exports.exist = function(req, res, next) {
         exist: false
       });
     } else {
-      return next(new Error(err));
+      return next(err);
     }
   });
 };
@@ -120,7 +120,7 @@ module.exports.create = function(req, res, next) {
         return next(err);
       } else {
         return db.save(req.params.id, req.body, function(err, doc) {
-          if (err != null) {
+          if (err) {
             err = new Error("The document already exists.");
             err.status = 409;
             return next(err);
@@ -134,8 +134,8 @@ module.exports.create = function(req, res, next) {
     });
   } else {
     return db.save(req.body, function(err, doc) {
-      if (err != null) {
-        return next(new Error(err.error));
+      if (err) {
+        return next(err);
       } else {
         return res.send(201, {
           _id: doc.id
@@ -153,8 +153,8 @@ module.exports.update = function(req, res, next) {
     updatePermissions(req.body);
   }
   return db.save(req.params.id, req.body, function(err, response) {
-    if (err != null) {
-      return next(new Error(err.error));
+    if (err) {
+      return next(err);
     } else {
       res.send(200, {
         success: true
@@ -168,8 +168,8 @@ module.exports.upsert = function(req, res, next) {
   delete req.body._attachments;
   return db.get(req.params.id, function(err, doc) {
     return db.save(req.params.id, req.body, function(err, savedDoc) {
-      if (err != null) {
-        return next(new Error(err.error));
+      if (err) {
+        return next(err);
       } else if (doc != null) {
         res.send(200, {
           success: true
@@ -195,8 +195,8 @@ module.exports["delete"] = function(req, res, next) {
     return next();
   };
   return dbHelper.remove(req.doc, function(err, res) {
-    if (err != null) {
-      return next(new Error(err.error));
+    if (err) {
+      return next(err);
     } else {
       return client.del("index/" + id + "/", function(err, response, resbody) {
         return send_success();
@@ -208,8 +208,8 @@ module.exports["delete"] = function(req, res, next) {
 module.exports.merge = function(req, res, next) {
   delete req.body._attachments;
   return db.merge(req.params.id, req.body, function(err, doc) {
-    if (err != null) {
-      return next(new Error(err.error));
+    if (err) {
+      return next(err);
     } else {
       res.send(200, {
         success: true

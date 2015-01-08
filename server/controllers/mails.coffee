@@ -59,7 +59,7 @@ module.exports.send = (req, res, next) ->
         sendEmail mailOptions, (error, response) ->
             if error
                 logger.info "[sendMail] Error : " + error
-                next new Error error
+                next error
             else
                 res.send 200, response
 
@@ -79,7 +79,7 @@ module.exports.sendToUser = (req, res, next) ->
         user.getUser (err, user) ->
             if err
                 logger.info "[sendMailToUser] err: #{err}"
-                next new Error err
+                next err
             else
                 mailOptions =
                     to: user.email
@@ -92,7 +92,7 @@ module.exports.sendToUser = (req, res, next) ->
                 sendEmail mailOptions, (error, response) ->
                     if error
                         logger.info "[sendMail] Error : " + error
-                        next new Error error
+                        next error
                     else
                         res.send 200, response
 
@@ -108,7 +108,6 @@ module.exports.sendFromUser = (req, res, next) ->
         err.status = 400
         next err
     else
-        domain = "cozycloud.cc"
         db.view 'cozyinstance/all', (err, instance) ->
             db.view 'user/all', (err, users) ->
                 if instance?[0]?.value.domain?
@@ -134,6 +133,6 @@ module.exports.sendFromUser = (req, res, next) ->
                 sendEmail mailOptions, (error, response) ->
                     if error
                         logger.info "[sendMail] Error : " + error
-                        next new Error error
+                        next error
                     else
                         res.send 200, response

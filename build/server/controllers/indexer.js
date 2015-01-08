@@ -24,7 +24,7 @@ module.exports.index = function(req, res, next) {
   };
   return client.post("index/", data, function(err, response, body) {
     if (err || response.statusCode !== 200) {
-      return next(new Error(err));
+      return next(err);
     } else {
       res.send(200, {
         success: true
@@ -47,7 +47,7 @@ module.exports.search = function(req, res, next) {
   };
   return client.post("search/", data, function(err, response, body) {
     if (err) {
-      return next(new Error(err));
+      return next(err);
     } else if (response == null) {
       return next(new Error("Response not found"));
     } else if (response.statusCode !== 200) {
@@ -56,7 +56,7 @@ module.exports.search = function(req, res, next) {
       return db.get(body.ids, function(err, docs) {
         var doc, resDoc, resultObject, results, _i, _len;
         if (err) {
-          return next(new Error(err.error));
+          return next(err);
         } else {
           results = [];
           for (_i = 0, _len = docs.length; _i < _len; _i++) {
@@ -82,8 +82,8 @@ module.exports.search = function(req, res, next) {
 
 module.exports.remove = function(req, res, next) {
   return client.del("index/" + req.params.id + "/", function(err, response, body) {
-    if (err != null) {
-      return next(new Error(err));
+    if (err) {
+      return next(err);
     } else {
       res.send(200, {
         success: true
@@ -96,7 +96,7 @@ module.exports.remove = function(req, res, next) {
 module.exports.removeAll = function(req, res, next) {
   return client.del("clear-all/", function(err, response, body) {
     if (err) {
-      return next(new Error(err));
+      return next(err);
     } else {
       return res.send(200, {
         success: true

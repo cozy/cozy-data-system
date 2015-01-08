@@ -47,7 +47,7 @@ module.exports.add = function(req, res, next) {
       stream = db.saveAttachment(req.doc, fileData, function(err) {
         if (err) {
           console.log("[Attachment] err: " + JSON.stringify(err));
-          return form.emit('error', new Error(err.error));
+          return form.emit('error', err);
         } else {
           log.info("Attachment " + name + " saved to Couch.");
           res.send(201, {
@@ -74,18 +74,13 @@ module.exports.add = function(req, res, next) {
 };
 
 module.exports.get = function(req, res, next) {
-  var id, name;
+  var id, name, request;
   name = req.params.name;
   id = req.doc.id;
-  return downloader.download(id, name, function(err, stream) {
+  return request = downloader.download(id, name, function(err, stream) {
     var length, type;
-    if ((err != null) && err.error === "not_found") {
-      err = new Error("not found");
-      err.status = 404;
+    if (err) {
       return next(err);
-    } else if (err) {
-      console.log(err);
-      return next(new Error(err.error));
     } else {
       if (req.headers['range'] != null) {
         stream.setHeader('range', req.headers['range']);
@@ -94,6 +89,9 @@ module.exports.get = function(req, res, next) {
       type = req.doc._attachments[name]['content-type'];
       res.setHeader('Content-Length', length);
       res.setHeader('Content-Type', type);
+      req.once('close', function() {
+        return request.abort();
+      });
       return stream.pipe(res);
     }
   });
@@ -103,18 +101,13 @@ module.exports.remove = function(req, res, next) {
   var name;
   name = req.params.name;
   return db.removeAttachment(req.doc, name, function(err) {
-    next();
-    if ((err != null) && (err.error = "not_found")) {
-      err = new Error("not found");
-      err.status = 404;
-      return next(err);
-    } else if (err != null) {
-      console.log("[Attachment] err: " + JSON.stringify(err));
+    if (err) {
       return next(err);
     } else {
-      return res.send(204, {
+      res.send(204, {
         success: true
       });
+      return next();
     }
   });
 };

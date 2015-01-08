@@ -4,6 +4,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 request = require '../lib/request'
 default_filter = require '../lib/default_filter'
 dbHelper = require '../lib/db_remove_helper'
+errors = require '../middlewares/errors'
 
 ## Helpers ##
 
@@ -28,7 +29,7 @@ createFilter = (id, callback) ->
             db.save "_design/#{id}", designDoc, (err, res) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    callback err.message
+                    callback err
                 else
                     callback null
 
@@ -63,15 +64,13 @@ module.exports.create = (req, res, next) ->
         if err
             next err
         else if response.length isnt 0
-            err = new Error "This name is already used"
-            err.status = 400
-            next err
+            next errors.http 400, "This name is already used"
         else
             db.save device, (err, docInfo) ->
                 # Create filter
                 createFilter docInfo._id, (err) ->
-                    if err?
-                        next new Error err
+                    if err
+                        next err
                     else
                         device.id = docInfo._id
                         res.send 200, device
@@ -84,14 +83,13 @@ module.exports.remove = (req, res, next) ->
         next()
     id = req.params.id
     db.remove "_design/#{id}", (err, response) ->
-        if err?
+        if err
             console.log "[Definition] err: " + JSON.stringify err
-            next new Error err.error
-            next()
+            next err
         else
             dbHelper.remove req.doc, (err, response) ->
-                if err?
+                if err
                     console.log "[Definition] err: " + JSON.stringify err
-                    next new Error err.error
+                    next err
                 else
                     send_success()

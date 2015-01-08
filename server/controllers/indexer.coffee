@@ -22,7 +22,7 @@ module.exports.index = (req, res, next) ->
 
     client.post "index/", data, (err, response, body) ->
         if err or response.statusCode isnt 200
-            next new Error err
+            next err
         else
             res.send 200, success: true
             next()
@@ -44,7 +44,7 @@ module.exports.search = (req, res, next) ->
 
     client.post "search/", data, (err, response, body) ->
         if err
-            next new Error err
+            next err
         else if not response?
             next new Error "Response not found"
         else if response.statusCode isnt 200
@@ -53,7 +53,7 @@ module.exports.search = (req, res, next) ->
 
             db.get body.ids, (err, docs) ->
                 if err
-                    next new Error err.error
+                    next err
                 else
                     results = []
                     for doc in docs
@@ -77,8 +77,8 @@ module.exports.search = (req, res, next) ->
 # Remove index for given document
 module.exports.remove = (req, res, next) ->
     client.del "index/#{req.params.id}/", (err, response, body) ->
-        if err?
-            next new Error err
+        if err
+            next err
         else
             res.send 200, success: true
             next()
@@ -90,7 +90,7 @@ module.exports.remove = (req, res, next) ->
 module.exports.removeAll = (req, res, next) ->
     client.del "clear-all/", (err, response, body) ->
         if err
-            next new Error err
+            next err
         else
             res.send 200, success: true
     , false  # body is not JSON

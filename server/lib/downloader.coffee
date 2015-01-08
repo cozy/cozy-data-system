@@ -2,6 +2,7 @@ http = require 'http'
 fs = require 'fs'
 querystring = require 'querystring'
 S = require 'string'
+errors = require '../middlewares/errors'
 
 log =  require('printit')
     date: true
@@ -17,22 +18,39 @@ initLoginCouch = (callback) ->
             callback null, lines
 
 
+makeAborter = () ->
+    aborted = false
+    return abortable =
+        aborted: -> aborted
+        abort: ->
+            aborted = true
+            this.err = new Error 'aborted'
+
+
+
 # Module to handle attachment download with the low level http api instead of
 # request (the lib used by cradle). This is due to a too high memory
 # consumption while dowloading big files with request.
 module.exports =
 
     # Returns the attachment in a callback as a readable stream of data.
-    download: (id, attachment, callback) ->
+    download: (id, attachment, rawcallback) ->
 
         # Build couch path to fetch attachements.
         dbName = process.env.DB_NAME or 'cozy'
         attachment = querystring.escape attachment
         path = "/#{dbName}/#{id}/#{attachment}"
+        aborted = false
+        request = null
+        callback = (err, stream) ->
+            rawcallback err, stream
+            callback = ->
 
         initLoginCouch (err, couchCredentials) ->
             if err and process.NODE_ENV is 'production'
                 callback err
+            else if aborted
+                callback new Error 'aborted'
             else
 
                 # Build options.
@@ -52,11 +70,22 @@ module.exports =
                         Authorization: basic
 
                 # Perform request
-                http.get options, (res) ->
+                request = http.get options, (res) ->
                     if res.statusCode is 404
-                        callback error: 'not_found'
+                        callback errors.http 404, 'Not Found'
                     else if res.statusCode isnt 200
-                        callback
-                            error: 'error occured while downloading attachment'
+                        err = callback new Error """
+                            error occured while downloading attachment #{err.message} """
+                        err.status = res.statusCode
+                        callback err
                     else
                         callback null, res
+
+                request.on 'error', callback
+
+        return abortable =
+            abort: ->
+                aborted = true
+                request?.abort()
+                callback new Error 'aborted'
+

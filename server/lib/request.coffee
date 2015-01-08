@@ -38,7 +38,7 @@ module.exports.create = (app, req, views, newView, callback) =>
                 delete views["#{app}-#{req.req_name}"]
                 db.merge "_design/#{req.type}", views: views, \
                 (err, response) ->
-                    if err?
+                    if err
                         console.log "[Definition] err: " + err.message
                     storeRam req.req_name
             else
@@ -107,7 +107,7 @@ module.exports.init = (callback) =>
     removeEmptyView = (doc) ->
         if Object.keys(doc.views).length is 0 or not doc?.views?
             db.remove doc._id, doc._rev, (err, response) ->
-                if err?
+                if err
                     console.log "[Definition] err: " + err.message
 
     if productionOrTest
@@ -127,7 +127,7 @@ module.exports.init = (callback) =>
                                 delete doc.views[view]
                                 db.merge doc._id, views: doc.views, \
                                 (err, response) ->
-                                    if err?
+                                    if err
                                         console.log "[Definition] err: " + err.message
                                     removeEmptyView(doc)
                     removeEmptyView(doc)

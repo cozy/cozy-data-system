@@ -5,8 +5,10 @@ logger = require('printit')
 
 module.exports = (err, req, res, next) ->
 
-    statusCode = err.status or 500
+    statusCode = err.status or err.headers?.status or 500
     message = if err instanceof Error then err.message else err.error
+
+    # @TODO : also send err.stack ?
 
     res.send statusCode, error: message
 
@@ -17,3 +19,18 @@ module.exports = (err, req, res, next) ->
     # if error occurs the unlock middleware isn't called
     if req.lock?
         locker.removeLock req.lock
+
+
+module.exports.http = httpError = (code, msg) ->
+    err = new Error msg
+    err.status = code
+    return err
+
+module.exports.notFound = ->
+    return httpError 404, 'Not Found'
+
+module.exports.notAuthorized = ->
+    return httpError 403, 'Application is not authorized'
+
+module.exports.noPassword = ->
+    return httpError 400, 'No password field in request\'s body'

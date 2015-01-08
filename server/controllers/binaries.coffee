@@ -66,7 +66,7 @@ module.exports.add = (req, res, next) ->
                 stream = db.saveAttachment binary, fileData, (err, binDoc) ->
                     if err
                         log.error "#{JSON.stringify err}"
-                        form.emit 'error', new Error err.error
+                        form.emit 'error', err
                     else
                         log.info "Binary #{name} stored in Couchdb"
 
@@ -125,18 +125,17 @@ module.exports.get = (req, res, next) ->
         id = binary[name].id
 
         # Run the download with Node low level api.
-        stream = downloader.download id, name, (err, stream) ->
-            if err and err.error is "not_found"
-                err = new Error "not found"
-                err.status = 404
+        request = downloader.download id, name, (err, stream) ->
+            if err
                 next err
-            else if err
-                next new Error err.error
             else
                 # Set response header from attachment infos
                 res.setHeader 'Content-Length', stream.headers['content-length']
                 res.setHeader 'Content-Type', stream.headers['content-type']
 
+                req.once 'close', -> request.abort()
+
+                #@TODO forward other cache-control header
                 if req.headers['range']?
                     stream.setHeader 'range', req.headers['range']
 
@@ -167,31 +166,23 @@ module.exports.remove = (req, res, next) ->
         db.save req.doc, (err) ->
             # Check if binary is used by another document
             db.view 'binary/byDoc', {key: id}, (err, result) =>
-                if result.length is 0
-                    # Then delete binary document.
-                    db.get id, (err, binary) =>
-                        if binary?
-                            dbHelper.remove binary, (err) =>
-                                if err? and err.error = "not_found"
-                                    err = new Error "not found"
-                                    err.status = 404
-                                    next err
-                                else if err
-                                    console.log "[Attachment] err: " +
-                                        JSON.stringify err
-                                    next new Error err.error
-                                else
-                                    res.send 204, success: true
-                                    next()
-
-                        # No binary found, error is returned.
-                        else
-                            err = new Error "not found"
-                            err.status = 404
-                            next err
-                else
+                if result.length isnt 0
                     res.send 204, success: true
-                    next()
+                    return next()
+
+                # Then delete binary document.
+                db.get id, (err, binary) =>
+                    unless binary?
+                        return next errors.http 404, 'Binary Not Found'
+
+                    dbHelper.remove binary, (err) =>
+                        if err
+                            console.log "[Attachment] err: " + \
+                                                        JSON.stringify err
+                            next err
+                        else
+                            res.send 204, success: true
+                            next()
 
     # No binary given, error is returned.
     else
@@ -205,15 +196,15 @@ module.exports.convert = (req, res, next) ->
 
     removeOldAttach = (attach, binaryId, callback) =>
         db.get req.doc.id, (err, doc) ->
-            if err?
+            if err
                 callback err
             else
                 db.removeAttachment doc, attach, (err) ->
-                    if err?
+                    if err
                         callback err
                     else
                         db.get binaryId, (err, doc) ->
-                            if err?
+                            if err
                                 callback err
                             else
                                 callback null, doc
@@ -225,17 +216,17 @@ module.exports.convert = (req, res, next) ->
         db.save binary, (err, binDoc) =>
             # Get attachment
             readStream = db.getAttachment req.doc.id, attach, (err) =>
-                console.log err if err?
+                console.log err if err
 
             attachmentData =
                 name: attach
                 body: ''
             # Attach document to binary
             writeStream  = db.saveAttachment binDoc, attachmentData, (err, res) =>
-                return callback err if err?
+                return callback err if err
                 # Remove attachment from documents
                 removeOldAttach attach, binDoc._id, (err, doc) ->
-                    if err?
+                    if err
                         callback err
                     else
                         # Store binaries information
@@ -247,7 +238,7 @@ module.exports.convert = (req, res, next) ->
 
     if req.doc._attachments?
         async.eachSeries Object.keys(req.doc._attachments), createBinary, (err) ->
-            if err?
+            if err
                 next err
             else
                 # Store binaries

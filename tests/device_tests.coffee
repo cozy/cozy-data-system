@@ -18,6 +18,8 @@ describe "Device", ->
     before helpers.startApp
     after helpers.stopApp
 
+    deviceID = null
+
     describe "Add a device", ->
 
         it "When I post a device", (done) ->
@@ -25,7 +27,7 @@ describe "Device", ->
                 client.post "device/", login: "work", (err, res, body) =>
                     console.log err if err
                     @response = res
-                    @id = body.id
+                    deviceID = body.id
                     done()
             , 1000
 
@@ -50,7 +52,8 @@ describe "Device", ->
     describe "Device's Design doc", ->
 
         it "When i get the design doc", (done) ->
-            db.get "_design/#{@id}", (err, designDoc) =>
+            console.log deviceID
+            db.get "_design/#{deviceID}", (err, designDoc) =>
                 return done err if err
                 @designDoc = designDoc
                 done()
@@ -60,7 +63,7 @@ describe "Device", ->
             Object.keys(@designDoc.filters).should.have.length 2
 
         it "And the view works", (done) ->
-            db.view "#{@id}/filterView", (err, docs) =>
+            db.view "#{deviceID}/filterView", (err, docs) =>
                 return done err if err
                 docs.should.have.length 1
                 done()
@@ -71,11 +74,11 @@ describe "Device", ->
             client.post "device/", login: "phone", (err, res, body) =>
                 console.log err if err
                 @response = res
-                @id = body.id
+                deviceID = body.id
                 done()
 
         it "And I remove a device", (done) ->
-            client.del "device/#{@id}/", (err, res, body) =>
+            client.del "device/#{deviceID}/", (err, res, body) =>
                 console.log err if err
                 @response = res
                 done()
@@ -84,7 +87,7 @@ describe "Device", ->
             @response.statusCode.should.equal 200
 
         it "And I remove a device", (done) ->
-            client.del "device/#{@id}/", (err, res, body) =>
+            client.del "device/#{deviceID}/", (err, res, body) =>
                 console.log err if err
                 @response = res
                 done()
