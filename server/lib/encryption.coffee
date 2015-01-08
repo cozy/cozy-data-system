@@ -3,7 +3,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 nodemailer = require "nodemailer"
 CryptoTools = require('./crypto_tools')
 randomString = require('./random').randomString
-logger = require('printit')()
+logger = require('printit')(prefix: 'lib/encryption')
 timeout = null
 
 User = require './user'
@@ -13,6 +13,7 @@ cryptoTools = new CryptoTools()
 
 masterKey = null
 slaveKey = null
+day = 24 * 60 * 60 * 1000
 
 sendEmail = (mailOptions, callback) ->
     transport = nodemailer.createTransport "SMTP", {}
@@ -42,35 +43,37 @@ getBody = (domain) ->
     return body
 
 
+
+resetTimeout = -> timeout = null
+sendMailNow = ->
+    if (masterKey? and slaveKey?)
+        return resetTimeout()
+
+    user.getUser (err, user) ->
+        if err
+            logger.error "[sendMailToUser] an error occured while" +
+                " retrieving user data from database:"
+            logger.raw err
+        else
+            db.view 'cozyinstance/all', (err, instance) ->
+                if instance?[0]?.value.domain?
+                    domain = instance[0].value.domain
+                else
+                    domain = false
+                mailOptions =
+                    to: user.email
+                    from: "noreply@cozycloud.cc"
+                    subject: "Your Cozy has been restarted"
+                    text: getBody(domain)
+                sendEmail mailOptions, (error, response) ->
+                    logger.error error if error?
+
+
+                timeout = setTimeout resetTimeout, 3*day
+
 sendMail = ->
     if timeout is null
-        timeout = setTimeout () ->
-            if not (masterKey? and slaveKey?)
-                user.getUser (err, user) ->
-                    if err
-                        logger.error "[sendMailToUser] an error occured while" +
-                            " retrieving user data from database:"
-                        logger.raw err
-                        next new Error err
-                    else
-                        db.view 'cozyinstance/all', (err, instance) ->
-                            if instance?[0]?.value.domain?
-                                domain = instance[0].value.domain
-                            else
-                                domain = false
-                            mailOptions =
-                                to: user.email
-                                from: "noreply@cozycloud.cc"
-                                subject: "Your Cozy has been restarted"
-                                text: getBody(domain)
-                            sendEmail mailOptions, (error, response) ->
-                                logger.error error if error?
-                            timeout = setTimeout () ->
-                                timeout = null
-                            , 3 * 24 * 60 * 60 * 1000
-            else
-                timeout = null
-        , 24 * 60 * 60 * 1000
+        timeout = setTimeout sendMailNow, 1*day
 
 
 ## function updateKeys (oldKey,password, encryptedslaveKey, callback)
@@ -98,9 +101,9 @@ exports.encrypt = (password) ->
             return newPwd
         else
             sendMail()
-            err = "master key and slave key don't exist"
-            logger.error "[encrypt]: #{err}"
-            throw new Error err
+            err = new Error "master key and slave key don't exist"
+            logger.error err.message
+            throw err
     else
         return password
 
@@ -123,7 +126,7 @@ exports.decrypt = (password) ->
             sendMail()
             err = "master key and slave key don't exist"
             logger.error "[decrypt]: #{err}"
-            throw new Error err
+            throw err
     else
         return password
 
@@ -171,24 +174,24 @@ exports.logIn = (password, user, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Update keys when user changes his password
 exports.update = (password, user, callback) ->
-    if masterKey? and slaveKey?
-        if masterKey.length isnt 32
-            err = "password to initialize keys is different than user password"
-            logger.error "[update] : #{err}"
-            callback err
-        else
-            updateKeys masterKey, password, slaveKey, (data) =>
-                db.merge user._id, data, (err, res) =>
-                    if err
-                        logger.error "[update] : #{err}"
-                        callback err
-                    else
-                        callback null
-    else
-        err = "masterKey and slaveKey don't exist"
+    unless masterKey? and slaveKey?
+        err = errors.http 400, "masterKey and slaveKey don't exist"
         logger.error "[update] : #{err}"
-        callback 400
+        return callback err
 
+    if masterKey.length isnt 32
+        err = errors.http 400, """
+            password to initialize keys is different than user password"""
+        logger.error "[update] : #{err}"
+        return callback err
+
+    updateKeys masterKey, password, slaveKey, (data) =>
+        db.merge user._id, data, (err, res) =>
+            if err
+                logger.error "[update] : #{err}"
+                return callback err
+
+            callback null
 
 ## function reset (pasword, user, callback)
 ## @password {string} user's password
@@ -199,7 +202,7 @@ exports.reset = (user, callback) ->
     data = slaveKey: null, salt: null
     db.merge user._id, data, (err, res) =>
         if err
-            callback "[resetKeys] err: #{err}"
+            callback new Error "[resetKeys] err: #{err}"
         else
             callback()
 

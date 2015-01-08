@@ -84,7 +84,7 @@ module.exports.exist = (req, res, next) ->
         else if status is 404
             res.send 200, exist: false
         else
-            next new Error err
+            next err
 
 # GET /data/:id/
 module.exports.find = (req, res) ->
@@ -108,7 +108,7 @@ module.exports.create = (req, res, next) ->
                 next err
             else
                 db.save req.params.id, req.body, (err, doc) ->
-                    if err?
+                    if err
                         err = new Error "The document already exists."
                         err.status = 409
                         next err
@@ -116,8 +116,8 @@ module.exports.create = (req, res, next) ->
                         res.send 201, _id: doc.id
     else
         db.save req.body, (err, doc) ->
-            if err?
-                next new Error err.error
+            if err
+                next err
             else
                 res.send 201, _id: doc.id
 
@@ -131,7 +131,7 @@ module.exports.update = (req, res, next) ->
         updatePermissions req.body
 
     db.save req.params.id, req.body, (err, response) ->
-        if err? then next new Error err.error
+        if err then next err
         else
             res.send 200, success: true
             next()
@@ -143,8 +143,8 @@ module.exports.upsert = (req, res, next) ->
 
     db.get req.params.id, (err, doc) ->
         db.save req.params.id, req.body, (err, savedDoc) ->
-            if err?
-                next new Error err.error
+            if err
+                next err
             else if doc?
                 res.send 200, success: true
                 next()
@@ -160,8 +160,8 @@ module.exports.delete = (req, res, next) ->
         res.send 204, success: true
         next()
     dbHelper.remove req.doc, (err, res) ->
-        if err?
-            next new Error err.error
+        if err
+            next err
         else
             # Doc is removed from indexation
             client.del "index/#{id}/", (err, response, resbody) ->
@@ -173,8 +173,8 @@ module.exports.merge = (req, res, next) ->
     delete req.body._attachments # attachments management has a dedicated API
 
     db.merge req.params.id, req.body, (err, doc) ->
-        if err?
-            next new Error err.error
+        if err
+            next err
         else
             res.send 200, success: true
             next()

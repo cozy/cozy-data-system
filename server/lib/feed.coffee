@@ -97,7 +97,7 @@ module.exports = class Feed
                             else if res?.length is 0
                                 # Retrieve binary and remove it
                                 @db.get binary, (err, doc) =>
-                                    return callback err if err?
+                                    return callback err if err
                                     if doc
                                         @db.remove doc._id, doc._rev, (err, doc) =>
                                             if not err?
@@ -111,14 +111,14 @@ module.exports = class Feed
 
                     # Check all binary
                     async.each Object.keys(doc.binary), removeBinary, (err) ->
-                        console.log err if err?
+                        console.log err if err
 
         else
             isCreation = change.changes[0].rev.split('-')[0] is '1'
             operation = if isCreation then 'create' else 'update'
 
             @db.get change.id, (err, doc) =>
-                @logger.error err if err?
+                @logger.error err if err
                 doctype = doc?.docType?.toLowerCase()
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
 

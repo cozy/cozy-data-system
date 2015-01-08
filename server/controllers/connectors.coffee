@@ -8,8 +8,8 @@ module.exports.bank = (req, res, next) ->
     if req.body.login? and req.body.password?
         path = "connectors/bank/#{req.params.name}/"
         client.post path, req.body, (err, response, body) ->
-            if err?
-                next new Error err
+            if err
+                next err
             else if not response?
                 next new Error "Response not found"
             else if response.statusCode isnt 200
@@ -25,8 +25,8 @@ module.exports.bankHistory = (req, res, next) ->
     if req.body.login? and req.body.password?
         path = "connectors/bank/#{req.params.name}/history/"
         client.post path, req.body, (err, response, body) ->
-            if err?
-                next new Error err
+            if err
+                next err
             else if not response?
                 next new Error "Response not found"
             else if response.statusCode isnt 200

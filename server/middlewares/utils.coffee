@@ -1,5 +1,6 @@
 locker = require '../lib/locker'
 db = require('../helpers/db_connect_helper').db_connect()
+logger = require('printit')(prefix: 'middleware/utils')
 
 # Helpers
 helpers = require '../helpers/utils'
@@ -22,23 +23,16 @@ module.exports.unlockRequest = (req, res) -> locker.removeLock req.lock
 # Recover document from database with id equal to params.id
 module.exports.getDoc = (req, res, next) ->
     db.get req.params.id, (err, doc) ->
-        if err? and err.error is "not_found"
+        if err
+            logger.error err
             deleteFiles req.files # for binaries management
-            err = new Error 'not found'
-            err.status = 404
             next err
-        else if err?
-            console.log "[Get doc] err: " + JSON.stringify err
-            deleteFiles req.files # for binaries management
-            next new Error err.error
         else if doc?
             req.doc = doc
             next()
         else
             deleteFiles req.files # for binaries management
-            err = new Error 'not found'
-            err.status = 404
-            next err
+            next errors.http 404, 'Not found'
 
 # For arbitrary stuff like "send mail to user"
 module.exports.checkPermissionsFactory = (permission) -> (req, res, next) ->

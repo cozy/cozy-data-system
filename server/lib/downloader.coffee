@@ -2,6 +2,7 @@ http = require 'http'
 fs = require 'fs'
 querystring = require 'querystring'
 S = require 'string'
+errors = require '../middlewares/errors'
 
 log =  require('printit')
     date: true
@@ -71,13 +72,11 @@ module.exports =
                 # Perform request
                 request = http.get options, (res) ->
                     if res.statusCode is 404
-                        err = new Error 'Not Found'
-                        err.statusCode = 404
-                        callback err
+                        callback errors.http 404, 'Not Found'
                     else if res.statusCode isnt 200
                         err = callback new Error """
                             error occured while downloading attachment #{err.message} """
-                        err.statusCode = res.statusCode
+                        err.status = res.statusCode
                         callback err
                     else
                         callback null, res

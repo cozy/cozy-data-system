@@ -56,7 +56,7 @@ module.exports.add = (req, res, next) ->
             stream = db.saveAttachment req.doc, fileData, (err) ->
                 if err
                     console.log "[Attachment] err: " + JSON.stringify err
-                    form.emit 'error', new Error err.error
+                    form.emit 'error', err
                 else
                     # We end the request because we expect to have only one
                     # file.
@@ -115,13 +115,8 @@ module.exports.remove = (req, res, next) ->
     name = req.params.name
 
     db.removeAttachment req.doc, name, (err) ->
-        next()
-        if err? and err.error = "not_found"
-            err = new Error "not found"
-            err.status = 404
+        if err
             next err
-        else if err?
-            console.log "[Attachment] err: " + JSON.stringify err
-            next err # cradle sends a Error object here
         else
             res.send 204, success: true
+            next()
