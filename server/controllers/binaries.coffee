@@ -125,18 +125,17 @@ module.exports.get = (req, res, next) ->
         id = binary[name].id
 
         # Run the download with Node low level api.
-        stream = downloader.download id, name, (err, stream) ->
-            if err and err.error is "not_found"
-                err = new Error "not found"
-                err.status = 404
+        request = downloader.download id, name, (err, stream) ->
+            if err
                 next err
-            else if err
-                next new Error err.error
             else
                 # Set response header from attachment infos
                 res.setHeader 'Content-Length', stream.headers['content-length']
                 res.setHeader 'Content-Type', stream.headers['content-type']
 
+                req.once 'close', -> request.abort()
+
+                #@TODO forward other cache-control header
                 if req.headers['range']?
                     stream.setHeader 'range', req.headers['range']
 

@@ -89,15 +89,11 @@ module.exports.get = (req, res, next) ->
 
     # Perform downloading via the low level downloader to avoir too high
     # memory consumption.
-    downloader.download id, name, (err, stream) ->
-        if err? and err.error is "not_found"
-            err = new Error "not found"
-            err.status = 404
+    request = downloader.download id, name, (err, stream) ->
+        if err
             next err
-        else if err
-            console.log err
-            next new Error err.error
         else
+
             if req.headers['range']?
                 stream.setHeader 'range', req.headers['range']
 
@@ -106,6 +102,8 @@ module.exports.get = (req, res, next) ->
             type = req.doc._attachments[name]['content-type']
             res.setHeader 'Content-Length', length
             res.setHeader 'Content-Type', type
+
+            req.once 'close', -> request.abort()
 
             stream.pipe res
 
