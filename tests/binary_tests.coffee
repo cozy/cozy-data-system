@@ -240,7 +240,7 @@ describe "Binaries", ->
                 should.not.exist photo.binary['test.png']
                 @client.get "data/#{@bin_id}/", (err, res, bin) =>
                     should.exist bin.error
-                    bin.error.should.equal 'not found'
+                    bin.error.should.equal 'not_found: deleted'
                     done()
 
 
@@ -282,6 +282,6 @@ describe "Binaries", ->
             setTimeout () =>
                 @client.get "data/#{@bin_id}/", (err, res, bin) =>
                     should.exist bin.error
-                    bin.error.should.equal 'not found'
+                    bin.error.should.equal 'not_found: deleted'
                     done()
             , 1000

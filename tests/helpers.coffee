@@ -71,7 +71,7 @@ helpers.clearDB = (db) -> (done) ->
                 logger.info "\t-> Database created"
                 logger.info "db.create err : ", err if err
                 done err
-        , 1000
+        , 2000
 
 helpers.randomString = (length=32) ->
     string = ""
@@ -103,7 +103,7 @@ helpers.Subscriber = class Subscriber
         @callback()
         @callback = ->
     haveBeenCalled: (channel, msg) =>
-        @calls.some (call) -> 
+        @calls.some (call) ->
             call.channel is channel and call.msg is msg
 
 module.exports = helpers
