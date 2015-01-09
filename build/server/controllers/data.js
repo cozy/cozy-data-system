@@ -146,12 +146,7 @@ module.exports.create = function(req, res, next) {
 };
 
 module.exports.update = function(req, res, next) {
-  var doctype;
   delete req.body._attachments;
-  doctype = req.body.docType;
-  if ((doctype != null) && doctype.toLowerCase() === "application") {
-    updatePermissions(req.body);
-  }
   return db.save(req.params.id, req.body, function(err, response) {
     if (err) {
       return next(err);

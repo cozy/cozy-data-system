@@ -126,10 +126,6 @@ module.exports.create = (req, res, next) ->
 module.exports.update = (req, res, next) ->
     delete req.body._attachments # attachments management has a dedicated API
 
-    doctype = req.body.docType
-    if doctype? and doctype.toLowerCase() is "application"
-        updatePermissions req.body
-
     db.save req.params.id, req.body, (err, response) ->
         if err then next err
         else

@@ -3,6 +3,8 @@ S = require 'string'
 async = require 'async'
 Client = require('request-json').JsonClient
 client = null
+updatePermissions = require('./token').updatePermissions
+
 setCouchCredentials = ->
     if process.env.NODE_ENV is 'production'
         data = fs.readFileSync '/etc/cozy/couchdb.login'
@@ -121,5 +123,7 @@ module.exports = class Feed
                 @logger.error err if err
                 doctype = doc?.docType?.toLowerCase()
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
+                if operation is 'update' and doctype is 'application'
+                    updatePermissions doc
 
 module.exports = new Feed()
