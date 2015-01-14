@@ -17,14 +17,15 @@ initLoginCouch = (callback) ->
             lines = S(data.toString('utf8')).lines()
             callback null, lines
 
-
-makeAborter = () ->
-    aborted = false
-    return abortable =
-        aborted: -> aborted
-        abort: ->
-            aborted = true
-            this.err = new Error 'aborted'
+# when the download fail, stream should be drained in order to release the
+# http connection from the pool. This function put stream in flowing mode
+# and discard the data. When this function is called, the short content
+# ({error: "not_found"}) is already buffered, so its simpler to read &
+# discard than to abort.
+releaseStream = (stream) ->
+    stream.on 'data', ->
+    stream.on 'end', ->
+    stream.resume()
 
 
 
@@ -73,11 +74,15 @@ module.exports =
                 request = http.get options, (res) ->
                     if res.statusCode is 404
                         callback errors.http 404, 'Not Found'
+                        # discard the couchdb request
+                        releaseStream res
                     else if res.statusCode isnt 200
                         err = callback new Error """
                             error occured while downloading attachment #{err.message} """
                         err.status = res.statusCode
                         callback err
+                        # discard the couchdb request
+                        releaseStream res
                     else
                         callback null, res
 
