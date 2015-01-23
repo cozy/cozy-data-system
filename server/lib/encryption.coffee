@@ -4,6 +4,7 @@ nodemailer = require "nodemailer"
 CryptoTools = require('./crypto_tools')
 randomString = require('./random').randomString
 logger = require('printit')(prefix: 'lib/encryption')
+errors = require '../middlewares/errors'
 timeout = null
 
 User = require './user'
