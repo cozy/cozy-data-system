@@ -138,16 +138,18 @@ module.exports.sendFromUser = function(req, res, next) {
         if ((instance != null ? (_ref = instance[0]) != null ? _ref.value.domain : void 0 : void 0) != null) {
           domain = instance[0].value.domain;
         } else {
-          domain = "";
+          domain = 'your.cozy.io';
         }
         if ((users != null ? (_ref1 = users[0]) != null ? _ref1.value.public_name : void 0 : void 0) != null) {
           displayName = users[0].value.public_name;
           displayName = displayName.toLowerCase().replace(' ', '-');
           displayName += "-";
+        } else {
+          displayName = '';
         }
         mailOptions = {
           to: body.to,
-          from: "" + displayName + "noreply@" + domain,
+          from: displayName + "noreply@" + domain,
           subject: body.subject,
           text: body.content,
           html: body.html || void 0
