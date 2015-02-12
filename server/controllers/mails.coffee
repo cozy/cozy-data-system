@@ -113,7 +113,7 @@ module.exports.sendFromUser = (req, res, next) ->
                 if instance?[0]?.value.domain?
                     domain = instance[0].value.domain
                 else
-                    domain = ""
+                    domain = 'your.cozy.io'
 
                 # retrieves and slugifies the username if it exists
                 if users?[0]?.value.public_name?
@@ -121,6 +121,8 @@ module.exports.sendFromUser = (req, res, next) ->
                     displayName = displayName.toLowerCase()
                                              .replace ' ', '-'
                     displayName += "-"
+                else
+                    displayName = ''
 
                 mailOptions =
                     to: body.to
