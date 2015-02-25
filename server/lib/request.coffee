@@ -1,4 +1,5 @@
 db = require('../helpers/db_connect_helper').db_connect()
+async = require 'async'
 request = {}
 
 # Define random function for application's token
@@ -100,6 +101,88 @@ recoverDesignDocs = (callback) =>
     db.all filterRange, (err, res) =>
         recoverDocs res, [], callback
 
+
+initializeDSView = (callback) ->
+    views =
+        doctypes:
+            all:
+                map: """
+                function(doc) {
+                    if(doc.docType) {
+                        return emit(doc.docType, null);
+                    }
+                }
+                """
+                # use to make a "distinct"
+                reduce: """
+                function(key, values) {
+                    return true;
+                }
+                """
+        device:
+            all:
+                map: """
+                function(doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "device") {
+                        return emit(doc._id, doc);
+                    }
+                }
+                """
+            byLogin:
+                map: """
+                function (doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "device") {
+                        return emit(doc.login, doc)
+                    }
+                }
+                """
+        binary:
+            all:
+                map: """
+                function(doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "binary") {
+                        emit(doc._id, null);
+                    }
+                }
+                """
+            byDoc:
+                map: """
+                function(doc) {
+                    if(doc.binary) {
+                        for (bin in doc.binary) {
+                            emit(doc.binary[bin].id, doc._id);
+                        }
+                    }
+                }
+                """
+        tags:
+            all:
+                map: """
+                function (doc) {
+                var _ref;
+                return (_ref = doc.tags) != null ? typeof _ref.forEach === "function" ? _ref.forEach(function(tag) {
+                   return emit(tag, null);
+                    }) : void 0 : void 0;
+                }
+                """
+                # use to make a "distinct"
+                reduce: """
+                function(key, values) {
+                    return true;
+                }
+                """
+    async.forEach Object.keys(views), (docType, cb) ->
+        view = views[docType]
+        db.get "_design/#{docType}", (err, doc) ->
+            if err and err.error is 'not_found'
+                db.save "_design/#{docType}", view, cb
+            else
+                for type in Object.keys(view)
+                    doc.views[type] = view[type]
+                db.save "_design/#{docType}", doc, cb
+    , callback
+
+
 ## function init (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize request
@@ -110,27 +193,28 @@ module.exports.init = (callback) =>
                 if err
                     console.log "[Definition] err: " + err.message
 
-    if productionOrTest
-        recoverApp (apps) =>
-            recoverDesignDocs (docs) =>
-                for doc in docs
-                    for view, body of doc.views
-                        # Search if view start with application name
-                        if view.indexOf('-') isnt -1 and view.split('-')[0] in apps
-                            app = view.split('-')[0]
-                            type = doc._id.substr 8, doc._id.length-1
-                            req_name = view.split('-')[1]
-                            request[app] = {} if not request[app]
-                            request[app]["#{type}/#{req_name}"] = view
-                        if view.indexOf('undefined-') is 0 or
-                            (view.indexOf('-') isnt -1 and not (view.split('-')[0] in apps))
-                                delete doc.views[view]
-                                db.merge doc._id, views: doc.views, \
-                                (err, response) ->
-                                    if err
-                                        console.log "[Definition] err: " + err.message
-                                    removeEmptyView(doc)
-                    removeEmptyView(doc)
-                callback null
-    else
-        callback null
+    initializeDSView ->
+        if productionOrTest
+            recoverApp (apps) =>
+                recoverDesignDocs (docs) =>
+                    for doc in docs
+                        for view, body of doc.views
+                            # Search if view start with application name
+                            if view.indexOf('-') isnt -1 and view.split('-')[0] in apps
+                                app = view.split('-')[0]
+                                type = doc._id.substr 8, doc._id.length-1
+                                req_name = view.split('-')[1]
+                                request[app] = {} if not request[app]
+                                request[app]["#{type}/#{req_name}"] = view
+                            if view.indexOf('undefined-') is 0 or
+                                (view.indexOf('-') isnt -1 and not (view.split('-')[0] in apps))
+                                    delete doc.views[view]
+                                    db.merge doc._id, views: doc.views, \
+                                    (err, response) ->
+                                        if err
+                                            console.log "[Definition] err: " + err.message
+                                        removeEmptyView(doc)
+                        removeEmptyView(doc)
+                    callback null
+        else
+            callback null

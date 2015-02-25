@@ -3,4 +3,8 @@ module.exports = (app, server, callback) ->
     feed.initialize server
 
     db = require './lib/db'
-    db -> callback app, server if callback?
+    db ->
+        init = require './lib/init'
+        init.removeLostBinaries (err) ->
+            callback app, server if callback?
+            console.log err if err?

@@ -201,6 +201,9 @@ module.exports = function(callback) {
       return function(err, doc) {
         if (err && err.error === "not_found") {
           return db.save('_design/binary', {
+            all: {
+              map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"binary\") {\n        emit(doc._id, null);\n    }\n}"
+            },
             byDoc: {
               map: "function(doc) {\n    if(doc.binary) {\n        for (bin in doc.binary) {\n            emit(doc.binary[bin].id, doc._id);\n        }\n    }\n}"
             }
@@ -208,6 +211,9 @@ module.exports = function(callback) {
         } else {
           doc.views['byDoc'] = {
             map: "function(doc) {\n    if(doc.binary) {\n        for (bin in doc.binary) {\n            emit(doc.binary[bin].id, doc._id);\n        }\n    }\n}"
+          };
+          doc.views['all'] = {
+            map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"binary\") {\n        emit(doc._id, null);\n    }\n}"
           };
           return db.save('_design/binary', doc._rev, doc);
         }
