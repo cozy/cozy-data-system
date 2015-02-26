@@ -339,8 +339,8 @@ describe "Binaries", ->
                 file =
                     name: "test"
                     path : ""
-                @client.post 'data/444/',file, (err, res, body) =>
-                    @client.sendFile "data/444/binaries/", "./tests/fixtures/test.png", \
+                @client.post 'data/456/',file, (err, res, body) =>
+                    @client.sendFile "data/456/binaries/", "./tests/fixtures/test.png", \
                                 (err, res, body) =>
                         done()
 
@@ -350,7 +350,7 @@ describe "Binaries", ->
                     done()
 
             it 'And binary should not be in list', (done) ->
-                @client.get 'data/444/', (err, res, body) =>
+                @client.get 'data/456/', (err, res, body) =>
                     binaryId = body.binary['test.png'].id
                     test = binaryId in @binaries
                     test.should.equal false
@@ -364,8 +364,8 @@ describe "Binaries", ->
                     docType: "Random-test"
                     name: "test"
                     path : ""
-                @client.post 'data/444/',file, (err, res, body) =>
-                    @client.sendFile "data/444/binaries/", "./tests/fixtures/test.png", \
+                @client.post 'data/789/',file, (err, res, body) =>
+                    @client.sendFile "data/789/binaries/", "./tests/fixtures/test.png", \
                                 (err, res, body) =>
                         done()
 
@@ -375,7 +375,7 @@ describe "Binaries", ->
                     done()
 
             it 'And binary should not be in list', (done) ->
-                @client.get 'data/444/', (err, res, body) =>
+                @client.get 'data/789/', (err, res, body) =>
                     binaryId = body.binary['test.png'].id
                     test = binaryId in @binaries
                     test.should.equal false
