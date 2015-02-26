@@ -6,10 +6,13 @@ module.exports = function(app, server, callback) {
   db = require('./lib/db');
   return db(function() {
     var init;
+    if (callback != null) {
+      callback(app, server);
+    }
     init = require('./lib/init');
     return init.removeLostBinaries(function(err) {
-      if (callback != null) {
-        return callback(app, server);
+      if (err != null) {
+        return console.log(err);
       }
     });
   });
