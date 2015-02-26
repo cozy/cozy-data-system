@@ -285,3 +285,45 @@ describe "Binaries", ->
                     bin.error.should.equal 'not_found: deleted'
                     done()
             , 1000
+
+describe "Binary not linked to a document (automatic deletion)", ->
+    before (done) ->
+        helpers.startApp () =>
+            @client = new Client serverUrl
+            @client.setBasicAuth "home", "token"
+            done()
+
+    it "When I create a binary without document", (done) ->
+        app =
+            "name": "test"
+            "slug": "test"
+            "state": "installed"
+            "password": "secret"
+            "permissions":
+                "All":
+                    "description": "This application needs manage binary because ..."
+            "docType": "Application"
+        @client.post 'data/', app, (err, res, doc) =>
+            @client.setBasicAuth 'test', 'secret'
+            binary =
+                docType: "Binary"
+            @client.post 'data/100/',binary, (err, res, body) ->
+                res.statusCode.should.equal 201
+                done()
+
+    it "When I restart data-system", (done)->
+        helpers.stopApp () =>
+            helpers.startApp () ->
+                done()
+
+
+    it "And binary should be deleted", (done) ->
+        setTimeout () =>
+            @client = new Client serverUrl
+            @client.setBasicAuth "home", "token"
+            @client.get "data/100/", (err, res, bin) =>
+                should.exist bin.error
+                bin.error.should.equal 'not_found: deleted'
+                helpers.stopApp () ->
+                    done()
+        , 1000
