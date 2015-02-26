@@ -2,6 +2,7 @@ should = require('chai').Should()
 fs = require 'fs'
 Client = require('request-json').JsonClient
 helpers = require './helpers'
+getLostBinaries = require('../server/lib/init').getLostBinaries
 
 # connection to DB for "hand work"
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
@@ -286,6 +287,155 @@ describe "Binaries", ->
                     done()
             , 1000
 
+    describe 'Test module which get all lost binaries', ->
+
+        describe 'Binary not linked to a document', ->
+
+            it 'When I add binary in database', (done) ->
+                binary =
+                    docType: "Binary"
+                @client.post 'data/123/',binary, (err, res, body) =>
+                    should.not.exist err
+                    done()
+
+            it 'Then I get all binaries lost', (done) ->
+                getLostBinaries (binaries) =>
+                    @binaries = binaries
+                    done()
+
+            it 'And binary should be in list', ->
+                test = '123' in @binaries
+                test.should.equal true
+
+
+        describe 'Binary linked to a document', ->
+
+            it 'When I add binary in database', (done) ->
+                file =
+                    docType: "File"
+                    name: "test"
+                    path : ""
+                @client.post 'data/444/',file, (err, res, body) =>
+                    @client.sendFile "data/444/binaries/", "./tests/fixtures/test.png", \
+                                (err, res, body) =>
+                        done()
+
+            it 'Then I get all binaries lost', (done) ->
+                getLostBinaries (binaries) =>
+                    @binaries = binaries
+                    done()
+
+            it 'And binary should not be in list', (done) ->
+                @client.get 'data/444/', (err, res, body) =>
+                    binaryId = body.binary['test.png'].id
+                    test = binaryId in @binaries
+                    test.should.equal false
+                    done()
+
+
+        describe 'Binary linked to a document without docType', ->
+
+            it 'When I add binary in database', (done) ->
+                file =
+                    name: "test"
+                    path : ""
+                @client.post 'data/444/',file, (err, res, body) =>
+                    @client.sendFile "data/444/binaries/", "./tests/fixtures/test.png", \
+                                (err, res, body) =>
+                        done()
+
+            it 'Then I get all binaries lost', (done) ->
+                getLostBinaries (binaries) =>
+                    @binaries = binaries
+                    done()
+
+            it 'And binary should not be in list', (done) ->
+                @client.get 'data/444/', (err, res, body) =>
+                    binaryId = body.binary['test.png'].id
+                    test = binaryId in @binaries
+                    test.should.equal false
+                    done()
+
+
+        describe 'Binary linked to a document with random docType', ->
+
+            it 'When I add binary in database', (done) ->
+                file =
+                    docType: "Random-test"
+                    name: "test"
+                    path : ""
+                @client.post 'data/444/',file, (err, res, body) =>
+                    @client.sendFile "data/444/binaries/", "./tests/fixtures/test.png", \
+                                (err, res, body) =>
+                        done()
+
+            it 'Then I get all binaries lost', (done) ->
+                getLostBinaries (binaries) =>
+                    @binaries = binaries
+                    done()
+
+            it 'And binary should not be in list', (done) ->
+                @client.get 'data/444/', (err, res, body) =>
+                    binaryId = body.binary['test.png'].id
+                    test = binaryId in @binaries
+                    test.should.equal false
+                    done()
+
+        describe 'Binary linked to two documents', ->
+
+            it 'When I add binary in database', (done) ->
+                @client.get 'data/444/', (err, res, body) =>
+                    file =
+                        docType: "File"
+                        name: "test2"
+                        path : ""
+                        binary : body.binary
+                    @client.post 'data/555/', file, (err, res, body) =>
+                        done()
+
+            it 'Then I get all binaries lost', (done) ->
+                getLostBinaries (binaries) =>
+                    @binaries = binaries
+                    done()
+
+            it 'And binary should not be in list', (done) ->
+                @client.get 'data/444/', (err, res, body) =>
+                    binaryId = body.binary['test.png'].id
+                    test = binaryId in @binaries
+                    test.should.equal false
+                    done()
+
+        describe 'Document linked to two binaries', ->
+
+            it 'When I add binary in database', (done) ->
+                file =
+                    docType: "File"
+                    name: "test"
+                    path : ""
+                @client.post 'data/666/',file, (err, res, body) =>
+                    @client.sendFile "data/666/binaries/", "./tests/fixtures/test.png", \
+                                (err, res, body) =>
+                        @client.sendFile "data/666/binaries/", "./tests/fixtures/test-get.png", \
+                                    (err, res, body) =>
+                            done()
+
+            it 'Then I get all binaries lost', (done) ->
+                getLostBinaries (binaries) =>
+                    @binaries = binaries
+                    done()
+
+            it 'And two binaries should not be in list', (done) ->
+                @client.get 'data/666/', (err, res, body) =>
+                    # Check first binary
+                    binaryId = body.binary['test.png'].id
+                    test = binaryId in @binaries
+                    test.should.equal false
+                    # Check second binary
+                    binaryId = body.binary['test-get.png'].id
+                    test = binaryId in @binaries
+                    test.should.equal false
+                    done()
+
 describe "Binary not linked to a document (automatic deletion)", ->
     before (done) ->
         helpers.startApp () =>
@@ -339,7 +489,6 @@ describe "Binary not linked to a document (automatic deletion)", ->
             @client = new Client serverUrl
             @client.setBasicAuth 'test', 'secret'
             @client.get "data/111/", (err, res, bin) =>
-                console.log bin
                 should.exist bin
                 should.not.exist err
                 should.not.exist bin.error
