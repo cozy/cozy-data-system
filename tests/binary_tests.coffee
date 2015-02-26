@@ -307,9 +307,16 @@ describe "Binary not linked to a document (automatic deletion)", ->
             @client.setBasicAuth 'test', 'secret'
             binary =
                 docType: "Binary"
-            @client.post 'data/100/',binary, (err, res, body) ->
-                res.statusCode.should.equal 201
-                done()
+            @client.post 'data/100/',binary, (err, res, body) =>
+                file =
+                    docType: "File"
+                    name: "test"
+                    path : ""
+                @client.post 'data/111/',file, (err, res, body) =>
+                    @client.sendFile "data/111/binaries/", "./tests/fixtures/test.png", \
+                                (err, res, body) =>
+                        res.statusCode.should.equal 201
+                        done()
 
     it "When I restart data-system", (done)->
         helpers.stopApp () =>
@@ -317,13 +324,25 @@ describe "Binary not linked to a document (automatic deletion)", ->
                 done()
 
 
-    it "And binary should be deleted", (done) ->
+    it "And binary not linked should be deleted", (done) ->
         setTimeout () =>
             @client = new Client serverUrl
-            @client.setBasicAuth "home", "token"
+            @client.setBasicAuth 'test', 'secret'
             @client.get "data/100/", (err, res, bin) =>
                 should.exist bin.error
                 bin.error.should.equal 'not_found: deleted'
+                done()
+        , 1000
+
+    it "And binary linked should not be deleted", (done) ->
+        setTimeout () =>
+            @client = new Client serverUrl
+            @client.setBasicAuth 'test', 'secret'
+            @client.get "data/111/", (err, res, bin) =>
+                console.log bin
+                should.exist bin
+                should.not.exist err
+                should.not.exist bin.error
                 helpers.stopApp () ->
                     done()
         , 1000
