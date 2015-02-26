@@ -1,4 +1,3 @@
-
 log = require('printit')
     date: true
     prefix: 'lib/init'
@@ -22,7 +21,13 @@ exports.removeLostBinaries = (callback) ->
                             if not err and doc
                                 db.remove doc._id, doc._rev, (err, doc) =>
                                     log.error err if err
-                    cb()
+                                    cb()
+                            else
+                                log.error err if err
+                                cb()
+                    else
+                        log.error err if err
+                        cb()
             , callback
         else
             log.error err if err?

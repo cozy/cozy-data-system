@@ -7,4 +7,3 @@ module.exports = (app, server, callback) ->
         init = require './lib/init'
         init.removeLostBinaries (err) ->
             callback app, server if callback?
-            console.log err if err?
