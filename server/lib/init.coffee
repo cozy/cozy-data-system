@@ -17,10 +17,10 @@ getLostBinaries = exports.getLostBinaries = (callback) ->
                 if not err and docs?
                     keys = []
                     for doc in docs
-                        keys.push doc.key
+                        keys[doc.key] = true
                     for binary in binaries
                         # Check if binary is linked to a document
-                        unless binary.id in keys
+                        unless keys[binary.id]?
                             lostBinaries.push binary.id
                     callback null, lostBinaries
                 else
