@@ -8,3 +8,5 @@ module.exports = (app, server, callback) ->
         init = require './lib/init'
         init.removeLostBinaries (err) ->
             console.log err if err?
+            init.addThumbs (err) ->
+                console.log err if err?

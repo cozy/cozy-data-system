@@ -4,6 +4,7 @@ log = require('printit')
 
 db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
+thumb = require('./thumb').create
 
 # Get all lost binaries
 #    A binary is considered as lost when isn't linked to a document.
@@ -44,3 +45,16 @@ exports.removeLostBinaries = (callback) ->
                     log.error err if err
                     cb()
         , callback
+
+# Add thumbs for images without thumb
+exports.addThumbs = (callback) ->
+    # Retrieve images without thumb
+    db.view 'file/withoutThumb', (err, files) ->
+        if not err and files.length > 0
+            async.forEachSeries files, (file, cb) =>
+                # Create thumb
+                db.get file.id, (err, file) ->
+                    thumb file, cb
+            , callback
+        else
+            callback()
