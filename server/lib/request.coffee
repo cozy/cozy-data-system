@@ -185,6 +185,9 @@ initializeDSView = (callback) ->
         db.get "_design/#{docType}", (err, doc) ->
             if err and err.error is 'not_found'
                 db.save "_design/#{docType}", view, cb
+            else if err
+                log.error err
+                cb()
             else
                 for type in Object.keys(view)
                     doc.views[type] = view[type]
