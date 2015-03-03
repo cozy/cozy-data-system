@@ -1,6 +1,9 @@
 db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
 request = {}
+log = require('printit')
+    date: true
+    prefix: 'lib/request'
 
 # Define random function for application's token
 randomString = (length) ->
@@ -40,7 +43,7 @@ module.exports.create = (app, req, views, newView, callback) =>
                 db.merge "_design/#{req.type}", views: views, \
                 (err, response) ->
                     if err
-                        console.log "[Definition] err: " + err.message
+                        log.error "[Definition] err: " + err.message
                     storeRam req.req_name
             else
                 storeRam req.req_name
@@ -71,11 +74,11 @@ recoverApp = (callback) =>
         if err
             callback err
         else if not res
-            callback []
+            callback null, []
         else
             res.forEach (app) =>
                 apps.push app.name
-            callback apps
+            callback null, apps
 
 ## function recoverDocs (callback)
 ## @res {tab} design docs without views
@@ -89,7 +92,7 @@ recoverDocs = (res, docs, callback) =>
             docs.push(result)
             recoverDocs res, docs, callback
     else
-        callback docs
+        callback null, docs
 
 ## function recoverDocs (callback)
 ## @callback {function} Continuation to pass control back to when complete.
@@ -99,11 +102,14 @@ recoverDesignDocs = (callback) =>
         startkey: "_design/"
         endkey: "_design0"
     db.all filterRange, (err, res) =>
+        return callback err if err?
         recoverDocs res, [], callback
 
 
+# Data system uses some views, this function initialize it.
 initializeDSView = (callback) ->
     views =
+        # Usefull for function 'doctypes' (controller/request. Databrowser)
         doctypes:
             all:
                 map: """
@@ -119,6 +125,7 @@ initializeDSView = (callback) ->
                     return true;
                 }
                 """
+        # Usefull to manage device access
         device:
             all:
                 map: """
@@ -136,6 +143,7 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
+        # Usefull to remove binary lost
         binary:
             all:
                 map: """
@@ -155,7 +163,7 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
-
+        # Usefull for thumbs creation
         file:
             withoutThumb:
                 map: """
@@ -167,6 +175,7 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
+        # Usefull for API tags
         tags:
             all:
                 map: """
@@ -199,43 +208,63 @@ initializeDSView = (callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize request
 module.exports.init = (callback) =>
-    removeEmptyView = (doc) ->
+    removeEmptyView = (doc, callback) ->
         if Object.keys(doc.views).length is 0 or not doc?.views?
             db.remove doc._id, doc._rev, (err, response) ->
                 if err
-                    console.log "[Definition] err: " + err.message
+                    log.error "[Definition] err: " + err.message
+                callback err
+        else
+            callback()
+
+    storeAppView = (apps, doc, view, body, callback) ->
+        # Search if view start with application name
+        # Views as <name>-
+        if view.indexOf('-') isnt -1
+            # Link view and app in RAM
+            #   -> Linked to an application
+            if view.split('-')[0] in apps
+                app = view.split('-')[0]
+                type = doc._id.substr 8, doc._id.length-1
+                req_name = view.split('-')[1]
+                request[app] = {} if not request[app]
+                request[app]["#{type}/#{req_name}"] = view
+                callback()
+            else
+                # Remove view
+                #   -> linked to an undefined application
+                delete doc.views[view]
+                db.merge doc._id, views: doc.views, \
+                (err, response) ->
+                    if err
+                        log.error "[Definition] err: " +
+                            err.message
+                    removeEmptyView doc, (err) ->
+                        log.error err if err?
+                        callback()
+        else
+            callback()
 
     # Initialize view used by data-system
     initializeDSView ->
         if productionOrTest
             # Recover all applications in database
-            recoverApp (apps) =>
+            recoverApp (err, apps) =>
+                return callback err if err?
                 # Recover all design docs in database
-                recoverDesignDocs (docs) =>
-                    for doc in docs
-                        for view, body of doc.views
-                            # Search if view start with application name
-                            # Views as <name>-
-                            if view.indexOf('-') isnt -1
-                                # Link view and app in RAM
-                                #   -> Linked to an application
-                                if view.split('-')[0] in apps
-                                    app = view.split('-')[0]
-                                    type = doc._id.substr 8, doc._id.length-1
-                                    req_name = view.split('-')[1]
-                                    request[app] = {} if not request[app]
-                                    request[app]["#{type}/#{req_name}"] = view
-                                else
-                                    # Remove view
-                                    #   -> linked to an undefined application
-                                    delete doc.views[view]
-                                    db.merge doc._id, views: doc.views, \
-                                    (err, response) ->
-                                        if err
-                                            console.log "[Definition] err: " +
-                                                err.message
-                                        removeEmptyView(doc)
-                        removeEmptyView(doc)
-                    callback null
+                recoverDesignDocs (err, docs) =>
+                    return callback err if err?
+                    async.forEach docs, (doc, cb) ->
+                        #console.log doc
+                        async.forEach Object.keys(doc.views), (view, cb) ->
+                            body = doc.views[view]
+                            storeAppView apps, doc, view, body, cb
+                        , (err) ->
+                            removeEmptyView doc, (err) ->
+                                log.error err if err?
+                                cb()
+                    , (err) ->
+                        log.error err if err?
+                        callback()
         else
             callback null

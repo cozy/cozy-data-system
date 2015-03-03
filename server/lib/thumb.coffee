@@ -6,6 +6,7 @@ log = require('printit')
 db = require('../helpers/db_connect_helper').db_connect()
 binaryManagement = require '../lib/binary'
 downloader = require './downloader'
+async = require 'async'
 
 # Mimetype that requires thumbnail generation. Other types are not supported.
 whiteList = [
@@ -16,12 +17,18 @@ whiteList = [
 
 module.exports = thumb =
 
+    queue: async.queue (file, callback) ->
+        thumb.createThumb file, callback
+    , 3
+
     # Resize given file/photo and save it as binary attachment to given file.
     # Resizing depends on target attachment name. If it's 'thumb', it cropse
     # the image to a 300x300 image. If it's a 'scree' preview, it is resize
     # as a 1200 x 800 image.
-    resize: (srcPath, file, name, mimetype, callback) ->
-        dstPath = "/tmp/thumb-#{file.name}"
+    resize: (srcPath, file, name, mimetype, force, callback) ->
+        if file.binary[name]? and not force
+            return callback()
+        dstPath = "/tmp/#{name}-#{file.name}"
         data =
             name: name
             "content-type": mimetype
@@ -67,12 +74,15 @@ module.exports = thumb =
 
 
 
+    create: (file, callback) ->
+        thumb.queue.push file, callback
+
     # Create thumb for given file. Check that the thumb doesn't already exist
     # and that file is from the right mimetype (see whitelist).
-    create: (file, callback) ->
+    createThumb: (file, callback) ->
         return callback new Error('no binary') unless file.binary?
 
-        if file.binary?.thumb?
+        if file.binary?.thumb? and file.binary?.screen?
             log.info "createThumb #{file.id}/#{file.name}: already created."
             callback()
 
@@ -93,7 +103,6 @@ module.exports = thumb =
                 """
                 rawFile = "/tmp/#{file.name}"
                 id = file.binary['file'].id
-
                 # Run the download with Node low level api.
                 request = downloader.download id, 'file', (err, stream) ->
                     if err
@@ -103,13 +112,14 @@ module.exports = thumb =
                         stream.pipe fs.createWriteStream rawFile
                         stream.on 'error', callback
                         stream.on 'end', =>
-                            thumb.resize rawFile, file, 'thumb', mimetype, (err) =>
-                                fs.unlink rawFile, ->
-                                    if err
-                                        log.error err
-                                    else
-                                        log.info """
-                                            createThumb #{file.id} /
-                                             #{file.name}: Thumbnail created
-                                        """
-                                    callback err
+                            thumb.resize rawFile, file, 'thumb', mimetype, false, (err) =>
+                                thumb.resize rawFile, file, 'screen', mimetype, false, (err) =>
+                                    fs.unlink rawFile, ->
+                                        if err
+                                            log.error err
+                                        else
+                                            log.info """
+                                                createThumb #{file.id} /
+                                                 #{file.name}: Thumbnail created
+                                            """
+                                        callback err

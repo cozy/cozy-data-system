@@ -299,7 +299,7 @@ describe "Binaries", ->
                     done()
 
             it 'Then I get all binaries lost', (done) ->
-                getLostBinaries (binaries) =>
+                getLostBinaries (err, binaries) =>
                     @binaries = binaries
                     done()
 
@@ -321,7 +321,7 @@ describe "Binaries", ->
                         done()
 
             it 'Then I get all binaries lost', (done) ->
-                getLostBinaries (binaries) =>
+                getLostBinaries (err, binaries) =>
                     @binaries = binaries
                     done()
 
@@ -345,7 +345,7 @@ describe "Binaries", ->
                         done()
 
             it 'Then I get all binaries lost', (done) ->
-                getLostBinaries (binaries) =>
+                getLostBinaries (err, binaries) =>
                     @binaries = binaries
                     done()
 
@@ -370,7 +370,7 @@ describe "Binaries", ->
                         done()
 
             it 'Then I get all binaries lost', (done) ->
-                getLostBinaries (binaries) =>
+                getLostBinaries (err, binaries) =>
                     @binaries = binaries
                     done()
 
@@ -394,7 +394,7 @@ describe "Binaries", ->
                         done()
 
             it 'Then I get all binaries lost', (done) ->
-                getLostBinaries (binaries) =>
+                getLostBinaries (err, binaries) =>
                     @binaries = binaries
                     done()
 
@@ -420,7 +420,7 @@ describe "Binaries", ->
                             done()
 
             it 'Then I get all binaries lost', (done) ->
-                getLostBinaries (binaries) =>
+                getLostBinaries (err, binaries) =>
                     @binaries = binaries
                     done()
 
