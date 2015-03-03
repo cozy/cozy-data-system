@@ -30,19 +30,22 @@ getLostBinaries = exports.getLostBinaries = function(callback) {
               lostBinaries.push(binary.id);
             }
           }
-          return callback(lostBinaries);
+          return callback(null, lostBinaries);
         } else {
-          return callback([]);
+          return callback(null, []);
         }
       });
     } else {
-      return callback([]);
+      return callback(err, []);
     }
   });
 };
 
 exports.removeLostBinaries = function(callback) {
-  return getLostBinaries(function(binaries) {
+  return getLostBinaries(function(err, binaries) {
+    if (err != null) {
+      return callback(err);
+    }
     return async.forEachSeries(binaries, (function(_this) {
       return function(binary, cb) {
         log.info("Remove binary " + binary);

@@ -22,16 +22,17 @@ getLostBinaries = exports.getLostBinaries = (callback) ->
                         # Check if binary is linked to a document
                         unless binary.id in keys
                             lostBinaries.push binary.id
-                    callback lostBinaries
+                    callback null, lostBinaries
                 else
-                    callback []
+                    callback null, []
         else
-            callback []
+            callback err, []
 
 # Remove binaries not linked with a document
 exports.removeLostBinaries = (callback) ->
     # Recover all lost binaries
-    getLostBinaries (binaries) ->
+    getLostBinaries (err, binaries) ->
+        return callback err if err?
         async.forEachSeries binaries, (binary, cb) =>
             log.info "Remove binary #{binary}"
             # Retrieve binary and remove it
