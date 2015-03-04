@@ -10,7 +10,7 @@ db = require('../helpers/db_connect_helper').db_connect();
 
 async = require('async');
 
-thumb = require('./thumb').create;
+thumb = require('./thumb');
 
 getLostBinaries = exports.getLostBinaries = function(callback) {
   var lostBinaries;
@@ -73,10 +73,10 @@ exports.removeLostBinaries = function(callback) {
 exports.addThumbs = function(callback) {
   return db.view('file/withoutThumb', function(err, files) {
     if (!err && files.length > 0) {
-      return async.forEachSeries(files, (function(_this) {
+      return async.forEach(files, (function(_this) {
         return function(file, cb) {
           return db.get(file.id, function(err, file) {
-            return thumb(file, cb);
+            return thumb.create(file, false, cb);
           });
         };
       })(this), callback);

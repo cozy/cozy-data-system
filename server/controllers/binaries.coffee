@@ -58,7 +58,7 @@ module.exports.add = (req, res, next) ->
 
             # Build file data
             fileData =
-                name: querystring.escape name
+                name: name
                 "content-type": part.headers['content-type']
 
             binaryManagement.addBinary req.doc, fileData, part, (err)->

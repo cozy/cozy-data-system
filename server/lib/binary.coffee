@@ -1,4 +1,6 @@
 db = require('../helpers/db_connect_helper').db_connect()
+thumb = require '../lib/thumb'
+querystring = require 'querystring'
 log = require('printit')
     prefix: 'binary'
 
@@ -8,7 +10,8 @@ log = require('printit')
 #   * readStream: read stream to read file to store in binary
 module.exports.addBinary = (doc, attachData, readStream, callback) ->
     name = attachData.name
-    attachFile = (binary) =>
+    attachFile = (binary, cb) =>
+        attachData.name = querystring.escape name
         stream = db.saveAttachment binary, attachData, (err, binDoc) ->
             if err
                 log.error "#{JSON.stringify err}"
@@ -25,7 +28,7 @@ module.exports.addBinary = (doc, attachData, readStream, callback) ->
                 binList[name] = bin
                 db.merge doc._id, binary: binList, (err) ->
                     log.error err if err?
-                    callback()
+                    cb()
         readStream.pipe stream
 
     # Update binary list set on given doc then save file to CouchDB
@@ -35,10 +38,15 @@ module.exports.addBinary = (doc, attachData, readStream, callback) ->
     # In that case the attachment is replaced with the uploaded file.
     if doc.binary?[name]?
         db.get doc.binary[name].id, (err, binary) ->
-            attachFile binary
+            attachFile binary, () ->
+                callback()
+                if doc.docType.toLowerCase() is 'file' and doc.class is 'image' and
+                    name is 'file'
+                        thumb.create doc, true, (err) ->
+                            log.error err if err?
     else
         # Else create a new binary to store uploaded file..
         binary =
             docType: "Binary"
         db.save binary, (err, binary) ->
-            attachFile binary
+            attachFile binary, callback

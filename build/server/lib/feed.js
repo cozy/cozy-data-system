@@ -14,7 +14,7 @@ client = null;
 
 updatePermissions = require('./token').updatePermissions;
 
-thumb = require('./thumb').create;
+thumb = require('./thumb');
 
 log = require('printit')({
   prefix: 'feed'
@@ -192,7 +192,7 @@ module.exports = Feed = (function() {
             return _this.db.get(change.id, function(err, file) {
               var ref1;
               if (file["class"] === 'image' && (((ref1 = file.binary) != null ? ref1.file : void 0) != null) && !file.binary.thumb) {
-                return thumb(file, function(err) {
+                return thumb.create(file, false, function(err) {
                   if (err != null) {
                     return log.error(err);
                   }

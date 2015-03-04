@@ -49,7 +49,7 @@ module.exports.add = function(req, res, next) {
         name = part.filename;
       }
       fileData = {
-        name: querystring.escape(name),
+        name: name,
         "content-type": part.headers['content-type']
       };
       return binaryManagement.addBinary(req.doc, fileData, part, function(err) {

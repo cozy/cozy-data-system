@@ -163,6 +163,9 @@ initializeDSView = function(callback) {
       var i, len, ref, type;
       if (err && err.error === 'not_found') {
         return db.save("_design/" + docType, view, cb);
+      } else if (err) {
+        log.error(err);
+        return cb();
       } else {
         ref = Object.keys(view);
         for (i = 0, len = ref.length; i < len; i++) {

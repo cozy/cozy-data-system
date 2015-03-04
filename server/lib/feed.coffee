@@ -4,7 +4,7 @@ async = require 'async'
 Client = require('request-json').JsonClient
 client = null
 updatePermissions = require('./token').updatePermissions
-thumb = require('./thumb').create
+thumb = require('./thumb')
 
 log = require('printit')
     prefix: 'feed'
@@ -127,14 +127,17 @@ module.exports = class Feed
             @db.get change.id, (err, doc) =>
                 @logger.error err if err
                 doctype = doc?.docType?.toLowerCase()
+
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
                 if operation is 'update' and doctype is 'application'
                     updatePermissions doc
+
                 if doctype is 'file'
                     @db.get change.id, (err, file) ->
                         if file.class is 'image' and
                             file.binary?.file? and not file.binary.thumb
-                                thumb file, (err) ->
+                                # Creates thumb for image.
+                                thumb.create file, false, (err) ->
                                     log.error err if err?
 
 module.exports = new Feed()
