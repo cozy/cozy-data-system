@@ -46,21 +46,19 @@ module.exports.initializeKeys = function(req, res, next) {
       return encryption.logIn(req.body.password, user, function(err) {
         if (err) {
           return next(err);
-        } else {
-          return res.send(200, {
-            success: true
-          });
         }
+        return res.send(200, {
+          success: true
+        });
       });
     } else {
       return encryption.init(req.body.password, user, function(err) {
         if (err) {
           return next(err);
-        } else {
-          return res.send(200, {
-            success: true
-          });
         }
+        return res.send(200, {
+          success: true
+        });
       });
     }
   });

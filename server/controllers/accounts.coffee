@@ -38,17 +38,13 @@ module.exports.initializeKeys = (req, res, next) ->
         ## User has already been connected
         if user.salt? and user.slaveKey?
             encryption.logIn req.body.password, user, (err)->
-                if err
-                    next err
-                else
-                    res.send 200, success: true
+                return next err if err
+                res.send 200, success: true
         ## First connection
         else
             encryption.init req.body.password, user, (err)->
-                return if err
-                    next err
-                else
-                    res.send 200, success: true
+                return next err if err
+                res.send 200, success: true
 
 #PUT /accounts/password/
 module.exports.updateKeys = (req, res, next) ->
