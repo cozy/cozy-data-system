@@ -66,7 +66,6 @@ module.exports = (callback) ->
         logger.info "Database #{db.name} on #{db.connection.host}" +
             ":#{db.connection.port} found."
         feed_start()
-        request_create()
 
     logError = (err) ->
         logger.info "Error on database creation : "
@@ -76,7 +75,6 @@ module.exports = (callback) ->
         logger.info "Database #{db.name} on" +
             " #{db.connection.host}:#{db.connection.port} created."
         feed_start()
-        request_create()
 
 
     ### Check existence of cozy database or create it ###
@@ -136,91 +134,6 @@ module.exports = (callback) ->
             else
                 logCreated()
                 callback()
-
-    # this request is used to retrieved all the doctypes in the DS
-    request_create = ->
-        db.get '_design/doctypes', (err, doc) =>
-            if err and err.error is "not_found"
-                db.save '_design/doctypes',
-                    all:
-                        map: """
-                        function(doc) {
-                            if(doc.docType) {
-                                return emit(doc.docType, null);
-                            }
-                        }
-                        """
-                        # use to make a "distinct"
-                        reduce: """
-                        function(key, values) {
-                            return true;
-                        }
-                        """
-
-        db.get '_design/device', (err, doc) =>
-            if err and err.error is "not_found"
-                db.save '_design/device',
-                    all:
-                        map: """
-                        function(doc) {
-                            if(doc.docType && doc.docType.toLowerCase() === "device") {
-                                return emit(doc._id, doc);
-                            }
-                        }
-                        """
-                    byLogin:
-                        map: """
-                        function (doc) {
-                            if(doc.docType && doc.docType.toLowerCase() === "device") {
-                                return emit(doc.login, doc)
-                            }
-                        }
-                        """
-
-        db.get '_design/binary', (err, doc) =>
-            if err and err.error is "not_found"
-                db.save '_design/binary',
-                    byDoc:
-                        map: """
-                        function(doc) {
-                            if(doc.binary) {
-                                for (bin in doc.binary) {
-                                    emit(doc.binary[bin].id, doc._id);
-                                }
-                            }
-                        }
-                        """
-            else
-                doc.views['byDoc'] =
-                    map: """
-                    function(doc) {
-                        if(doc.binary) {
-                            for (bin in doc.binary) {
-                                emit(doc.binary[bin].id, doc._id);
-                            }
-                        }
-                    }
-                    """
-                db.save '_design/binary', doc._rev, doc
-
-        db.get '_design/tags', (err, doc) =>
-            if err and err.error is "not_found"
-                db.save '_design/tags',
-                    all:
-                        map: """
-                        function (doc) {
-                        var _ref;
-                        return (_ref = doc.tags) != null ? typeof _ref.forEach === "function" ? _ref.forEach(function(tag) {
-                           return emit(tag, null);
-                            }) : void 0 : void 0;
-                        }
-                        """
-                        # use to make a "distinct"
-                        reduce: """
-                        function(key, values) {
-                            return true;
-                        }
-                        """
 
     feed_start = -> feed.startListening db
 

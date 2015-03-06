@@ -7,7 +7,6 @@ User = require '../lib/user'
 
 randomString = require('../lib/random').randomString
 checkProxyHome = require('../lib/token').checkProxyHome
-initPassword = require('../lib/init').initPassword
 errors = require '../middlewares/errors'
 
 cryptoTools = new CryptoTools()
@@ -39,16 +38,13 @@ module.exports.initializeKeys = (req, res, next) ->
         ## User has already been connected
         if user.salt? and user.slaveKey?
             encryption.logIn req.body.password, user, (err)->
-                next err if err
-                initPassword ->
-                    res.send 200, success: true
+                return next err if err
+                res.send 200, success: true
         ## First connection
         else
             encryption.init req.body.password, user, (err)->
-                return if err
-                    next err
-                else
-                    res.send 200, success: true
+                return next err if err
+                res.send 200, success: true
 
 #PUT /accounts/password/
 module.exports.updateKeys = (req, res, next) ->

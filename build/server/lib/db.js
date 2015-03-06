@@ -22,7 +22,7 @@ logger = require('printit')({
 });
 
 module.exports = function(callback) {
-  var addCozyAdmin, addCozyUser, couchClient, couchUrl, db, db_create, db_ensure, feed, feed_start, initLoginCouch, logCreated, logError, logFound, request_create;
+  var addCozyAdmin, addCozyUser, couchClient, couchUrl, db, db_create, db_ensure, feed, feed_start, initLoginCouch, logCreated, logError, logFound;
   feed = require('../lib/feed');
   db = require('../helpers/db_connect_helper').db_connect();
   couchUrl = "http://" + db.connection.host + ":" + db.connection.port + "/";
@@ -84,8 +84,7 @@ module.exports = function(callback) {
   /* Logger */
   logFound = function() {
     logger.info(("Database " + db.name + " on " + db.connection.host) + (":" + db.connection.port + " found."));
-    feed_start();
-    return request_create();
+    return feed_start();
   };
   logError = function(err) {
     logger.info("Error on database creation : ");
@@ -93,8 +92,7 @@ module.exports = function(callback) {
   };
   logCreated = function() {
     logger.info(("Database " + db.name + " on") + (" " + db.connection.host + ":" + db.connection.port + " created."));
-    feed_start();
-    return request_create();
+    return feed_start();
   };
 
   /* Check existence of cozy database or create it */
@@ -169,62 +167,6 @@ module.exports = function(callback) {
         return callback();
       }
     });
-  };
-  request_create = function() {
-    db.get('_design/doctypes', (function(_this) {
-      return function(err, doc) {
-        if (err && err.error === "not_found") {
-          return db.save('_design/doctypes', {
-            all: {
-              map: "function(doc) {\n    if(doc.docType) {\n        return emit(doc.docType, null);\n    }\n}",
-              reduce: "function(key, values) {\n    return true;\n}"
-            }
-          });
-        }
-      };
-    })(this));
-    db.get('_design/device', (function(_this) {
-      return function(err, doc) {
-        if (err && err.error === "not_found") {
-          return db.save('_design/device', {
-            all: {
-              map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"device\") {\n        return emit(doc._id, doc);\n    }\n}"
-            },
-            byLogin: {
-              map: "function (doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"device\") {\n        return emit(doc.login, doc)\n    }\n}"
-            }
-          });
-        }
-      };
-    })(this));
-    db.get('_design/binary', (function(_this) {
-      return function(err, doc) {
-        if (err && err.error === "not_found") {
-          return db.save('_design/binary', {
-            byDoc: {
-              map: "function(doc) {\n    if(doc.binary) {\n        for (bin in doc.binary) {\n            emit(doc.binary[bin].id, doc._id);\n        }\n    }\n}"
-            }
-          });
-        } else {
-          doc.views['byDoc'] = {
-            map: "function(doc) {\n    if(doc.binary) {\n        for (bin in doc.binary) {\n            emit(doc.binary[bin].id, doc._id);\n        }\n    }\n}"
-          };
-          return db.save('_design/binary', doc._rev, doc);
-        }
-      };
-    })(this));
-    return db.get('_design/tags', (function(_this) {
-      return function(err, doc) {
-        if (err && err.error === "not_found") {
-          return db.save('_design/tags', {
-            all: {
-              map: "function (doc) {\nvar _ref;\nreturn (_ref = doc.tags) != null ? typeof _ref.forEach === \"function\" ? _ref.forEach(function(tag) {\n   return emit(tag, null);\n    }) : void 0 : void 0;\n}",
-              reduce: "function(key, values) {\n    return true;\n}"
-            }
-          });
-        }
-      };
-    })(this));
   };
   feed_start = function() {
     return feed.startListening(db);

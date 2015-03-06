@@ -43,7 +43,7 @@ initializeApplication = require "#{helpers.prefix}server"
 
 helpers.startApp = (done) ->
 
-    @timeout 15000
+    @timeout 15000 if @timeout
     initializeApplication (app, server) =>
         @app = app
         @app.server = server
@@ -51,7 +51,7 @@ helpers.startApp = (done) ->
 
 helpers.stopApp = (done) ->
 
-    @timeout 10000
+    @timeout 10000 if @timeout
     setTimeout =>
         @app.server.close done
     , 250

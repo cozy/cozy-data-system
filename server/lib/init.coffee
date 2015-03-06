@@ -1,28 +1,47 @@
+log = require('printit')
+    date: true
+    prefix: 'lib/init'
+
 db = require('../helpers/db_connect_helper').db_connect()
-encryption = require('./encryption')
+async = require 'async'
 
-## Patch for automatic encryption
-# We must think about removing this (12/02/2014)
+# Get all lost binaries
+#    A binary is considered as lost when isn't linked to a document.
+getLostBinaries = exports.getLostBinaries = (callback) ->
+    lostBinaries = []
+    # Recover all binaries
+    db.view 'binary/all', (err, binaries) ->
+        if not err and binaries.length > 0
+            # Recover all binaries linked to a/several document(s)
+            db.view 'binary/byDoc', (err, docs) ->
+                if not err and docs?
+                    keys = []
+                    for doc in docs
+                        keys[doc.key] = true
+                    for binary in binaries
+                        # Check if binary is linked to a document
+                        unless keys[binary.id]?
+                            lostBinaries.push binary.id
+                    callback null, lostBinaries
+                else
+                    callback null, []
+        else
+            callback err, []
 
-errorMsg = "[lib/init] Error, no master/slave keys"
-exports.initPassword = (callback) ->
-    if process.env isnt 'development'
-        db.view "bankaccess/all", {}, (err, res) =>
-            if not err
-                res.forEach (value) ->
-                    if value.password?
-                        try
-                            password = encryption.decrypt value.password
-                        catch error
-                            console.log errorMsg
-
-                        if password is value.password
-                            try
-                                password = encryption.encrypt req.doc.password
-                            catch error
-                                console.log errorMsg
-
-                            value.password = password
-                            db.save value.id, value, (err, res, body) ->
-    callback()
-
+# Remove binaries not linked with a document
+exports.removeLostBinaries = (callback) ->
+    # Recover all lost binaries
+    getLostBinaries (err, binaries) ->
+        return callback err if err?
+        async.forEachSeries binaries, (binary, cb) =>
+            log.info "Remove binary #{binary}"
+            # Retrieve binary and remove it
+            db.get binary, (err, doc) =>
+                if not err and doc
+                    db.remove doc._id, doc._rev, (err, doc) =>
+                        log.error err if err
+                        cb()
+                else
+                    log.error err if err
+                    cb()
+        , callback
