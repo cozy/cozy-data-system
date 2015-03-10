@@ -6,20 +6,16 @@ log = require('printit')({
 });
 
 module.exports = function(app, server, callback) {
-  var db, feed;
+  var feed, init;
   feed = require('./lib/feed');
   feed.initialize(server);
-  db = require('./lib/db');
-  return db(function() {
-    var init;
-    init = require('./lib/init');
-    return init.removeLostBinaries(function(err) {
-      if (err != null) {
-        log.error(err);
-      }
-      if (callback != null) {
-        return callback(app, server);
-      }
-    });
+  init = require('./lib/init');
+  return init.removeLostBinaries(function(err) {
+    if (err != null) {
+      log.error(err);
+    }
+    if (callback != null) {
+      return callback(app, server);
+    }
   });
 };

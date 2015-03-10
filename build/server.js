@@ -2,19 +2,23 @@
 var application;
 
 application = module.exports = function(callback) {
-  var americano, errorMiddleware, initialize, options;
+  var americano, db, errorMiddleware, initialize;
   americano = require('americano');
   initialize = require('./server/initialize');
   errorMiddleware = require('./server/middlewares/errors');
-  options = {
-    name: 'data-system',
-    port: process.env.PORT || 9101,
-    host: process.env.HOST || "127.0.0.1",
-    root: __dirname
-  };
-  return americano.start(options, function(app, server) {
-    app.use(errorMiddleware);
-    return initialize(app, server, callback);
+  db = require('./server/lib/db');
+  return db(function() {
+    var options;
+    options = {
+      name: 'data-system',
+      port: process.env.PORT || 9101,
+      host: process.env.HOST || "127.0.0.1",
+      root: __dirname
+    };
+    return americano.start(options, function(app, server) {
+      app.use(errorMiddleware);
+      return initialize(app, server, callback);
+    });
   });
 };
 
