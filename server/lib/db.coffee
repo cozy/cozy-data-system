@@ -137,8 +137,11 @@ module.exports = (callback) ->
 
     feed_start = -> feed.startListening db
 
+    # Check if database exists and add admin.
     db_ensure () ->
-        initTokens (tokens, permissions) =>
-            request.init (err) =>
+        # Initialize request view.
+        request.init (err) =>
+            # Initialize application access.
+            initTokens (tokens, permissions) =>
                 callback() if callback?
 

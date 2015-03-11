@@ -172,9 +172,9 @@ module.exports = function(callback) {
     return feed.startListening(db);
   };
   return db_ensure(function() {
-    return initTokens((function(_this) {
-      return function(tokens, permissions) {
-        return request.init(function(err) {
+    return request.init((function(_this) {
+      return function(err) {
+        return initTokens(function(tokens, permissions) {
           if (callback != null) {
             return callback();
           }
