@@ -70,3 +70,14 @@ describe "Device", ->
 
         it "And I got a 404 response", ->
             @response.statusCode.should.equal 404
+
+    describe "Try to add a device without name", ->
+
+        it "When I tryy to post a device", (done) ->
+            client.post "device/", {}, (err, res, body) =>
+                console.log err if err
+                @response = res
+                done()
+
+        it "Then I got a 400 response", ->
+            @response.statusCode.should.equal 400

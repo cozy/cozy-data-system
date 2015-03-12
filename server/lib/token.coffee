@@ -160,8 +160,13 @@ module.exports.init = (callback) ->
         initHomeProxy () ->
             # Add token and permissions for other started applications
             db.view 'application/all', (err, res) ->
-                if err then callback new Error("Error in view")
-                else
+                return callback new Error("Error in view") if err?
+                # Search application
+                res.forEach (appli) ->
+                    initApplication appli, () ->
+                    # Add token and permissions for other started applications
+                    db.view 'device/all', (err, res) ->
+                    return callback new Error("Error in view") if err?
                     # Search application
                     res.forEach (appli) ->
                         initApplication appli, () ->

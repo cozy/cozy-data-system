@@ -18,6 +18,8 @@ randomString = (length) ->
 
 # POST /device
 module.exports.create = (req, res, next) ->
+    if not req.body?.login?
+        return next errors.http 400, "Name isn't defined in req.body.login"
     # Create device
     device =
         login: req.body.login
