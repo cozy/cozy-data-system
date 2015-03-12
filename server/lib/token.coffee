@@ -102,6 +102,27 @@ module.exports.updatePermissions = (body, callback) ->
         if body.permissions?
             for docType, description of body.permissions
                 permissions[name][docType.toLowerCase()] = description
+        callback()
+
+## function updatePermissons (body, callback)
+## @body {Object} application:
+##   * body.password is application token
+##   * body.name is application name
+##   * body.permissions is application permissions
+## @callback {function} Continuation to pass control back to when complete.
+## Update device permissions and token
+## TODOS : Assimilate devices and applications
+module.exports.updateDevicePermissions = (body, callback) ->
+    console.log 'updateDevicePermissions'
+    name = body.login
+    if productionOrTest
+        if body.password?
+            tokens[name] = body.password
+        permissions[name] = {}
+        if body.permissions?
+            for docType, description of body.permissions
+                permissions[name][docType.toLowerCase()] = description
+        callback()
 
 
 ## function initHomeProxy (callback)
@@ -150,6 +171,20 @@ initApplication = (appli, callback) ->
                 permissions[name][docType] = description
     callback null
 
+## function initDevice (callback)
+## @device {Object} Device
+## @callback {function} Continuation to pass control back to when complete
+## Initialize tokens and permissions for device
+## TODOS : Assimilate devices and applications
+initDevice = (device, callback) ->
+    name = device.login
+    tokens[device] = device.password
+    if device.permissions? and device.permissions isnt null
+        permissions[name] = {}
+        for docType, description of device.permissions
+            docType = docType.toLowerCase()
+            permissions[name][docType] = description
+    callback null
 
 ## function init (callback)
 ## @callback {function} Continuation to pass control back to when complete.
@@ -168,8 +203,9 @@ module.exports.init = (callback) ->
                     db.view 'device/all', (err, res) ->
                     return callback new Error("Error in view") if err?
                     # Search application
-                    res.forEach (appli) ->
-                        initApplication appli, () ->
+                    res.forEach (device) ->
+                        initDevice device, () ->
+                    console.log permissions
                     callback tokens, permissions
     else
         callback tokens, permissions

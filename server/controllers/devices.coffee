@@ -4,6 +4,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 request = require '../lib/request'
 dbHelper = require '../lib/db_remove_helper'
 errors = require '../middlewares/errors'
+updatePermissions = require('../lib/token').updateDevicePermissions
 
 ## Helpers ##
 
@@ -21,6 +22,7 @@ module.exports.create = (req, res, next) ->
     if not req.body?.login?
         return next errors.http 400, "Name isn't defined in req.body.login"
     # Create device
+    permissions = req.body.permissions or {'file': 'File synchronization', 'folder': 'Folder synchronization'}
     device =
         login: req.body.login
         password: randomString 32
@@ -28,6 +30,7 @@ module.exports.create = (req, res, next) ->
         configuration:
             "File": "all"
             "Folder": "all"
+        permissions: permissions
     # Check if an other device hasn't the same name
     db.view 'device/byLogin', key: device.login, (err, response) ->
         if err
@@ -39,8 +42,10 @@ module.exports.create = (req, res, next) ->
                 if err
                     next err
                 else
-                    device.id = docInfo._id
-                    res.send 200, device
+                    updatePermissions device, (err) ->
+                        console.log err if err?
+                        device.id = docInfo._id
+                        res.send 200, device
 
 # DELETE /device/:id
 module.exports.remove = (req, res, next) ->
