@@ -49,24 +49,6 @@ describe "Device", ->
         it "Add I got a error message correct", ->
             @body.msg = "This default filter doesn't exist"
 
-    describe "Device's Design doc", ->
-
-        it "When i get the design doc", (done) ->
-            console.log deviceID
-            db.get "_design/#{deviceID}", (err, designDoc) =>
-                return done err if err
-                @designDoc = designDoc
-                done()
-
-        it "has one view and two filters", ->
-            Object.keys(@designDoc.views).should.have.length 1
-            Object.keys(@designDoc.filters).should.have.length 2
-
-        it "And the view works", (done) ->
-            db.view "#{deviceID}/filterView", (err, docs) =>
-                return done err if err
-                docs.should.have.length 1
-                done()
 
     describe "Remove an existing device", ->
 
@@ -75,12 +57,6 @@ describe "Device", ->
                 console.log err if err
                 @response = res
                 deviceID = body.id
-                done()
-
-        it "And I remove a device", (done) ->
-            client.del "device/#{deviceID}/", (err, res, body) =>
-                console.log err if err
-                @response = res
                 done()
 
         it "Then I got a 200 response", ->

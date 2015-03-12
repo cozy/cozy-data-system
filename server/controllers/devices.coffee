@@ -2,7 +2,6 @@ async = require "async"
 feed = require '../lib/feed'
 db = require('../helpers/db_connect_helper').db_connect()
 request = require '../lib/request'
-default_filter = require '../lib/default_filter'
 dbHelper = require '../lib/db_remove_helper'
 errors = require '../middlewares/errors'
 
@@ -14,38 +13,6 @@ randomString = (length) ->
     while (string.length < length)
         string = string + Math.random().toString(36).substr(2)
     return string.substr 0, length
-
-createFilter = (id, callback) ->
-    db.get "_design/#{id}", (err, res) ->
-        if err && err.error is 'not_found'
-            # setup the default filters (replicate Files & Folders)
-            designDoc =
-                views:
-                    filterView: map: default_filter.asView id
-                filters:
-                    filter: default_filter.get id
-                    filterDocType: default_filter.getDocType id
-
-            db.save "_design/#{id}", designDoc, (err, res) ->
-                if err
-                    console.log "[Definition] err: " + JSON.stringify err
-                    callback err
-                else
-                    callback null
-
-        else if err
-            callback err.message
-
-        else
-            designDoc = res.filters
-            filterFunction = default_filter.get id
-            designDoc.filter = filterFunction
-            db.merge "_design/#{id}", {filters:designDoc}, (err, res) ->
-                if err
-                    console.log "[Definition] err: " + JSON.stringify err
-                    callback err.message
-                else
-                    callback null
 
 ## Actions
 
@@ -67,13 +34,11 @@ module.exports.create = (req, res, next) ->
             next errors.http 400, "This name is already used"
         else
             db.save device, (err, docInfo) ->
-                # Create filter
-                createFilter docInfo._id, (err) ->
-                    if err
-                        next err
-                    else
-                        device.id = docInfo._id
-                        res.send 200, device
+                if err
+                    next err
+                else
+                    device.id = docInfo._id
+                    res.send 200, device
 
 # DELETE /device/:id
 module.exports.remove = (req, res, next) ->
