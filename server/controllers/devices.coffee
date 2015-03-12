@@ -22,7 +22,11 @@ module.exports.create = (req, res, next) ->
     if not req.body?.login?
         return next errors.http 400, "Name isn't defined in req.body.login"
     # Create device
-    permissions = req.body.permissions or {'file': 'File synchronization', 'folder': 'Folder synchronization'}
+    default_permissions =
+        'file': 'Should access to file to synchronize it'
+        'folder': 'Should access to folder to synchronize it'
+        'notification': 'Should access to notification to synchronize it'
+    permissions = req.body.permissions or default_permissions
     device =
         login: req.body.login
         password: randomString 32

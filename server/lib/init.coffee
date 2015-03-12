@@ -45,3 +45,19 @@ exports.removeLostBinaries = (callback) ->
                     log.error err if err
                     cb()
         , callback
+
+# 13/03/2015: patch to add permissions to devices
+exports.addPermissionsToDevice = (callback) ->
+    db.view 'device/all', (err, devices) ->
+        if not err and devices.length > 0
+            async.forEach devices, (device, cb) ->
+                unless device.permissions?
+                    device.permissions =
+                        file: "Should access to file to synchronize it"
+                        folder: "Should access to folder to synchronize it"
+                        notification: "Should access to notification to synchronize it"
+                    db.save device, (err, doc) ->
+                        cb(err)
+            , callback
+        else
+            callback err
