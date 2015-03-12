@@ -102,7 +102,7 @@ module.exports.updatePermissions = (body, callback) ->
         if body.permissions?
             for docType, description of body.permissions
                 permissions[name][docType.toLowerCase()] = description
-        callback()
+        callback() if callback?
 
 ## function updatePermissons (body, callback)
 ## @body {Object} application:
@@ -113,7 +113,6 @@ module.exports.updatePermissions = (body, callback) ->
 ## Update device permissions and token
 ## TODOS : Assimilate devices and applications
 module.exports.updateDevicePermissions = (body, callback) ->
-    console.log 'updateDevicePermissions'
     name = body.login
     if productionOrTest
         if body.password?
@@ -122,7 +121,7 @@ module.exports.updateDevicePermissions = (body, callback) ->
         if body.permissions?
             for docType, description of body.permissions
                 permissions[name][docType.toLowerCase()] = description
-        callback()
+        callback() if callback?
 
 
 ## function initHomeProxy (callback)
