@@ -80,9 +80,32 @@ module.exports.create = (file, force, callback) ->
     # Add thumb creation in queue
     queue.push {file: file, force: force}, callback
 
+
+
+
 # Create thumb for given file. Check that the thumb doesn't already exist
 # and that file is from the right mimetype (see whitelist).
 createThumb = (file, force, callback) ->
+    addThumb = (stream, mimetype) ->
+        rawFile = "/tmp/#{file.name}"
+        # Use streaming to avoid high memory consumption.
+        stream.pipe fs.createWriteStream rawFile
+        stream.on 'error', callback
+        stream.on 'end', =>
+            # Resize and create if necessary thumb and screen for file
+            resize rawFile, file, 'thumb', mimetype, force, (err) =>
+                resize rawFile, file, 'screen', mimetype, force, (err) =>
+                    # Remove original file
+                    fs.unlink rawFile, ->
+                        if err
+                            log.error err
+                        else
+                            log.info """
+                                createThumb #{file.id} /
+                                 #{file.name}: Thumbnail created
+                            """
+                        callback err
+
     return callback new Error('no binary') unless file.binary?
 
     if file.binary?.thumb? and file.binary?.screen? and not force
@@ -106,27 +129,11 @@ createThumb = (file, force, callback) ->
             log.info """
                 createThumb: #{file.id} / #{file.name}: Creation started...
             """
-            rawFile = "/tmp/#{file.name}"
             id = file.binary['file'].id
             # Run the download with Node low level api.
-            request = downloader.download id, 'file', (err, stream) ->
+            downloader.download id, 'file', (err, stream) ->
                 if err
                     log.error err
                 else
-                    # Use streaming to avoid high memory consumption.
-                    stream.pipe fs.createWriteStream rawFile
-                    stream.on 'error', callback
-                    stream.on 'end', =>
-                        # Resize and create if necessary thumb and screen for file
-                        resize rawFile, file, 'thumb', mimetype, force, (err) =>
-                            resize rawFile, file, 'screen', mimetype, force, (err) =>
-                                # Remove original file
-                                fs.unlink rawFile, ->
-                                    if err
-                                        log.error err
-                                    else
-                                        log.info """
-                                            createThumb #{file.id} /
-                                             #{file.name}: Thumbnail created
-                                        """
-                                    callback err
+                    addThumb stream, mimetype
+

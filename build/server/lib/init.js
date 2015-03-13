@@ -73,7 +73,7 @@ exports.removeLostBinaries = function(callback) {
 exports.addThumbs = function(callback) {
   return db.view('file/withoutThumb', function(err, files) {
     if (!err && files.length > 0) {
-      return async.forEach(files, (function(_this) {
+      return async.forEachSeries(files, (function(_this) {
         return function(file, cb) {
           return db.get(file.id, function(err, file) {
             return thumb.create(file, false, cb);

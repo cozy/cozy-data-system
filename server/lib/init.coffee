@@ -52,7 +52,7 @@ exports.addThumbs = (callback) ->
     # Retrieve images without thumb
     db.view 'file/withoutThumb', (err, files) ->
         if not err and files.length > 0
-            async.forEach files, (file, cb) =>
+            async.forEachSeries files, (file, cb) =>
                 # Create thumb
                 db.get file.id, (err, file) ->
                     thumb.create file, false, cb

@@ -98,7 +98,29 @@ module.exports.create = function(file, force, callback) {
 };
 
 createThumb = function(file, force, callback) {
-  var id, mimetype, rawFile, ref, ref1, request;
+  var addThumb, id, mimetype, ref, ref1;
+  addThumb = function(stream, mimetype) {
+    var rawFile;
+    rawFile = "/tmp/" + file.name;
+    stream.pipe(fs.createWriteStream(rawFile));
+    stream.on('error', callback);
+    return stream.on('end', (function(_this) {
+      return function() {
+        return resize(rawFile, file, 'thumb', mimetype, force, function(err) {
+          return resize(rawFile, file, 'screen', mimetype, force, function(err) {
+            return fs.unlink(rawFile, function() {
+              if (err) {
+                log.error(err);
+              } else {
+                log.info("createThumb " + file.id + " /\n " + file.name + ": Thumbnail created");
+              }
+              return callback(err);
+            });
+          });
+        });
+      };
+    })(this));
+  };
   if (file.binary == null) {
     return callback(new Error('no binary'));
   }
@@ -112,30 +134,12 @@ createThumb = function(file, force, callback) {
       return callback();
     } else {
       log.info("createThumb: " + file.id + " / " + file.name + ": Creation started...");
-      rawFile = "/tmp/" + file.name;
       id = file.binary['file'].id;
-      return request = downloader.download(id, 'file', function(err, stream) {
+      return downloader.download(id, 'file', function(err, stream) {
         if (err) {
           return log.error(err);
         } else {
-          stream.pipe(fs.createWriteStream(rawFile));
-          stream.on('error', callback);
-          return stream.on('end', (function(_this) {
-            return function() {
-              return resize(rawFile, file, 'thumb', mimetype, force, function(err) {
-                return resize(rawFile, file, 'screen', mimetype, force, function(err) {
-                  return fs.unlink(rawFile, function() {
-                    if (err) {
-                      log.error(err);
-                    } else {
-                      log.info("createThumb " + file.id + " /\n " + file.name + ": Thumbnail created");
-                    }
-                    return callback(err);
-                  });
-                });
-              });
-            };
-          })(this));
+          return addThumb(stream, mimetype);
         }
       });
     }
