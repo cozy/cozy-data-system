@@ -127,6 +127,7 @@ initHomeProxy = (callback) ->
     # Add proxy token and permissions
     tokens['proxy'] = token
     permissions.proxy =
+        "application": "authorized"
         "user": "authorized"
         "cozyinstance": "authorized"
         "device": "authorized"

@@ -12,19 +12,19 @@ module.exports = function(app, server, callback) {
   db = require('./lib/db');
   return db(function() {
     var init;
-    if (callback != null) {
-      callback(app, server);
-    }
     init = require('./lib/init');
     return init.removeLostBinaries(function(err) {
       if (err != null) {
         log.error(err);
       }
-      return init.addThumbs(function(err) {
+      init.addThumbs(function(err) {
         if (err != null) {
           return log.error(err);
         }
       });
+      if (callback != null) {
+        return callback(app, server);
+      }
     });
   });
 };

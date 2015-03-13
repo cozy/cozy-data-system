@@ -125,6 +125,7 @@ initHomeProxy = function(callback) {
   };
   tokens['proxy'] = token;
   permissions.proxy = {
+    "application": "authorized",
     "user": "authorized",
     "cozyinstance": "authorized",
     "device": "authorized",
