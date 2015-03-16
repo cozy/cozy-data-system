@@ -4,15 +4,24 @@ application = module.exports = (callback) ->
     initialize = require './server/initialize'
     errorMiddleware = require './server/middlewares/errors'
 
-    options =
-        name: 'data-system'
-        port: process.env.PORT or 9101
-        host: process.env.HOST or "127.0.0.1"
-        root: __dirname
+    # Initialize database
+    # * Create cozy database if not exists
+    # * Add admin database if not exists
+    # * Initialize request view (_design documents)
+    # * Initialize application accesses
+    db = require './server/lib/db'
+    db ->
+        options =
+            name: 'data-system'
+            port: process.env.PORT or 9101
+            host: process.env.HOST or "127.0.0.1"
+            root: __dirname
 
-    americano.start options, (app, server) ->
-        app.use errorMiddleware
-        initialize app, server, callback
+        # Start data-system server
+        americano.start options, (app, server) ->
+            app.use errorMiddleware
+            # Clean lost binaries
+            initialize app, server, callback
 
 if not module.parent
     application()
