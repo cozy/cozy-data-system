@@ -9,33 +9,18 @@ module.exports = function(app, server, callback) {
   var feed, init;
   feed = require('./lib/feed');
   feed.initialize(server);
-<<<<<<< HEAD
-  db = require('./lib/db');
-  return db(function() {
-    var init;
-    init = require('./lib/init');
-    return init.removeLostBinaries(function(err) {
-      if (err != null) {
-        log.error(err);
-      }
-      init.addThumbs(function(err) {
-        if (err != null) {
-          return log.error(err);
-        }
-      });
-      if (callback != null) {
-        return callback(app, server);
-      }
-    });
-=======
   init = require('./lib/init');
   return init.removeLostBinaries(function(err) {
     if (err != null) {
       log.error(err);
     }
+    init.addThumbs(function(err) {
+      if (err != null) {
+        return log.error(err);
+      }
+    });
     if (callback != null) {
       return callback(app, server);
     }
->>>>>>> upstream/master
   });
 };
