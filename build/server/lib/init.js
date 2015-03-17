@@ -72,16 +72,22 @@ exports.removeLostBinaries = function(callback) {
 
 exports.addThumbs = function(callback) {
   return db.view('file/withoutThumb', function(err, files) {
-    if (!err && files.length > 0) {
+    if (err) {
+      return callback(err);
+    } else if (files.length === 0) {
+      return callback();
+    } else {
       return async.forEachSeries(files, (function(_this) {
         return function(file, cb) {
           return db.get(file.id, function(err, file) {
+            if (err) {
+              log.info("Cant get File " + file.id + " for thumb");
+              log.info(err);
+            }
             return thumb.create(file, false, cb);
           });
         };
       })(this), callback);
-    } else {
-      return callback();
     }
   });
 };
