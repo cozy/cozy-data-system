@@ -97,7 +97,11 @@ createThumb = (file, force, callback) ->
     addThumb = (stream, mimetype) ->
         rawFile = "/tmp/#{file.name}"
         # Use streaming to avoid high memory consumption.
-        stream.pipe fs.createWriteStream rawFile
+        try
+            writeStream = fs.createWriteStream rawFile
+        catch
+            return callback 'Error in thumb creation.'
+        stream.pipe writeStream
         stream.on 'error', callback
         stream.on 'end', =>
             # Resize and create if necessary thumb and screen for file

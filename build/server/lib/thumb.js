@@ -113,9 +113,14 @@ module.exports.create = function(file, force, callback) {
 createThumb = function(file, force, callback) {
   var addThumb, id, mimetype, ref, ref1;
   addThumb = function(stream, mimetype) {
-    var rawFile;
+    var rawFile, writeStream;
     rawFile = "/tmp/" + file.name;
-    stream.pipe(fs.createWriteStream(rawFile));
+    try {
+      writeStream = fs.createWriteStream(rawFile);
+    } catch (_error) {
+      return callback('Error in thumb creation.');
+    }
+    stream.pipe(writeStream);
     stream.on('error', callback);
     return stream.on('end', (function(_this) {
       return function() {
