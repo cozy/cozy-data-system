@@ -40,6 +40,20 @@ resize = function(srcPath, file, name, mimetype, force, callback) {
     gmRunner = gm(srcPath).options({
       imageMagick: true
     });
+    if (!fs.existsSync(srcPath)) {
+      log.error("File doesn't exist");
+      return callback();
+    }
+    try {
+      fs.open(srcPath, 'r+', function(err, fd) {
+        if (err) {
+          return callback('Data-system has not correct permissions');
+        }
+        return fs.close(fd);
+      });
+    } catch (_error) {
+      return callback('Data-system has not correct permissions');
+    }
     if (name === 'thumb') {
       buildThumb = function(width, height) {
         return gmRunner.resize(width, height).crop(300, 300, 0, 0).write(dstPath, function(err) {
@@ -100,9 +114,19 @@ module.exports.create = function(file, force, callback) {
 createThumb = function(file, force, callback) {
   var addThumb, id, mimetype, ref, ref1;
   addThumb = function(stream, mimetype) {
-    var rawFile;
+    var rawFile, writeStream;
     rawFile = "/tmp/" + file.name;
-    stream.pipe(fs.createWriteStream(rawFile));
+    if (fs.existsSync(rawFile)) {
+      log.error('Error in thumb creation.');
+      return callback();
+    }
+    try {
+      writeStream = fs.createWriteStream(rawFile);
+    } catch (_error) {
+      log.error('Error in thumb creation.');
+      return callback();
+    }
+    stream.pipe(writeStream);
     stream.on('error', callback);
     return stream.on('end', (function(_this) {
       return function() {

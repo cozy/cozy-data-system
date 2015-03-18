@@ -33,7 +33,16 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
     try
         # Resize file
         gmRunner = gm(srcPath).options(imageMagick: true)
-
+        unless fs.existsSync(srcPath)
+            log.error "File doesn't exist"
+            return callback()
+        try
+            fs.open srcPath, 'r+', (err, fd) ->
+                if err
+                    return callback 'Data-system has not correct permissions'
+                fs.close(fd)
+        catch
+            return callback 'Data-system has not correct permissions'
         if name is 'thumb'
             buildThumb = (width, height) ->
                 gmRunner
@@ -89,7 +98,15 @@ createThumb = (file, force, callback) ->
     addThumb = (stream, mimetype) ->
         rawFile = "/tmp/#{file.name}"
         # Use streaming to avoid high memory consumption.
-        stream.pipe fs.createWriteStream rawFile
+        if fs.existsSync rawFile
+            log.error 'Error in thumb creation.'
+            return callback()
+        try
+            writeStream = fs.createWriteStream rawFile
+        catch
+            log.error 'Error in thumb creation.'
+            return callback()
+        stream.pipe writeStream
         stream.on 'error', callback
         stream.on 'end', =>
             # Resize and create if necessary thumb and screen for file
