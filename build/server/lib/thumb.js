@@ -116,7 +116,7 @@ createThumb = function(file, force, callback) {
     var rawFile, writeStream;
     rawFile = "/tmp/" + file.name;
     if (fs.existsSync(rawFile)) {
-      return callback('Error in thumb creation.');
+      rawFile = "/tmp/bis-" + file.name;
     }
     try {
       writeStream = fs.createWriteStream(rawFile);
