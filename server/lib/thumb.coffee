@@ -33,7 +33,15 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
     try
         # Resize file
         gmRunner = gm(srcPath).options(imageMagick: true)
-
+        unless fs.existsSync(srcPath)
+            return callback "File doesn't exist"
+        try
+            fs.open srcPath, 'r+', (err, fd) ->
+                if err
+                    return callback 'Data-system has not correct permissions'
+                fs.close(fd)
+        catch
+            return callback 'Data-system has not correct permissions'
         if name is 'thumb'
             buildThumb = (width, height) ->
                 gmRunner

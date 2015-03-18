@@ -40,6 +40,19 @@ resize = function(srcPath, file, name, mimetype, force, callback) {
     gmRunner = gm(srcPath).options({
       imageMagick: true
     });
+    if (!fs.existsSync(srcPath)) {
+      return callback("File doesn't exist");
+    }
+    try {
+      fs.open(srcPath, 'r+', function(err, fd) {
+        if (err) {
+          return callback('Data-system has not correct permissions');
+        }
+        return fs.close(fd);
+      });
+    } catch (_error) {
+      return callback('Data-system has not correct permissions');
+    }
     if (name === 'thumb') {
       buildThumb = function(width, height) {
         return gmRunner.resize(width, height).crop(300, 300, 0, 0).write(dstPath, function(err) {
