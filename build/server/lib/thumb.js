@@ -115,6 +115,9 @@ createThumb = function(file, force, callback) {
   addThumb = function(stream, mimetype) {
     var rawFile, writeStream;
     rawFile = "/tmp/" + file.name;
+    if (fs.existsSync(rawFile)) {
+      return callback('Error in thumb creation.');
+    }
     try {
       writeStream = fs.createWriteStream(rawFile);
     } catch (_error) {

@@ -97,6 +97,8 @@ createThumb = (file, force, callback) ->
     addThumb = (stream, mimetype) ->
         rawFile = "/tmp/#{file.name}"
         # Use streaming to avoid high memory consumption.
+        if fs.existsSync rawFile
+            return callback 'Error in thumb creation.'
         try
             writeStream = fs.createWriteStream rawFile
         catch
