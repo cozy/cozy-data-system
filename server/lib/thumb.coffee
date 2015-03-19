@@ -37,9 +37,9 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
             return callback "File doesn't exist"
         try
             fs.open srcPath, 'r+', (err, fd) ->
+                fs.close(fd)
                 if err
                     return callback 'Data-system has not correct permissions'
-                fs.close(fd)
         catch
             return callback 'Data-system has not correct permissions'
         if name is 'thumb'

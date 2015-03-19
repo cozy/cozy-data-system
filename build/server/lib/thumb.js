@@ -45,10 +45,10 @@ resize = function(srcPath, file, name, mimetype, force, callback) {
     }
     try {
       fs.open(srcPath, 'r+', function(err, fd) {
+        fs.close(fd);
         if (err) {
           return callback('Data-system has not correct permissions');
         }
-        return fs.close(fd);
       });
     } catch (_error) {
       return callback('Data-system has not correct permissions');
