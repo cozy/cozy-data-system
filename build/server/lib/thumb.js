@@ -142,11 +142,11 @@ createThumb = function(file, force, callback) {
       return function() {
         return resize(rawFile, file, 'thumb', mimetype, force, function(err) {
           if (err != null) {
-            log.error;
+            log.error(err);
           }
           return resize(rawFile, file, 'screen', mimetype, force, function(err) {
             if (err != null) {
-              log.error;
+              log.error(err);
             }
             return fs.unlink(rawFile, function(err) {
               if (err) {

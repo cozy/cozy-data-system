@@ -128,9 +128,9 @@ createThumb = (file, force, callback) ->
         stream.on 'end', =>
             # Resize and create if necessary thumb and screen for file
             resize rawFile, file, 'thumb', mimetype, force, (err) =>
-                log.error if err?
+                log.error(err) if err?
                 resize rawFile, file, 'screen', mimetype, force, (err) =>
-                    log.error if err?
+                    log.error(err) if err?
                     # Remove original file
                     fs.unlink rawFile, (err) ->
                         if err
