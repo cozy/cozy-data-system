@@ -103,11 +103,11 @@ resize = function(srcPath, file, name, mimetype, force, callback) {
   }
 };
 
-module.exports.create = function(file, force, callback) {
+module.exports.create = function(file, force) {
   return queue.push({
     file: file,
     force: force
-  }, callback);
+  });
 };
 
 createThumb = function(file, force, callback) {

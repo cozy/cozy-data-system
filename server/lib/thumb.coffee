@@ -84,9 +84,9 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
 
 
 
-module.exports.create = (file, force, callback) ->
+module.exports.create = (file, force) ->
     # Add thumb creation in queue
-    queue.push {file: file, force: force}, callback
+    queue.push {file: file, force: force}
 
 
 
