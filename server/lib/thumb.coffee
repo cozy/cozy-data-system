@@ -1,5 +1,5 @@
 fs = require 'fs'
-gm = require('gm').subClass({ imageMagick: true })
+gm = require('gm').subClass(imageMagick: true)
 mime = require 'mime'
 log = require('printit')
     prefix: 'thumbnails'
