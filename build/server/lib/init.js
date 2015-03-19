@@ -77,17 +77,10 @@ exports.addThumbs = function(callback) {
     } else if (files.length === 0) {
       return callback();
     } else {
-      return async.forEachSeries(files, (function(_this) {
+      return async.forEach(files, (function(_this) {
         return function(file, cb) {
-          return db.get(file.id, function(err, file) {
-            if (err) {
-              log.info("Cant get File " + file.id + " for thumb");
-              log.info(err);
-              return cb();
-            }
-            thumb.create(file, false);
-            return cb();
-          });
+          thumb.create(file.id, false);
+          return cb();
         };
       })(this), callback);
     }

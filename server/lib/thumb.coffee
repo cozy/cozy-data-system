@@ -1,5 +1,5 @@
 fs = require 'fs'
-gm = require 'gm'
+gm = require('gm').subClass({ imageMagick: true })
 mime = require 'mime'
 log = require('printit')
     prefix: 'thumbnails'
@@ -7,6 +7,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 binaryManagement = require '../lib/binary'
 downloader = require './downloader'
 async = require 'async'
+randomString = require('./random').randomString
 
 # Mimetype that requires thumbnail generation. Other types are not supported.
 whiteList = [
@@ -43,13 +44,11 @@ releaseStream = (stream) ->
 resize = (srcPath, file, name, mimetype, force, callback) ->
     if file.binary[name]? and not force
         return callback()
-    dstPath = "/tmp/#{name}-#{file.name}"
     data =
         name: name
         "content-type": mimetype
     try
         # Resize file
-        gmRunner = gm(srcPath).options(imageMagick: true)
         unless fs.existsSync(srcPath)
             return callback "File doesn't exist"
         try
@@ -57,44 +56,46 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
                 fs.close(fd)
                 if err
                     return callback 'Data-system has not correct permissions'
-        catch
+        catch e
             return callback 'Data-system has not correct permissions'
+
+        gmRunner = gm(srcPath)
         if name is 'thumb'
             buildThumb = (width, height) ->
                 gmRunner
                 .resize(width, height)
                 .crop(300, 300, 0, 0)
-                .write dstPath, (err) ->
+                .stream (err, stdout, stderr) ->
                     if err
+                        releaseStream stdout
                         callback err
                     else
-                        # Attach thumb in file
-                        stream = fs.createReadStream(dstPath)
-                        binaryManagement.addBinary file, data, stream, (err)->
+                        binaryManagement.addBinary file, data, stdout, (err)->
                             return callback err if err?
-                            fs.unlink dstPath, callback
+
+                    stdout.on "end", callback
 
             gmRunner.size (err, data) ->
                 if err
                     callback err
+                else if data.width > data.height
+                    buildThumb null, 300
                 else
-                    if data.width > data.height
-                        buildThumb null, 300
-                    else
-                        buildThumb 300, null
+                    buildThumb 300, null
 
         else if name is 'screen'
             # Resize file
-            gmRunner.resize(1200, 800)
-            .write dstPath, (err) ->
+            gmRunner
+            .resize(1200, 800)
+            .stream (err, stdout, stderr) ->
                 if err
+                    releaseStream stdout
                     callback err
                 else
-                    # Attach screen in file
-                    stream = fs.createReadStream(dstPath)
-                    binaryManagement.addBinary file, data, stream, (err)->
+                    binaryManagement.addBinary file, data, stdout, (err)->
                         return callback err if err?
-                        fs.unlink dstPath, callback
+
+                    stdout.on 'end', callback
 
     catch err
         callback err
@@ -111,8 +112,7 @@ createThumb = (file, force, callback) ->
         rawFile = "/tmp/#{file.name}"
         # Use streaming to avoid high memory consumption.
         if fs.existsSync rawFile
-            releaseStream stream
-            return callback 'Error in thumb creation.'
+            rawFile = "/tmp/#randomString(3)}#{file.name}"
         try
             writeStream = fs.createWriteStream rawFile
         catch
