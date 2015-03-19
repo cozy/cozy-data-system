@@ -137,7 +137,5 @@ module.exports = class Feed
                         if file.class is 'image' and
                             file.binary?.file? and not file.binary.thumb
                                 # Creates thumb for image.
-                                thumb.create file, false, (err) ->
-                                    log.error err if err?
-
+                                thumb.create file, false
 module.exports = new Feed()
