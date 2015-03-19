@@ -38,7 +38,11 @@ module.exports.addBinary = (doc, attachData, readStream, callback) ->
     # In that case the attachment is replaced with the uploaded file.
     if doc.binary?[name]?
         db.get doc.binary[name].id, (err, binary) ->
-            attachFile binary, callback
+            attachFile binary, () ->
+                callback()
+                if doc.docType.toLowerCase() is 'file' and doc.class is 'image' and
+                    name is 'file'
+                        thumb.create doc.id, true
     else
         # Else create a new binary to store uploaded file..
         binary =

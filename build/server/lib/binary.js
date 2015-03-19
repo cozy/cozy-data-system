@@ -45,7 +45,12 @@ module.exports.addBinary = function(doc, attachData, readStream, callback) {
   })(this);
   if (((ref = doc.binary) != null ? ref[name] : void 0) != null) {
     return db.get(doc.binary[name].id, function(err, binary) {
-      return attachFile(binary, callback);
+      return attachFile(binary, function() {
+        callback();
+        if (doc.docType.toLowerCase() === 'file' && doc["class"] === 'image' && name === 'file') {
+          return thumb.create(doc.id, true);
+        }
+      });
     });
   } else {
     binary = {
