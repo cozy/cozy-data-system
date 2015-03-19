@@ -131,14 +131,20 @@ createThumb = function(file, force, callback) {
     return stream.on('end', (function(_this) {
       return function() {
         return resize(rawFile, file, 'thumb', mimetype, force, function(err) {
+          if (err != null) {
+            log.error;
+          }
           return resize(rawFile, file, 'screen', mimetype, force, function(err) {
+            if (err != null) {
+              log.error;
+            }
             return fs.unlink(rawFile, function() {
               if (err) {
                 log.error(err);
               } else {
                 log.info("createThumb " + file.id + " /\n " + file.name + ": Thumbnail created");
               }
-              return callback(err);
+              return callback();
             });
           });
         });
@@ -161,7 +167,8 @@ createThumb = function(file, force, callback) {
       id = file.binary['file'].id;
       return downloader.download(id, 'file', function(err, stream) {
         if (err) {
-          return log.error(err);
+          log.error(err);
+          return callback();
         } else {
           return addThumb(stream, mimetype);
         }

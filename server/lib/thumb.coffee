@@ -111,7 +111,9 @@ createThumb = (file, force, callback) ->
         stream.on 'end', =>
             # Resize and create if necessary thumb and screen for file
             resize rawFile, file, 'thumb', mimetype, force, (err) =>
+                log.error if err?
                 resize rawFile, file, 'screen', mimetype, force, (err) =>
+                    log.error if err?
                     # Remove original file
                     fs.unlink rawFile, ->
                         if err
@@ -121,7 +123,7 @@ createThumb = (file, force, callback) ->
                                 createThumb #{file.id} /
                                  #{file.name}: Thumbnail created
                             """
-                        callback err
+                        callback()
 
     return callback new Error('no binary') unless file.binary?
 
@@ -151,6 +153,7 @@ createThumb = (file, force, callback) ->
             downloader.download id, 'file', (err, stream) ->
                 if err
                     log.error err
+                    callback()
                 else
                     addThumb stream, mimetype
 
