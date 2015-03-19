@@ -19,6 +19,17 @@ queue = async.queue (task, callback) ->
     createThumb task.file, task.force, callback
 , 2
 
+# when the download fail, stream should be drained in order to release the
+# http connection from the pool. This function put stream in flowing mode
+# and discard the data. When this function is called, the short content
+# ({error: "not_found"}) is already buffered, so its simpler to read &
+# discard than to abort.
+releaseStream = (stream) ->
+    stream.on 'data', ->
+    stream.on 'end', ->
+    stream.resume()
+
+
 # Resize given file/photo and save it as binary attachment to given file.
 # Resizing depends on target attachment name. If it's 'thumb', it cropse
 # the image to a 300x300 image. If it's a 'scree' preview, it is resize
@@ -37,7 +48,7 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
             return callback "File doesn't exist"
         try
             fs.open srcPath, 'r+', (err, fd) ->
-                fs.close(fd)
+                fs.close(fd)    
                 if err
                     return callback 'Data-system has not correct permissions'
         catch
@@ -94,10 +105,12 @@ createThumb = (file, force, callback) ->
         rawFile = "/tmp/#{file.name}"
         # Use streaming to avoid high memory consumption.
         if fs.existsSync rawFile
+            releaseStream stream
             return callback 'Error in thumb creation.'
         try
             writeStream = fs.createWriteStream rawFile
         catch
+            releaseStream stream
             return callback 'Error in thumb creation.'
         stream.pipe writeStream
         stream.on 'error', callback
