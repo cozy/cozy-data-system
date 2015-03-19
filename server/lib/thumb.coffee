@@ -34,8 +34,7 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
         # Resize file
         gmRunner = gm(srcPath).options(imageMagick: true)
         unless fs.existsSync(srcPath)
-            log.error "File doesn't exist"
-            return callback()
+            return callback "File doesn't exist"
         try
             fs.open srcPath, 'r+', (err, fd) ->
                 if err
@@ -99,13 +98,11 @@ createThumb = (file, force, callback) ->
         rawFile = "/tmp/#{file.name}"
         # Use streaming to avoid high memory consumption.
         if fs.existsSync rawFile
-            log.error 'Error in thumb creation.'
-            return callback()
+            return callback 'Error in thumb creation.'
         try
             writeStream = fs.createWriteStream rawFile
         catch
-            log.error 'Error in thumb creation.'
-            return callback()
+            return callback 'Error in thumb creation.'
         stream.pipe writeStream
         stream.on 'error', callback
         stream.on 'end', =>
@@ -152,8 +149,7 @@ createThumb = (file, force, callback) ->
             # Run the download with Node low level api.
             downloader.download id, 'file', (err, stream) ->
                 if err
-                    log.error err
-                    callback()
+                    callback err
                 else
                     addThumb stream, mimetype
 

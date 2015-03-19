@@ -41,8 +41,7 @@ resize = function(srcPath, file, name, mimetype, force, callback) {
       imageMagick: true
     });
     if (!fs.existsSync(srcPath)) {
-      log.error("File doesn't exist");
-      return callback();
+      return callback("File doesn't exist");
     }
     try {
       fs.open(srcPath, 'r+', function(err, fd) {
@@ -117,14 +116,12 @@ createThumb = function(file, force, callback) {
     var rawFile, writeStream;
     rawFile = "/tmp/" + file.name;
     if (fs.existsSync(rawFile)) {
-      log.error('Error in thumb creation.');
-      return callback();
+      return callback('Error in thumb creation.');
     }
     try {
       writeStream = fs.createWriteStream(rawFile);
     } catch (_error) {
-      log.error('Error in thumb creation.');
-      return callback();
+      return callback('Error in thumb creation.');
     }
     stream.pipe(writeStream);
     stream.on('error', callback);
@@ -167,8 +164,7 @@ createThumb = function(file, force, callback) {
       id = file.binary['file'].id;
       return downloader.download(id, 'file', function(err, stream) {
         if (err) {
-          log.error(err);
-          return callback();
+          return callback(err);
         } else {
           return addThumb(stream, mimetype);
         }
