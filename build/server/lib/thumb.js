@@ -135,7 +135,7 @@ createThumb = function(file, force, callback) {
             if (err != null) {
               log.error;
             }
-            return fs.unlink(rawFile, function() {
+            return fs.unlink(rawFile, function(err) {
               if (err) {
                 log.error(err);
               } else {
@@ -151,24 +151,22 @@ createThumb = function(file, force, callback) {
   if (file.binary == null) {
     return callback(new Error('no binary'));
   }
+  mimetype = mime.lookup(file.name);
   if ((((ref = file.binary) != null ? ref.thumb : void 0) != null) && (((ref1 = file.binary) != null ? ref1.screen : void 0) != null) && !force) {
     log.info("createThumb " + file.id + "/" + file.name + ": already created.");
     return callback();
+  } else if (indexOf.call(whiteList, mimetype) < 0) {
+    log.info("createThumb: " + file.id + " / " + file.name + ": \nNo thumb to create for this kind of file.");
+    return callback();
   } else {
-    mimetype = mime.lookup(file.name);
-    if (indexOf.call(whiteList, mimetype) < 0) {
-      log.info("createThumb: " + file.id + " / " + file.name + ": \nNo thumb to create for this kind of file.");
-      return callback();
-    } else {
-      log.info("createThumb: " + file.id + " / " + file.name + ": Creation started...");
-      id = file.binary['file'].id;
-      return downloader.download(id, 'file', function(err, stream) {
-        if (err) {
-          return callback(err);
-        } else {
-          return addThumb(stream, mimetype);
-        }
-      });
-    }
+    log.info("createThumb: " + file.id + " / " + file.name + ": Creation started...");
+    id = file.binary['file'].id;
+    return downloader.download(id, 'file', function(err, stream) {
+      if (err) {
+        return callback(err);
+      } else {
+        return addThumb(stream, mimetype);
+      }
+    });
   }
 };

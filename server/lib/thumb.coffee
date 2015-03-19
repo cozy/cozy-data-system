@@ -83,13 +83,9 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
         callback err
 
 
-
 module.exports.create = (file, force) ->
     # Add thumb creation in queue
     queue.push {file: file, force: force}
-
-
-
 
 # Create thumb for given file. Check that the thumb doesn't already exist
 # and that file is from the right mimetype (see whitelist).
@@ -112,7 +108,7 @@ createThumb = (file, force, callback) ->
                 resize rawFile, file, 'screen', mimetype, force, (err) =>
                     log.error if err?
                     # Remove original file
-                    fs.unlink rawFile, ->
+                    fs.unlink rawFile, (err) ->
                         if err
                             log.error err
                         else
@@ -124,32 +120,30 @@ createThumb = (file, force, callback) ->
 
     return callback new Error('no binary') unless file.binary?
 
+    # Retrieve file mimetype
+    mimetype = mime.lookup file.name
+
     if file.binary?.thumb? and file.binary?.screen? and not force
         # Thumb and screen already exists
         log.info "createThumb #{file.id}/#{file.name}: already created."
         callback()
 
-    else
-        # Retrieve file mimetype
-        mimetype = mime.lookup file.name
-
-        if mimetype not in whiteList
+    else if mimetype not in whiteList
             log.info """
                 createThumb: #{file.id} / #{file.name}: 
                 No thumb to create for this kind of file.
             """
             callback()
 
-        else
-            # Download original file
-            log.info """
-                createThumb: #{file.id} / #{file.name}: Creation started...
-            """
-            id = file.binary['file'].id
-            # Run the download with Node low level api.
-            downloader.download id, 'file', (err, stream) ->
-                if err
-                    callback err
-                else
-                    addThumb stream, mimetype
-
+    else
+        # Download original file
+        log.info """
+            createThumb: #{file.id} / #{file.name}: Creation started...
+        """
+        id = file.binary['file'].id
+        # Run the download with Node low level api.
+        downloader.download id, 'file', (err, stream) ->
+            if err
+                callback err
+            else
+                addThumb stream, mimetype

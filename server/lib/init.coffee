@@ -64,7 +64,7 @@ exports.addThumbs = (callback) ->
                     if err
                         log.info "Cant get File #{file.id} for thumb"
                         log.info err
-                    thumb.create file, false, (err)=>
-                        log.err if err?
-                        cb()
+                        return cb()
+                    thumb.create file, false
+                    cb()
             , callback

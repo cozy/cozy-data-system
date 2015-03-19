@@ -83,13 +83,10 @@ exports.addThumbs = function(callback) {
             if (err) {
               log.info("Cant get File " + file.id + " for thumb");
               log.info(err);
-            }
-            return thumb.create(file, false, function(err) {
-              if (err != null) {
-                log.err;
-              }
               return cb();
-            });
+            }
+            thumb.create(file, false);
+            return cb();
           });
         };
       })(this), callback);
