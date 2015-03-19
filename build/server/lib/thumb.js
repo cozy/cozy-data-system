@@ -128,7 +128,7 @@ createThumb = function(file, force, callback) {
     var rawFile, writeStream;
     rawFile = "/tmp/" + file.name;
     if (fs.existsSync(rawFile)) {
-      rawFile = "/tmp/#randomString(3)}" + file.name;
+      rawFile = "/tmp/" + (randomString(3)) + file.name;
     }
     try {
       writeStream = fs.createWriteStream(rawFile);

@@ -48,7 +48,7 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
         name: name
         "content-type": mimetype
     try
-        # Resize file
+        # Check if srcPath exists and if data-ssytem have access to it
         unless fs.existsSync(srcPath)
             return callback "File doesn't exist"
         try
@@ -60,6 +60,7 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
             return callback 'Data-system has not correct permissions'
 
         gmRunner = gm(srcPath)
+
         if name is 'thumb'
             buildThumb = (width, height) ->
                 gmRunner
@@ -67,9 +68,11 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
                 .crop(300, 300, 0, 0)
                 .stream (err, stdout, stderr) ->
                     if err
+                        # Releases stream if an error occurs
                         releaseStream stdout
                         callback err
                     else
+                        # Attach resized file in document
                         binaryManagement.addBinary file, data, stdout, (err)->
                             return callback err if err?
 
@@ -89,9 +92,11 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
             .resize(1200, 800)
             .stream (err, stdout, stderr) ->
                 if err
+                    # Releases stream if an error occurs
                     releaseStream stdout
                     callback err
                 else
+                    # Attach resized file in document
                     binaryManagement.addBinary file, data, stdout, (err)->
                         return callback err if err?
 
@@ -112,7 +117,7 @@ createThumb = (file, force, callback) ->
         rawFile = "/tmp/#{file.name}"
         # Use streaming to avoid high memory consumption.
         if fs.existsSync rawFile
-            rawFile = "/tmp/#randomString(3)}#{file.name}"
+            rawFile = "/tmp/#{randomString(3)}#{file.name}"
         try
             writeStream = fs.createWriteStream rawFile
         catch
