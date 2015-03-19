@@ -16,7 +16,13 @@ whiteList = [
 
 
 queue = async.queue (task, callback) ->
-    createThumb task.file, task.force, callback
+    db.get task.file, (err, file) ->
+        if err
+            log.info "Cant get File #{file.id} for thumb"
+            log.info err
+            callback()
+        else
+            createThumb file, task.force, callback
 , 2
 
 # when the download fail, stream should be drained in order to release the
@@ -48,7 +54,7 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
             return callback "File doesn't exist"
         try
             fs.open srcPath, 'r+', (err, fd) ->
-                fs.close(fd)    
+                fs.close(fd)
                 if err
                     return callback 'Data-system has not correct permissions'
         catch
@@ -94,9 +100,9 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
         callback err
 
 
-module.exports.create = (file, force) ->
+module.exports.create = (id, force) ->
     # Add thumb creation in queue
-    queue.push {file: file, force: force}
+    queue.push {file: id, force: force}
 
 # Create thumb for given file. Check that the thumb doesn't already exist
 # and that file is from the right mimetype (see whitelist).

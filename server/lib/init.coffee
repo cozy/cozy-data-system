@@ -58,13 +58,7 @@ exports.addThumbs = (callback) ->
             callback()
 
         else
-            async.forEachSeries files, (file, cb) =>
-                # Create thumb
-                db.get file.id, (err, file) =>
-                    if err
-                        log.info "Cant get File #{file.id} for thumb"
-                        log.info err
-                        return cb()
-                    thumb.create file, false
-                    cb()
+            async.forEach files, (file, cb) =>
+                thumb.create file.id, false
+                cb()
             , callback
