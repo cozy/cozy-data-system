@@ -14,8 +14,13 @@ module.exports = function(app, server, callback) {
     if (err != null) {
       log.error(err);
     }
-    if (callback != null) {
-      return callback(app, server);
-    }
+    return init.addAccesses(function(err) {
+      if (err != null) {
+        log.error(err);
+      }
+      if (callback != null) {
+        return callback(app, server);
+      }
+    });
   });
 };

@@ -8,6 +8,7 @@ module.exports = (app, server, callback) ->
     init = require './lib/init'
     init.removeLostBinaries (err) ->
         log.error err if err?
-        init.addPermissionsToDevice (err) ->
+        # Patch: 24/03/15
+        init.addAccesses (err) ->
             log.error err if err?
             callback app, server if callback?

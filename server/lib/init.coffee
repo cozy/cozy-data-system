@@ -4,6 +4,7 @@ log = require('printit')
 
 db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
+permissionsManager = require './token'
 
 # Get all lost binaries
 #    A binary is considered as lost when isn't linked to a document.
@@ -46,18 +47,27 @@ exports.removeLostBinaries = (callback) ->
                     cb()
         , callback
 
-# 13/03/2015: patch to add permissions to devices
-exports.addPermissionsToDevice = (callback) ->
-    db.view 'device/all', (err, devices) ->
-        if not err and devices.length > 0
-            async.forEach devices, (device, cb) ->
-                unless device.permissions?
-                    device.permissions =
-                        file: "Should access to file to synchronize it"
-                        folder: "Should access to folder to synchronize it"
-                        notification: "Should access to notification to synchronize it"
-                    db.save device, (err, doc) ->
-                        cb(err)
-            , callback
-        else
-            callback err
+
+exports.addAccesses = (callback) ->
+    addAccess = (docType, cb) ->
+        db.view "#{docType}/all", (err, apps) ->
+            if not err and apps.length > 0
+                async.forEach apps, (app, cb) ->
+                    unless app.access?
+                        if docType is "application"
+                            access = permissionsManager.addApplicationAccess
+                        else
+                            access = permissionsManager.addDeviceAccess
+                        access app, (err, app) ->
+                            db.save app, (err, doc) ->
+                                log.error err if err?
+                                cb()
+                , cb
+            else
+                cb err
+
+    addAccess 'application', (err) ->
+        log.error err if err?
+        addAccess 'device', (err) ->
+            log.error err if err?
+            callback()

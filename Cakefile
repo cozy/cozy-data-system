@@ -49,7 +49,7 @@ task 'tests', "Run tests #{taskDetails}", (opts) ->
     env += "USE_JS=true" if options['use-js']? and options['use-js']
     logger.info "Running tests with #{env}..."
     command = "#{env} mocha " + files.join(" ") + " --reporter spec --colors "
-    command += "--globals clearImmediate,setImmediate "
+    command += "--globals clearImmediate,setImmediate --bail "
     command += "--compilers coffee:coffee-script/register"
     exec command, (err, stdout, stderr) ->
         console.log stdout

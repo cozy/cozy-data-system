@@ -143,6 +143,27 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
+        # Usefull to manage access
+        access:
+            all:
+                map: """
+                function(doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "access") {
+                        return emit(doc._id, doc);
+                    }
+                }
+                """
+            byApplication:
+                map: """
+                function(doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "application") {
+                        return emit(doc._id, doc.access);
+                    }
+                    if(doc.docType && doc.docType.toLowerCase() === "device") {
+                        return emit(doc._id, doc.access);
+                    }
+                }
+                """
         # Usefull to remove binary lost
         binary:
             all:
@@ -246,7 +267,6 @@ module.exports.init = (callback) =>
                 recoverDesignDocs (err, docs) =>
                     return callback err if err?
                     async.forEach docs, (doc, cb) ->
-                        #console.log doc
                         async.forEach Object.keys(doc.views), (view, cb) ->
                             body = doc.views[view]
                             storeAppView apps, doc, view, body, cb

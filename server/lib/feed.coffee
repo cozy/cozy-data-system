@@ -3,7 +3,7 @@ S = require 'string'
 async = require 'async'
 Client = require('request-json').JsonClient
 client = null
-updatePermissions = require('./token').updatePermissions
+addAccess = require('./token').addApplicationAccess
 
 setCouchCredentials = ->
     if process.env.NODE_ENV is 'production'
@@ -124,6 +124,6 @@ module.exports = class Feed
                 doctype = doc?.docType?.toLowerCase()
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
                 if operation is 'update' and doctype is 'application'
-                    updatePermissions doc
+                    addAccess doc
 
 module.exports = new Feed()

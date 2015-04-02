@@ -39,6 +39,19 @@ describe "Token of applications handling tests", ->
 
         describe "Installation of application", ->
 
+            before (done) ->
+                data =
+                    "name": "test-app"
+                    "slug": "test-app"
+                    "state": "installed"
+                    "password": "secret"
+                    "permissions":
+                        "all":
+                            "description": "This application needs ..."
+                    "docType": "Application"
+                client.setBasicAuth "home", "token"
+                client.post 'data/', data, done
+
             it "When I send a request to post an application", (done) ->
                 data =
                     "name": "test"
@@ -61,6 +74,17 @@ describe "Token of applications handling tests", ->
 
             it "And HTTP status 201 should be returned", ->
                 @res.statusCode.should.equal 201
+
+            it "And Access is created", (done)->
+                client.setBasicAuth "test-app", 'secret'
+                client.get "data/#{@body._id}/", (err, res, body) ->
+                    body.access.should.exist
+                    client.get "data/#{body.access}/", (err, res, body) ->
+                        body.docType.should.equal 'Access'
+                        body.token.should.equal 'token'
+                        body.login.should.equal 'test'
+                        body.permissions.Authorized.description.should.equal "This application needs ..."
+                        done()
 
         describe "Requests with a wrong token", ->
 
@@ -120,6 +144,84 @@ describe "Token of applications handling tests", ->
                     test: "test"
                     docType: "Authorized"
                 client.setBasicAuth "test", "token"
+                client.post 'data/', data, (err, res, body) =>
+                    @body = body
+                    @err = err
+                    @res = res
+                    done()
+
+            it "Then HTTP status 201 should be returned", ->
+                @res.statusCode.should.equal 201
+
+    describe "Modify application", ->
+
+        describe "Access update", ->
+
+            it "When I send a request to modify an application", (done) ->
+                data =
+                    "name": "test-2"
+                    "slug": "test-2"
+                    "state": "installed"
+                    "password": "token-2"
+                    "permissions":
+                        "Authorized":
+                            "description": "This application needs ..."
+                    "docType": "Application"
+                client.setBasicAuth "home", "token"
+                client.post 'data/', data, (err, res, body) =>
+                    @body = body
+                    client.get "data/#{@body._id}/", (err, res, body) =>
+                        @body = body
+                        body.name = 'test-3'
+                        body.slug = 'test-3'
+                        body.password = 'token-3'
+                        body.permissions =
+                            "Authorized-2":
+                                "description": "This application needs ..."
+                        client.put "data/#{@body._id}/", body, (err, res, body) =>
+                            @err = err
+                            @res = res
+                            done()
+
+            it "Then no error should be returned", ->
+                should.equal @err, null
+
+            it "And HTTP status 200 should be returned", ->
+                @res.statusCode.should.equal 200
+
+            it "And Access is created", (done)->
+                client.setBasicAuth "test-app", 'secret'
+                client.get "data/#{@body._id}/", (err, res, body) ->
+                    body.access.should.exist
+                    client.get "data/#{body.access}/", (err, res, body) ->
+                        body.docType.should.equal 'Access'
+                        body.token.should.equal 'token-3'
+                        body.login.should.equal 'test-3'
+                        body.permissions['Authorized-2'].description.should.equal "This application needs ..."
+                        done()
+
+
+        describe "Requests with old token", ->
+
+            it "When application try to request DS", (done) ->
+                data =
+                    test: "test"
+                client.setBasicAuth "test-2", "token-2"
+                client.post 'data/', data, (err, res, body) =>
+                    @body = body
+                    @err = err
+                    @res = res
+                    done()
+
+            it "Then HTTP status 401 should be returned", ->
+                @res.statusCode.should.equal 401
+
+        describe "Requests with new token", ->
+
+            it "When application try to request DS", (done) ->
+                data =
+                    test: "test"
+                client.setBasicAuth "test-3", "token-3"
                 client.post 'data/', data, (err, res, body) =>
                     @body = body
                     @err = err

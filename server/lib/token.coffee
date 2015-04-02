@@ -93,35 +93,116 @@ module.exports.checkProxyHome = (auth, callback) ->
 ##   * body.permissions is application permissions
 ## @callback {function} Continuation to pass control back to when complete.
 ## Update application permissions and token
-module.exports.updatePermissions = (body, callback) ->
-    name = body.slug
+updatePermissions = (access, callback) ->
+    login = access.login
     if productionOrTest
-        if body.password?
-            tokens[name] = body.password
-        permissions[name] = {}
-        if body.permissions?
-            for docType, description of body.permissions
-                permissions[name][docType.toLowerCase()] = description
+        if access.token?
+            tokens[login] = access.token
+        permissions[login] = {}
+        if access.permissions?
+            for docType, description of access.permissions
+                permissions[login][docType.toLowerCase()] = description
+        callback() if callback?
+    else
         callback() if callback?
 
-## function updatePermissons (body, callback)
-## @body {Object} application:
-##   * body.password is application token
-##   * body.name is application name
-##   * body.permissions is application permissions
-## @callback {function} Continuation to pass control back to when complete.
-## Update device permissions and token
-## TODOS : Assimilate devices and applications
-module.exports.updateDevicePermissions = (body, callback) ->
-    name = body.login
-    if productionOrTest
-        if body.password?
-            tokens[name] = body.password
-        permissions[name] = {}
-        if body.permissions?
-            for docType, description of body.permissions
-                permissions[name][docType.toLowerCase()] = description
-        callback() if callback?
+checkAccess = (app, cb) ->
+    if app.access
+        cb app.access
+    else if app._id
+        db.view 'access/byApplication', key:app._id, (err, body) ->
+            if body.length > 0
+                cb body[0].value
+            else
+                cb false
+    else
+        cb false
+
+# Add access for application
+module.exports.addApplicationAccess = (application, callback) ->
+    checkAccess application, (access) ->
+        if access
+            application.access = access
+            db.get access, (err, doc) ->
+                delete permissions[doc.login]
+                delete tokens[doc.login]
+                doc.login = application.slug
+                doc.token = application.password if application.password?
+                doc.permissions = application.permissions
+                db.save doc._id, doc, (err, body) ->
+                    log.error err if err?
+                    delete application.password
+                    updatePermissions doc, () ->
+                        callback null, application if callback?
+        else
+            access =
+                docType: "Access"
+                login: application.slug
+                token: application.password
+                permissions: application.permissions
+            db.save access, (err, doc) ->
+                log.error err if err?
+                application.access = doc._id
+                delete application.password
+                updatePermissions access, () ->
+                    callback null, application if callback?
+
+# Add access for device
+module.exports.addDeviceAccess = (device, callback) ->
+    if device.type is "desktop"
+        defaultPermissions =
+            file: "Should access to file to synchronize it"
+            folder: "Should access to folder to synchronize it"
+            binary: "Should access to file contents"
+    else
+        defaultPermissions =
+            file: "Should access to file to synchronize it"
+            folder: "Should access to folder to synchronize it"
+            binary: "Should access to file contents"
+            notification: "Should access to notification to synchronize it"
+            contact: "Should access to contact to synchronize it"
+    checkAccess device, (acces)->
+    if access
+        device.access = access
+        db.get access, (err, doc) ->
+            delete permissions[doc.login]
+            delete tokens[doc.login]
+            doc.login = device.login
+            doc.token = device.password
+            doc.permissions = device.permissions or defaultPermissions
+            permissions:
+                file: "Should access to file to synchronize it"
+                folder: "Should access to folder to synchronize it"
+                notification: "Should access to notification to synchronize it"
+                contact: "Should access to contact to synchronize it"
+            db.save doc, (err, doc) ->
+            log.error err if err?
+            delete device.password
+            updatePermissions access, () ->
+                callback null, device
+    else
+        access =
+            docType: "Access"
+            login: device.login
+            token: device.password
+        access.permissions = device.permissions or defaultPermissions
+        db.save access, (err, doc) ->
+            log.error err if err?
+            device.access = doc._id
+            delete device.password
+            updatePermissions access, () ->
+                callback null, device
+
+
+module.exports.removeAccess = (app, callback) ->
+    if productionOrTest and app.access?
+        db.get app.access, (err, doc) ->
+            delete permissions[doc.login]
+            delete tokens[doc.login]
+            db.remove app.access, callback
+
+
+
 
 
 ## function initHomeProxy (callback)
@@ -155,32 +236,16 @@ initHomeProxy = (callback) ->
     callback null
 
 
-## function initApplication (callback)
-## @appli {Object} Application
+## function initAccess (callback)
+## @access {Object} Access
 ## @callback {function} Continuation to pass control back to when complete
-## Initialize tokens and permissions for application
-initApplication = (appli, callback) ->
-    name = appli.slug
-    if appli.state is "installed"
-        tokens[name] = appli.password
-        if appli.permissions? and appli.permissions isnt null
-            permissions[name] = {}
-            for docType, description of appli.permissions
-                docType = docType.toLowerCase()
-                permissions[name][docType] = description
-    callback null
-
-## function initDevice (callback)
-## @device {Object} Device
-## @callback {function} Continuation to pass control back to when complete
-## Initialize tokens and permissions for device
-## TODOS : Assimilate devices and applications
-initDevice = (device, callback) ->
-    name = device.login
-    tokens[device] = device.password
-    if device.permissions? and device.permissions isnt null
+## Initialize tokens and permissions for all accesses (applications or devices)
+initAccess = (access, callback) ->
+    name = access.login
+    tokens[access] = access.token
+    if access.permissions? and access.permissions isnt null
         permissions[name] = {}
-        for docType, description of device.permissions
+        for docType, description of access.permissions
             docType = docType.toLowerCase()
             permissions[name][docType] = description
     callback null
@@ -193,18 +258,11 @@ module.exports.init = (callback) ->
     if productionOrTest
         initHomeProxy () ->
             # Add token and permissions for other started applications
-            db.view 'application/all', (err, res) ->
+            db.view 'access/all', (err, accesses) ->
                 return callback new Error("Error in view") if err?
                 # Search application
-                res.forEach (appli) ->
-                    initApplication appli, () ->
-                    # Add token and permissions for other started applications
-                    db.view 'device/all', (err, res) ->
-                    return callback new Error("Error in view") if err?
-                    # Search application
-                    res.forEach (device) ->
-                        initDevice device, () ->
-                    console.log permissions
-                    callback tokens, permissions
+                accesses.forEach (access) ->
+                    initAccess access, () ->
+                callback tokens, permissions
     else
         callback tokens, permissions

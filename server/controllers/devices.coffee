@@ -4,7 +4,8 @@ db = require('../helpers/db_connect_helper').db_connect()
 request = require '../lib/request'
 dbHelper = require '../lib/db_remove_helper'
 errors = require '../middlewares/errors'
-updatePermissions = require('../lib/token').updateDevicePermissions
+addAccess = require('../lib/token').addDeviceAccess
+removeAccess = require('../lib/token').removeAccess
 
 ## Helpers ##
 
@@ -22,19 +23,9 @@ module.exports.create = (req, res, next) ->
     if not req.body?.login?
         return next errors.http 400, "Name isn't defined in req.body.login"
     # Create device
-    default_permissions =
-        'file': 'Should access to file to synchronize it'
-        'folder': 'Should access to folder to synchronize it'
-        'notification': 'Should access to notification to synchronize it'
-    permissions = req.body.permissions or default_permissions
-    device =
-        login: req.body.login
-        password: randomString 32
-        docType: "Device"
-        configuration:
-            "File": "all"
-            "Folder": "all"
-        permissions: permissions
+    device = req.body
+    device.password = randomString 32
+    device.docType = "Device"
     # Check if an other device hasn't the same name
     db.view 'device/byLogin', key: device.login, (err, response) ->
         if err
@@ -42,12 +33,12 @@ module.exports.create = (req, res, next) ->
         else if response.length isnt 0
             next errors.http 400, "This name is already used"
         else
-            db.save device, (err, docInfo) ->
-                if err
-                    next err
-                else
-                    updatePermissions device, (err) ->
-                        console.log err if err?
+           addAccess device, (err, device) ->
+                console.log err if err?
+                db.save device, (err, docInfo) ->
+                    if err
+                        next err
+                    else
                         device.id = docInfo._id
                         res.send 200, device
 
@@ -58,11 +49,8 @@ module.exports.remove = (req, res, next) ->
         res.send 200, success: true
         next()
     id = req.params.id
-    db.remove "_design/#{id}", (err, response) ->
-        if err
-            console.log "[Definition] err: " + JSON.stringify err
-            next err
-        else
+    removeAccess req.doc, (err) =>
+        db.remove "_design/#{id}", (err, response) ->
             dbHelper.remove req.doc, (err, response) ->
                 if err
                     console.log "[Definition] err: " + JSON.stringify err
