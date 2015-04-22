@@ -123,7 +123,5 @@ module.exports = class Feed
                 @logger.error err if err
                 doctype = doc?.docType?.toLowerCase()
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
-                if operation is 'update' and doctype is 'application'
-                    addAccess doc
 
 module.exports = new Feed()

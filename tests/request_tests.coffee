@@ -54,7 +54,7 @@ describe "Request handling tests", ->
                             "description": "This application needs manage notes because ..."
                     "docType": "Application"
                 client.setBasicAuth "home", "token"
-                client.post 'data/', data, (err, res, body) =>
+                client.post 'access/', data, (err, res, body) =>
                     @body = body
                     @err = err
                     @res = res
@@ -77,7 +77,7 @@ describe "Request handling tests", ->
                             "description": "This application needs manage notes because ..."
                     "docType": "Application"
                 client.setBasicAuth "home", "token"
-                client.post 'data/', data, (err, res, body) =>
+                client.post 'access/', data, (err, res, body) =>
                     @body = body
                     @err = err
                     @res = res
@@ -219,8 +219,8 @@ describe "Request handling tests", ->
                     @body = body
                     done()
 
-            it "Then I should have 105 documents returned", ->
-                @body.should.have.length 105
+            it "Then I should have 103 documents returned", ->
+                @body.should.have.length 103
 
         describe "Access to an existing view : even_num", (done) ->
             before cleanRequest
@@ -444,8 +444,7 @@ describe "Request handling tests", ->
                 response.statusCode.should.equal 200
 
                 should.exist body
-                body.length.should.eql 3
+                body.length.should.eql 2
                 body[0].should.eql 'Access'
-                body[1].should.eql 'Application'
-                body[2].should.eql 'author'
+                body[1].should.eql 'author'
                 done()

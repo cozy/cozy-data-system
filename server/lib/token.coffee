@@ -7,6 +7,13 @@ productionOrTest = process.env.NODE_ENV is "production" or
     process.env.NODE_ENV is "test"
 
 
+defaultPermissions =
+    'file': 'Usefull to synchronize your files',
+    'folder': 'Usefull to synchronize your folder',
+    'notification': 'Usefull to synchronize your notification'
+    'binary': 'Usefull to synchronize your files'
+
+
 ## function checkToken (auth, tokens, callback)
 ## @auth {string} Field 'authorization' of request
 ## @tokens {tab} Tab which contains applications and their tokens
@@ -106,104 +113,48 @@ updatePermissions = (access, callback) ->
     else
         callback() if callback?
 
-checkAccess = (app, cb) ->
-    if app.access
-        cb app.access
-    else if app._id
-        db.view 'access/byApplication', key:app._id, (err, body) ->
-            if body.length > 0
-                cb body[0].value
-            else
-                cb false
-    else
-        cb false
 
-# Add access for application
-module.exports.addApplicationAccess = (application, callback) ->
-    checkAccess application, (access) ->
-        if access
-            application.access = access
-            db.get access, (err, doc) ->
-                delete permissions[doc.login]
-                delete tokens[doc.login]
-                doc.login = application.slug
-                doc.token = application.password if application.password?
-                doc.permissions = application.permissions
-                db.save doc._id, doc, (err, body) ->
-                    log.error err if err?
-                    delete application.password
-                    updatePermissions doc, () ->
-                        callback null, application if callback?
-        else
-            access =
-                docType: "Access"
-                login: application.slug
-                token: application.password
-                permissions: application.permissions
-            db.save access, (err, doc) ->
+# Add access for application or device
+addAccess = module.exports.addAccess = (doc, callback) ->
+    access =
+        docType: "Access"
+        login: doc.slug or doc.login
+        token: doc.password
+        app: doc.id or doc._id
+        permissions: doc.permissions
+    db.save access, (err, doc) ->
+        log.error err if err?
+        updatePermissions access, () ->
+            callback null, access if callback?
+
+# Update access for application or device
+module.exports.updateAccess = (id, doc, callback) ->
+    db.view 'access/byApp', key:id, (err, accesses) ->
+        if accesses.length > 0
+            access = accesses[0].value
+            delete permissions[access.login]
+            delete tokens[access.login]
+            access.login = doc.slug or access.login
+            access.token = doc.password or access.token
+            access.permissions = doc.permissions or access.permissions
+            db.save access._id, access, (err, body) ->
                 log.error err if err?
-                application.access = doc._id
-                delete application.password
                 updatePermissions access, () ->
-                    callback null, application if callback?
+                    callback null, access if callback?
+        else
+            addAccess doc, callback
 
-# Add access for device
-module.exports.addDeviceAccess = (device, callback) ->
-    if device.type is "desktop"
-        defaultPermissions =
-            file: "Should access to file to synchronize it"
-            folder: "Should access to folder to synchronize it"
-            binary: "Should access to file contents"
-    else
-        defaultPermissions =
-            file: "Should access to file to synchronize it"
-            folder: "Should access to folder to synchronize it"
-            binary: "Should access to file contents"
-            notification: "Should access to notification to synchronize it"
-            contact: "Should access to contact to synchronize it"
-    checkAccess device, (acces)->
-    if access
-        device.access = access
-        db.get access, (err, doc) ->
-            delete permissions[doc.login]
-            delete tokens[doc.login]
-            doc.login = device.login
-            doc.token = device.password
-            doc.permissions = device.permissions or defaultPermissions
-            permissions:
-                file: "Should access to file to synchronize it"
-                folder: "Should access to folder to synchronize it"
-                notification: "Should access to notification to synchronize it"
-                contact: "Should access to contact to synchronize it"
-            db.save doc, (err, doc) ->
-            log.error err if err?
-            delete device.password
-            updatePermissions access, () ->
-                callback null, device
-    else
-        access =
-            docType: "Access"
-            login: device.login
-            token: device.password
-        access.permissions = device.permissions or defaultPermissions
-        db.save access, (err, doc) ->
-            log.error err if err?
-            device.access = doc._id
-            delete device.password
-            updatePermissions access, () ->
-                callback null, device
-
-
-module.exports.removeAccess = (app, callback) ->
-    if productionOrTest and app.access?
-        db.get app.access, (err, doc) ->
-            delete permissions[doc.login]
-            delete tokens[doc.login]
-            db.remove app.access, callback
-
-
-
-
+# Remove access for application or device
+module.exports.removeAccess = (doc, callback) ->
+    if productionOrTest
+        db.view 'access/byApp', key:doc._id, (err, accesses) ->
+            if accesses.length > 0
+                access = accesses[0].value
+                delete permissions[access.login]
+                delete tokens[access.login]
+                db.remove access._id, access._rev, callback
+            else
+                callback() if callback?
 
 ## function initHomeProxy (callback)
 ## @callback {function} Continuation to pass control back to when complete
@@ -215,6 +166,7 @@ initHomeProxy = (callback) ->
     tokens['home'] = token
     permissions.home =
         "application": "authorized"
+        "access": "authorized"
         "notification": "authorized"
         "user": "authorized"
         "device": "authorized"
@@ -228,6 +180,7 @@ initHomeProxy = (callback) ->
     # Add proxy token and permissions
     tokens['proxy'] = token
     permissions.proxy =
+        "access": "authorized"
         "user": "authorized"
         "cozyinstance": "authorized"
         "device": "authorized"
@@ -242,7 +195,7 @@ initHomeProxy = (callback) ->
 ## Initialize tokens and permissions for all accesses (applications or devices)
 initAccess = (access, callback) ->
     name = access.login
-    tokens[access] = access.token
+    tokens[name] = access.token
     if access.permissions? and access.permissions isnt null
         permissions[name] = {}
         for docType, description of access.permissions

@@ -43,7 +43,7 @@ describe "Mail handling tests", ->
                         "description": "This application needs manage notes because ..."
                 "docType": "Application"
             client.setBasicAuth "home", "token"
-            client.post 'data/', data, (err, res, body) =>
+            client.post 'access/', data, (err, res, body) =>
                 @body = body
                 @err = err
                 @res = res

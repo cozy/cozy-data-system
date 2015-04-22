@@ -6,60 +6,41 @@ dbHelper = require '../lib/db_remove_helper'
 encryption = require '../lib/encryption'
 client = require '../lib/indexer'
 
-addAccess = require('../lib/token').addApplicationAccess
-removeAccess = require('../lib/token').removeAccess
-
 ## Before and after methods
 
 ## Encrypt data in field password
 module.exports.encryptPassword = (req, res, next) ->
-    doctype = req.body.docType
-    if not doctype? or doctype.toLowerCase() isnt "application"
-        try
-            password = encryption.encrypt req.body.password
-        catch error
-            # do nothing to prevent error in apps
-            # todo add a way to send a warning in the http response
+    try
+        password = encryption.encrypt req.body.password
+    catch error
+        # do nothing to prevent error in apps
+        # todo add a way to send a warning in the http response
 
-        req.body.password = password if password?
-        next()
-    else
-        next()
+    req.body.password = password if password?
+    next()
 
 ## Encrypt data in field password
 # TODO: merge with encryptPassword
 module.exports.encryptPassword2 = (req, res, next) ->
-    doctypeBody = req.body.docType
-    doctypeDoc = req.doc.docType
-    if not doctypeBody? or doctypeBody.toLowerCase() isnt "application"
-        if not doctypeDoc? or doctypeDoc.toLowerCase() isnt "application"
-            try
-                password = encryption.encrypt req.body.password
-            catch error
-                # do nothing to prevent error in apps
-                # todo add a way to send a warning in the http response
+    try
+        password = encryption.encrypt req.body.password
+    catch error
+        # do nothing to prevent error in apps
+        # todo add a way to send a warning in the http response
 
-            req.body.password = password if password?
-            next()
-        else
-            next()
-    else
-        next()
+    req.body.password = password if password?
+    next()
 
 # Decrypt data in field password
 module.exports.decryptPassword = (req, res, next) ->
-    doctype = req.doc.docType
-    if not doctype? or doctype.toLowerCase() isnt "application"
-        try
-            password = encryption.decrypt req.doc.password
-        catch error
-            # do nothing to prevent error in apps
-            # todo add a way to send a warning in the http response
+    try
+        password = encryption.decrypt req.doc.password
+    catch error
+        # do nothing to prevent error in apps
+        # todo add a way to send a warning in the http response
 
-        req.doc.password = password if password?
-        next()
-    else
-        next()
+    req.doc.password = password if password?
+    next()
 
 
 ## Actions
@@ -95,58 +76,39 @@ module.exports.find = (req, res) ->
 # POST /data/:id/
 # POST /data/
 module.exports.create = (req, res, next) ->
-    checkApp = (cb) ->
-        doctype = req.body.docType
-        if doctype? and doctype.toLowerCase() is "application"
-            console.log "addApplicationAccess"
-            addAccess req.body, (err, appli) ->
-                req.body = appli
-                cb()
-        else
-            cb()
 
     delete req.body._attachments # attachments management has a dedicated API
-    checkApp () ->
-        if req.params.id?
-            db.get req.params.id, (err, doc) -> # this GET needed because of cache
-                if doc?
-                    err = new Error "The document already exists."
-                    err.status = 409
-                    next err
-                else
-                    db.save req.params.id, req.body, (err, doc) ->
-                        if err
-                            err = new Error "The document already exists."
-                            err.status = 409
-                            next err
-                        else
-                            res.send 201, _id: doc.id
-        else
-            db.save req.body, (err, doc) ->
-                if err
-                    next err
-                else
-                    res.send 201, _id: doc.id
+    if req.params.id?
+        db.get req.params.id, (err, doc) -> # this GET needed because of cache
+            if doc?
+                err = new Error "The document already exists."
+                err.status = 409
+                next err
+            else
+                db.save req.params.id, req.body, (err, doc) ->
+                    if err
+                        err = new Error "The document already exists."
+                        err.status = 409
+                        next err
+                    else
+                        res.send 201, _id: doc.id
+    else
+        db.save req.body, (err, doc) ->
+            if err
+                next err
+            else
+                res.send 201, _id: doc.id
 
 # PUT /data/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
 module.exports.update = (req, res, next) ->
-    checkApp = (cb) ->
-        doctype = req.body.docType
-        if doctype? and doctype.toLowerCase() is "application"
-            addAccess req.body, (err, appli) ->
-                req.body = appli
-                cb()
-        else
-            cb()
     delete req.body._attachments # attachments management has a dedicated API
 
-    checkApp () ->
-        db.save req.params.id, req.body, (err, response) ->
-            if err then next err
-            else
-                res.send 200, success: true
-                next()
+    db.save req.params.id, req.body, (err, response) ->
+        if err then next err
+        else
+            res.send 200, success: true
+            next()
 
 # PUT /data/upsert/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
@@ -172,10 +134,6 @@ module.exports.delete = (req, res, next) ->
         res.send 204, success: true
         next()
 
-    doctype = req.doc.docType
-    if doctype? and doctype.toLowerCase() is "application"
-       removeAccess req.doc
-
     dbHelper.remove req.doc, (err, res) ->
         if err
             next err
@@ -188,24 +146,9 @@ module.exports.delete = (req, res, next) ->
 # this doesn't take care of conflict (erase DB with the sent value)
 module.exports.merge = (req, res, next) ->
     delete req.body._attachments # attachments management has a dedicated API
-
-    checkApp = (cb) ->
-        doctype = req.body.docType
-        if doctype?
-            if doctype.toLowerCase() is "application"
-                delete req.body.password
-            cb()
+    db.merge req.params.id, req.body, (err, doc) ->
+        if err
+            next err
         else
-            db.get req.params.id, (err, doc) ->
-                doctype = doc.docType
-                if doctype? and doctype.toLowerCase() is "application"
-                    delete req.body.password
-                cb()
-
-    checkApp () ->
-        db.merge req.params.id, req.body, (err, doc) ->
-            if err
-                next err
-            else
-                res.send 200, success: true
-                next()
+            res.send 200, success: true
+            next()

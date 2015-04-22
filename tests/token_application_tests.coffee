@@ -50,24 +50,28 @@ describe "Token of applications handling tests", ->
                             "description": "This application needs ..."
                     "docType": "Application"
                 client.setBasicAuth "home", "token"
-                client.post 'data/', data, done
+                client.post 'access/', data, done
 
             it "When I send a request to post an application", (done) ->
                 data =
                     "name": "test"
                     "slug": "test"
                     "state": "installed"
-                    "password": "token"
-                    "permissions":
-                        "Authorized":
-                            "description": "This application needs ..."
                     "docType": "Application"
                 client.setBasicAuth "home", "token"
                 client.post 'data/', data, (err, res, body) =>
                     @body = body
                     @err = err
                     @res = res
-                    done()
+                    access =
+                        'slug': data.slug
+                        'app': body._id
+                        "password": "token"
+                        "permissions":
+                            "Authorized":
+                                "description": "This application needs ..."
+                    client.post 'access/', access, (err, res, body) ->
+                        done()
 
             it "Then no error should be returned", ->
                 should.equal @err, null
@@ -77,14 +81,13 @@ describe "Token of applications handling tests", ->
 
             it "And Access is created", (done)->
                 client.setBasicAuth "test-app", 'secret'
-                client.get "data/#{@body._id}/", (err, res, body) ->
-                    body.access.should.exist
-                    client.get "data/#{body.access}/", (err, res, body) ->
-                        body.docType.should.equal 'Access'
-                        body.token.should.equal 'token'
-                        body.login.should.equal 'test'
-                        body.permissions.Authorized.description.should.equal "This application needs ..."
-                        done()
+                client.post "request/access/byApp/", key: @body._id, (err, res, body) ->
+                    access = body[0].value
+                    access.docType.should.equal 'Access'
+                    access.token.should.equal 'token'
+                    access.login.should.equal 'test'
+                    access.permissions.Authorized.description.should.equal "This application needs ..."
+                    done()
 
         describe "Requests with a wrong token", ->
 
@@ -162,23 +165,26 @@ describe "Token of applications handling tests", ->
                     "name": "test-2"
                     "slug": "test-2"
                     "state": "installed"
-                    "password": "token-2"
-                    "permissions":
-                        "Authorized":
-                            "description": "This application needs ..."
                     "docType": "Application"
                 client.setBasicAuth "home", "token"
                 client.post 'data/', data, (err, res, body) =>
                     @body = body
-                    client.get "data/#{@body._id}/", (err, res, body) =>
-                        @body = body
-                        body.name = 'test-3'
-                        body.slug = 'test-3'
-                        body.password = 'token-3'
-                        body.permissions =
-                            "Authorized-2":
+                    access =
+                        app: body._id
+                        slug: 'test-2'
+                        password: "token-2"
+                        permissions:
+                            "Authorized":
                                 "description": "This application needs ..."
-                        client.put "data/#{@body._id}/", body, (err, res, body) =>
+                    client.post 'access/', access, (err, res, access) =>
+                        access =
+                            name: 'test-3'
+                            slug: 'test-3'
+                            password: 'token-3'
+                            permissions:
+                                "Authorized-2":
+                                    "description": "This application needs ..."
+                        client.put "access/#{body._id}/", access, (err, res, body) =>
                             @err = err
                             @res = res
                             done()
@@ -191,14 +197,14 @@ describe "Token of applications handling tests", ->
 
             it "And Access is created", (done)->
                 client.setBasicAuth "test-app", 'secret'
-                client.get "data/#{@body._id}/", (err, res, body) ->
-                    body.access.should.exist
-                    client.get "data/#{body.access}/", (err, res, body) ->
-                        body.docType.should.equal 'Access'
-                        body.token.should.equal 'token-3'
-                        body.login.should.equal 'test-3'
-                        body.permissions['Authorized-2'].description.should.equal "This application needs ..."
-                        done()
+                console.log @body._id
+                client.post "request/access/byApp/", key:@body._id, (err, res, body) ->
+                    access = body[0].value
+                    access.docType.should.equal 'Access'
+                    access.token.should.equal 'token-3'
+                    access.login.should.equal 'test-3'
+                    access.permissions['Authorized-2'].description.should.equal "This application needs ..."
+                    done()
 
 
         describe "Requests with old token", ->

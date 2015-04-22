@@ -153,14 +153,11 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
-            byApplication:
+            byApp:
                 map: """
                 function(doc) {
-                    if(doc.docType && doc.docType.toLowerCase() === "application") {
-                        return emit(doc._id, doc.access);
-                    }
-                    if(doc.docType && doc.docType.toLowerCase() === "device") {
-                        return emit(doc._id, doc.access);
+                    if(doc.docType && doc.docType.toLowerCase() === "access") {
+                        return emit(doc.app, doc);
                     }
                 }
                 """

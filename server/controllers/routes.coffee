@@ -5,11 +5,11 @@ requests = require './requests'
 attachments = require './attachments'
 binaries = require './binaries'
 connectors = require './connectors'
-devices = require './devices'
 indexer = require './indexer'
 mails = require './mails'
 user = require './user'
 account = require './accounts'
+access = require './access'
 
 utils = require '../middlewares/utils'
 
@@ -143,15 +143,17 @@ module.exports =
     'connectors/bank/:name/': post: connectors.bank
     'connectors/bank/:name/history': post: connectors.bankHistory
 
-    # Device management
-    'device/': post: [utils.checkPermissionsFactory('device'), devices.create]
-    'device/:id/': delete: [
-        utils.checkPermissionsFactory('device')
-        utils.lockRequest
-        utils.getDoc
-        devices.remove
-        utils.unlockRequest
-    ]
+    # Access management
+    'access/': post: [utils.checkPermissionsFactory('access'), access.create]
+    'access/:id/':
+        'put': [utils.checkPermissionsFactory('access'), access.update]
+        'delete': [
+            utils.checkPermissionsFactory('access')
+            utils.lockRequest
+            utils.getDoc
+            access.remove
+            utils.unlockRequest
+        ]
 
     # Indexer management
     'data/index/clear-all/':

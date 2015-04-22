@@ -53,15 +53,16 @@ exports.addAccesses = (callback) ->
         db.view "#{docType}/all", (err, apps) ->
             if not err and apps.length > 0
                 async.forEach apps, (app, cb) ->
-                    unless app.access?
-                        if docType is "application"
-                            access = permissionsManager.addApplicationAccess
+                    db.view 'access/byApp', key:app._id, (err, accesses) ->
+                        if accesses.length is 0
+                            permissionsManager.addAccess app, (err, access) ->
+                                delete app.password
+                                delete app.permissions
+                                db.save app, (err, doc) ->
+                                    log.error err if err?
+                                    cb()
                         else
-                            access = permissionsManager.addDeviceAccess
-                        access app, (err, app) ->
-                            db.save app, (err, doc) ->
-                                log.error err if err?
-                                cb()
+                            cb()
                 , cb
             else
                 cb err
