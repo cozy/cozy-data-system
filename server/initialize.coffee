@@ -10,5 +10,6 @@ module.exports = (app, server, callback) ->
         log.error err if err?
         # Patch: 24/03/15
         init.addAccesses (err) ->
-            log.error err if err?
+            init.addThumbs (err) ->
+                log.error err if err?
             callback app, server if callback?

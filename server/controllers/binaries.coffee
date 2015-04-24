@@ -6,6 +6,7 @@ log =  require('printit')
     prefix: 'binaries'
 
 db = require('../helpers/db_connect_helper').db_connect()
+binaryManagement = require '../lib/binary'
 deleteFiles = require('../helpers/utils').deleteFiles
 dbHelper = require '../lib/db_remove_helper'
 downloader = require '../lib/downloader'
@@ -57,49 +58,16 @@ module.exports.add = (req, res, next) ->
 
             # Build file data
             fileData =
-                name: querystring.escape name
+                name: name
                 "content-type": part.headers['content-type']
 
-            # Store the binary as an attachment of binary document.
-            attachBinary = (binary) ->
-                log.info "binary #{name} ready for storage"
-                stream = db.saveAttachment binary, fileData, (err, binDoc) ->
-                    if err
-                        log.error "#{JSON.stringify err}"
-                        form.emit 'error', err
-                    else
-                        log.info "Binary #{name} stored in Couchdb"
+            binaryManagement.addBinary req.doc, fileData, part, (err)->
+                if err
+                    log.error "#{JSON.stringify err}"
+                    form.emit 'error', err
+                else
+                    res.send 201, success: true
 
-                        # Once binary is stored, it updates doc link to the
-                        # binary.
-                        bin =
-                            id: binDoc.id
-                            rev: binDoc.rev
-
-                        if req.doc.binary
-                            binList = req.doc.binary
-                        else
-                            binList = {}
-                        binList[name] = bin
-                        db.merge req.doc._id, binary: binList, (err) ->
-                            res.send 201, success: true
-                part.pipe stream
-
-            # Update binary list set on given doc then save file to CouchDB
-            # as an attachment via a stream. We do not use 'file' event to
-            # avoid saving file on the disk.
-            # Check if binary is already present in the document binary list.
-            # In that case the attachment is replaced with the uploaded file.
-            if req.doc.binary?[name]?
-                db.get req.doc.binary[name].id, (err, binary) ->
-                    attachBinary binary
-
-            # Else create a new binary to store uploaded file..
-            else
-                binary =
-                    docType: "Binary"
-                db.save binary, (err, binDoc) ->
-                    attachBinary binDoc
 
     form.on 'progress', (bytesReceived, bytesExpected) ->
 
@@ -173,7 +141,9 @@ module.exports.remove = (req, res, next) ->
                 # Then delete binary document.
                 db.get id, (err, binary) =>
                     unless binary?
-                        return next errors.http 404, 'Binary Not Found'
+                        err = new Error('Binary not found')
+                        err.status = 404
+                        return next err
 
                     dbHelper.remove binary, (err) =>
                         if err

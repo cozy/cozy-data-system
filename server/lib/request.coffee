@@ -181,6 +181,18 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
+        # Usefull for thumbs creation
+        file:
+            withoutThumb:
+                map: """
+                function(doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "file") {
+                        if(doc.class === "image" && doc.binary && doc.binary.file && !doc.binary.thumb) {
+                            emit(doc._id, null);
+                        }
+                    }
+                }
+                """
         # Usefull for API tags
         tags:
             all:

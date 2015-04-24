@@ -3,7 +3,10 @@ S = require 'string'
 async = require 'async'
 Client = require('request-json').JsonClient
 client = null
-addAccess = require('./token').addApplicationAccess
+thumb = require('./thumb')
+
+log = require('printit')
+    prefix: 'feed'
 
 setCouchCredentials = ->
     if process.env.NODE_ENV is 'production'
@@ -80,7 +83,8 @@ module.exports = class Feed
     _onChange: (change) =>
         if change.deleted
             dbName = process.env.DB_NAME or 'cozy'
-            client.get "/#{dbName}/#{change.id}?revs_info=true&open_revs=all", (err, res, doc) =>
+            requestPath = "/#{dbName}/#{change.id}?revs_info=true&open_revs=all"
+            client.get requestPath, (err, res, doc) =>
                 if doc?[0]?.ok?.docType?
                     doc = doc[0].ok
                     # Publish deletion
@@ -113,7 +117,7 @@ module.exports = class Feed
 
                     # Check all binary
                     async.each Object.keys(doc.binary), removeBinary, (err) ->
-                        console.log err if err
+                        log.error err if err
 
         else
             isCreation = change.changes[0].rev.split('-')[0] is '1'
@@ -122,6 +126,13 @@ module.exports = class Feed
             @db.get change.id, (err, doc) =>
                 @logger.error err if err
                 doctype = doc?.docType?.toLowerCase()
+
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
 
+                if doctype is 'file'
+                    @db.get change.id, (err, file) ->
+                        if file.class is 'image' and
+                            file.binary?.file? and not file.binary.thumb
+                                # Creates thumb for image.
+                                thumb.create file, false
 module.exports = new Feed()

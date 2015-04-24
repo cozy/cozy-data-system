@@ -5,6 +5,7 @@ log = require('printit')
 db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
 permissionsManager = require './token'
+thumb = require('./thumb')
 
 # Get all lost binaries
 #    A binary is considered as lost when isn't linked to a document.
@@ -47,7 +48,6 @@ exports.removeLostBinaries = (callback) ->
                     cb()
         , callback
 
-
 exports.addAccesses = (callback) ->
     addAccess = (docType, cb) ->
         db.view "#{docType}/all", (err, apps) ->
@@ -72,3 +72,25 @@ exports.addAccesses = (callback) ->
         addAccess 'device', (err) ->
             log.error err if err?
             callback()
+
+# Add thumbs for images without thumb
+exports.addThumbs = (callback) ->
+    # Retrieve images without thumb
+    db.view 'file/withoutThumb', (err, files) ->
+        if err
+            callback err
+
+        else if files.length is 0
+            callback()
+
+        else
+            async.forEachSeries files, (file, cb) =>
+                # Create thumb
+                db.get file.id, (err, file) =>
+                    if err
+                        log.info "Cant get File #{file.id} for thumb"
+                        log.info err
+                        return cb()
+                    thumb.create file, false
+                    cb()
+            , callback

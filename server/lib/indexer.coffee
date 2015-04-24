@@ -7,4 +7,6 @@ else if process.env.NODE_ENV is "test"
 else
     port = 9102
 
-module.exports = new Client "http://localhost:#{port}/"
+indexerHost = process.env.INDEXER_HOST or 'localhost'
+
+module.exports = new Client "http://#{indexerHost}:#{port}/"
