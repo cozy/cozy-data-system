@@ -10,6 +10,7 @@ mails = require './mails'
 user = require './user'
 account = require './accounts'
 access = require './access'
+replication = require './replication'
 
 utils = require '../middlewares/utils'
 
@@ -153,6 +154,20 @@ module.exports =
             utils.getDoc
             access.remove
             utils.unlockRequest
+        ]
+
+    'replication/*':
+        'post': [
+            utils.checkPermissionsPostReplication
+            replication.proxy
+        ]
+        'get': [
+            replication.proxy
+            utils.checkPermissionsGetReplication
+        ]
+        'put':[
+            utils.checkPermissionsPutReplication
+            replication.proxy
         ]
 
     # Indexer management

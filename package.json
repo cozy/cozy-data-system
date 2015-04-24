@@ -28,6 +28,7 @@
     "nodemailer": "0.6.0",
     "gm": "1.17.0",
     "mime": "1.2.11",
+    "http-proxy": "1.11.1",
     "multiparty": "3.3.0"
   },
   "devDependencies": {

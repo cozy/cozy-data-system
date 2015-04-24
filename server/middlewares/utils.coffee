@@ -1,6 +1,7 @@
 locker = require '../lib/locker'
 db = require('../helpers/db_connect_helper').db_connect()
 logger = require('printit')(prefix: 'middleware/utils')
+async = require 'async'
 
 # Helpers
 helpers = require '../helpers/utils'
@@ -50,3 +51,58 @@ module.exports.checkPermissionsByBody = (req, res, next) ->
 # Get the permission from the request's params
 module.exports.checkPermissionsByType = (req, res, next) ->
     checkPermissions req, req.params.type, next
+
+# Get the permission for a post request in replication protocole
+module.exports.checkPermissionsPostReplication = (req, res, next) ->
+    if req.url is '/replication/_revs_diff'
+        # Use to retrieve difference in documents revisions
+        next()
+    else if req.url is '/replication/_ensure_full_commit'
+        # Use to ensure that every transferred bit is laid down
+        # on disk or other persistent storage place
+        next()
+    else if req.url is '/replication/_bulk_docs'
+        # Use to add/update/delete a document in replication
+        async.forEach req.body.docs, (doc, cb) ->
+            if doc._deleted
+                # Document deletion:
+                #   Get doc and check docType of current document
+                db.get doc._id, (err, doc) ->
+                    checkPermissions req, doc.docType, cb
+            else
+                checkPermissions req, doc.docType, cb
+        , next
+    else
+        next("Forbidden operation")
+
+# Get the permission for a get request in replication protocole
+module.exports.checkPermissionsGetReplication = (req, res, next) ->
+    # Format res.body :
+    #   it should be as
+    #       <id> --------
+    #       Content-Type: application/json
+    #           <doc>
+    #       <id>
+    body = res.body
+    start = body.indexOf('{')
+    end = body.lastIndexOf('}')
+    body = body.substring(start, end+1)
+    body = JSON.parse(body)
+    # Check if document in body has a docType
+    if body and body.docType
+        checkPermissions req, body.docType, (err) ->
+            if err
+                next err
+            else
+                res.send res.body
+    else
+        res.send res.body
+
+# Get the permission for a put request in replication protocole
+module.exports.checkPermissionsPutReplication = (req, res, next) ->
+    if req.url.indexOf '/replication/_local' is 0 # ????
+        # Use to save history replication
+        # Local document aren't replicated
+        next()
+    else
+        next("Forbidden operation")

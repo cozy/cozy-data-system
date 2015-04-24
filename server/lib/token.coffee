@@ -114,8 +114,16 @@ updatePermissions = (access, callback) ->
         callback() if callback?
 
 
-# Add access for application or device
+## function addAccess (doc, callback)
+## @doc {Object} application/device:
+##   * doc.password is application token
+##   * doc.slug/doc.login is application name
+##   * doc.permissions is application permissions
+##   * doc.id/doc._id is application id
+## @callback {function} Continuation to pass control back to when complete.
+## Add access for application or device
 addAccess = module.exports.addAccess = (doc, callback) ->
+    # Create access
     access =
         docType: "Access"
         login: doc.slug or doc.login
@@ -124,27 +132,41 @@ addAccess = module.exports.addAccess = (doc, callback) ->
         permissions: doc.permissions
     db.save access, (err, doc) ->
         log.error err if err?
+        # Update permissions in RAM
         updatePermissions access, () ->
             callback null, access if callback?
 
-# Update access for application or device
+## function updateAccess (doc, callback)
+## @id {String} access id for application
+## @doc {Object} application/device:
+##   * doc.password is new application token
+##   * doc.slug/doc.login is new application name
+##   * doc.permissions is new application permissions
+## @callback {function} Continuation to pass control back to when complete.
+## Update access for application or device
 module.exports.updateAccess = (id, doc, callback) ->
     db.view 'access/byApp', key:id, (err, accesses) ->
         if accesses.length > 0
             access = accesses[0].value
+            # Delete old access
             delete permissions[access.login]
             delete tokens[access.login]
+            # Create new access
             access.login = doc.slug or access.login
             access.token = doc.password or access.token
             access.permissions = doc.permissions or access.permissions
             db.save access._id, access, (err, body) ->
                 log.error err if err?
+                # Update permissions in RAM
                 updatePermissions access, () ->
                     callback null, access if callback?
         else
             addAccess doc, callback
 
-# Remove access for application or device
+## function removeAccess (doc, callback)
+## @doc {Object} access to remove
+## @callback {function} Continuation to pass control back to when complete.
+## Remove access for application or device
 module.exports.removeAccess = (doc, callback) ->
     if productionOrTest
         db.view 'access/byApp', key:doc._id, (err, accesses) ->
