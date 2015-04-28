@@ -168,15 +168,15 @@ module.exports.updateAccess = (id, doc, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Remove access for application or device
 module.exports.removeAccess = (doc, callback) ->
-    if productionOrTest
-        db.view 'access/byApp', key:doc._id, (err, accesses) ->
-            if accesses.length > 0
-                access = accesses[0].value
-                delete permissions[access.login]
-                delete tokens[access.login]
-                db.remove access._id, access._rev, callback
-            else
-                callback() if callback?
+    db.view 'access/byApp', key:doc._id, (err, accesses) ->
+        if accesses.length > 0
+            access = accesses[0].value
+            delete permissions[access.login]
+            delete tokens[access.login]
+            db.remove access._id, access._rev, (err) ->
+                callback err if callback?
+        else
+            callback() if callback?
 
 ## function initHomeProxy (callback)
 ## @callback {function} Continuation to pass control back to when complete

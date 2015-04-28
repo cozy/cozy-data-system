@@ -57,6 +57,7 @@ exports.addAccesses = (callback) ->
                         if accesses.length is 0
                             permissionsManager.addAccess app, (err, access) ->
                                 delete app.password
+                                delete app.token
                                 delete app.permissions
                                 db.save app, (err, doc) ->
                                     log.error err if err?
