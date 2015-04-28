@@ -1,6 +1,4 @@
-getProxy = require('../lib/proxy').getProxy
 db = require('../helpers/db_connect_helper').db_connect()
-require('../lib/proxy').initializeProxy()
 json = require 'request-json'
 request = require 'request'
 url = require 'url'
