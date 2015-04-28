@@ -73,7 +73,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                 checkPermissions req, doc.docType, cb
         , next
     else
-        next("Forbidden operation")
+        next "Forbidden operation"
 
 # Get the permission for a get request in replication protocole
 module.exports.checkPermissionsGetReplication = (req, res, next) ->
@@ -84,10 +84,10 @@ module.exports.checkPermissionsGetReplication = (req, res, next) ->
     #           <doc>
     #       <id>
     body = res.body
-    start = body.indexOf('{')
-    end = body.lastIndexOf('}')
-    body = body.substring(start, end+1)
-    body = JSON.parse(body)
+    start = body.indexOf '{'
+    end = body.lastIndexOf '}'
+    body = body.substring(start, end + 1)
+    body = JSON.parse body
     # Check if document in body has a docType
     if body and body.docType
         checkPermissions req, body.docType, (err) ->
@@ -105,4 +105,4 @@ module.exports.checkPermissionsPutReplication = (req, res, next) ->
         # Local document aren't replicated
         next()
     else
-        next("Forbidden operation")
+        next "Forbidden operation"
