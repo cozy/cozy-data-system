@@ -61,6 +61,10 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
         # Use to ensure that every transferred bit is laid down
         # on disk or other persistent storage place
         next()
+
+    else if req.url.indexOf('/replication/_changes') is 0
+        # 
+        next()
     else if req.url is '/replication/_bulk_docs'
         # Use to add/update/delete a document in replication
         async.forEach req.body.docs, (doc, cb) ->
@@ -73,7 +77,9 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                 checkPermissions req, doc.docType, cb
         , next
     else
-        next "Forbidden operation"
+        err = new Error "Forbidden operation"
+        err.status = 403
+        next err
 
 # Get the permission for a get request in replication protocole
 module.exports.checkPermissionsGetReplication = (req, res, next) ->
@@ -92,8 +98,11 @@ module.exports.checkPermissionsGetReplication = (req, res, next) ->
     if body and body.docType
         checkPermissions req, body.docType, (err) ->
             if err
+                res.body = {}
                 next err
             else
+                res.set req.info[0]
+                res.statusCode = req.info[1]
                 res.send res.body
     else
         res.send res.body
@@ -105,4 +114,6 @@ module.exports.checkPermissionsPutReplication = (req, res, next) ->
         # Local document aren't replicated
         next()
     else
-        next "Forbidden operation"
+        err = new Error "Forbidden operation"
+        err.status = 403
+        next err

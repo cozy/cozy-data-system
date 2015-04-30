@@ -29,15 +29,16 @@ module.exports.proxy = (req, res, next) ->
     bodyToTransmit = JSON.stringify req.body
     if bodyToTransmit? and bodyToTransmit.length > 0
         options['body'] = bodyToTransmit
+    if options.method is 'HEAD'
+        delete options.body
     request options, (err, couchRes, body) ->
+        req.headers['authorization'] = auth
         if err? or not couchRes?
             console.log err
             res.send 500, err
         else
             if req.method is 'GET'
-                req.headers['authorization'] = auth
-                res.set couchRes.headers
-                res.statusCode = couchRes.statusCode
+                req.info = [couchRes.headers, couchRes.statusCode]
                 res.body = body
                 next()
             else
