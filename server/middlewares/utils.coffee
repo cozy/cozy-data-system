@@ -109,7 +109,7 @@ module.exports.checkPermissionsGetReplication = (req, res, next) ->
 
 # Get the permission for a put request in replication protocole
 module.exports.checkPermissionsPutReplication = (req, res, next) ->
-    if req.url.indexOf '/replication/_local' is 0 # ????
+    if req.url.indexOf('/replication/_local') is 0 # ????
         # Use to save history replication
         # Local document aren't replicated
         next()
