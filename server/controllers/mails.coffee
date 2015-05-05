@@ -59,6 +59,8 @@ module.exports.send = (req, res, next) ->
         sendEmail mailOptions, (error, response) ->
             if error
                 logger.info "[sendMail] Error : " + error
+                error.code = 'postfix_unavailable'
+                error.status = 501
                 next error
             else
                 res.send 200, response
@@ -92,6 +94,8 @@ module.exports.sendToUser = (req, res, next) ->
                 sendEmail mailOptions, (error, response) ->
                     if error
                         logger.info "[sendMail] Error : " + error
+                        error.code = 'postfix_unavailable'
+                        error.status = 501
                         next error
                     else
                         res.send 200, response
@@ -135,6 +139,8 @@ module.exports.sendFromUser = (req, res, next) ->
                 sendEmail mailOptions, (error, response) ->
                     if error
                         logger.info "[sendMail] Error : " + error
+                        error.code = 'postfix_unavailable'
+                        error.status = 501
                         next error
                     else
                         res.send 200, response
