@@ -120,11 +120,12 @@ module.exports.sendFromUser = (req, res, next) ->
                     domain = 'your.cozy.io'
 
                 # retrieves and slugifies the username if it exists
-                if users?[0]?.value.public_name?
-                    displayName = users[0].value.public_name
-                    displayName = displayName.toLowerCase()
-                                             .replace ' ', '-'
-                    displayName += "-"
+                if users?[0]?.value.public_name? and
+                    users?[0]?.value.public_name? isnt ''
+                        displayName = users[0].value.public_name
+                        displayName = displayName.toLowerCase()
+                                                 .replace ' ', '-'
+                        displayName += "-"
                 else
                     displayName = ''
 
