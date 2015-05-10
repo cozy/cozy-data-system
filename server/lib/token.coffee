@@ -115,6 +115,9 @@ initHomeProxy = (callback) ->
     permissions.home =
         "application": "authorized"
         "notification": "authorized"
+        "photo": "authorized"
+        "file": "authorized"
+        "binary": "authorized"
         "user": "authorized"
         "device": "authorized"
         "alarm": "authorized"
