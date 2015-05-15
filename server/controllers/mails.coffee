@@ -116,6 +116,8 @@ module.exports.sendFromUser = (req, res, next) ->
             db.view 'user/all', (err, users) ->
                 if instance?[0]?.value.domain?
                     domain = instance[0].value.domain
+                    if domain.indexOf('https://') isnt -1
+                        domain = domain.substring(8, domain.length)
                 else
                     domain = 'your.cozy.io'
 
