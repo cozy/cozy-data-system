@@ -141,6 +141,9 @@ module.exports.sendFromUser = function(req, res, next) {
         var displayName, domain, mailOptions, ref, ref1, ref2;
         if ((instance != null ? (ref = instance[0]) != null ? ref.value.domain : void 0 : void 0) != null) {
           domain = instance[0].value.domain;
+          if (domain.indexOf('https://') !== -1) {
+            domain = domain.substring(8, domain.length);
+          }
         } else {
           domain = 'your.cozy.io';
         }
