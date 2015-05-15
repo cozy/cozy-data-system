@@ -75,6 +75,8 @@ module.exports.send = function(req, res, next) {
     return sendEmail(mailOptions, function(error, response) {
       if (error) {
         logger.info("[sendMail] Error : " + error);
+        error.code = 'postfix_unavailable';
+        error.status = 501;
         return next(error);
       } else {
         return res.send(200, response);
@@ -112,6 +114,8 @@ module.exports.sendToUser = function(req, res, next) {
         return sendEmail(mailOptions, function(error, response) {
           if (error) {
             logger.info("[sendMail] Error : " + error);
+            error.code = 'postfix_unavailable';
+            error.status = 501;
             return next(error);
           } else {
             return res.send(200, response);
@@ -134,13 +138,16 @@ module.exports.sendFromUser = function(req, res, next) {
   } else {
     return db.view('cozyinstance/all', function(err, instance) {
       return db.view('user/all', function(err, users) {
-        var displayName, domain, mailOptions, _ref, _ref1;
+        var displayName, domain, mailOptions, _ref, _ref1, _ref2;
         if ((instance != null ? (_ref = instance[0]) != null ? _ref.value.domain : void 0 : void 0) != null) {
           domain = instance[0].value.domain;
+          if (domain.indexOf('https://') !== -1) {
+            domain = domain.substring(8, domain.length);
+          }
         } else {
           domain = 'your.cozy.io';
         }
-        if ((users != null ? (_ref1 = users[0]) != null ? _ref1.value.public_name : void 0 : void 0) != null) {
+        if (((users != null ? (_ref1 = users[0]) != null ? _ref1.value.public_name : void 0 : void 0) != null) && ((users != null ? (_ref2 = users[0]) != null ? _ref2.value.public_name : void 0 : void 0) != null) !== '') {
           displayName = users[0].value.public_name;
           displayName = displayName.toLowerCase().replace(' ', '-');
           displayName += "-";
@@ -160,6 +167,8 @@ module.exports.sendFromUser = function(req, res, next) {
         return sendEmail(mailOptions, function(error, response) {
           if (error) {
             logger.info("[sendMail] Error : " + error);
+            error.code = 'postfix_unavailable';
+            error.status = 501;
             return next(error);
           } else {
             return res.send(200, response);

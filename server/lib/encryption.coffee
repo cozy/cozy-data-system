@@ -31,7 +31,7 @@ getBody = (domain) ->
         Some features of your applications are therefore desactivated.
         They will be reactivated automatically when you will log into your Cozy instance.
         """
-    if domain?
+    if domain? and domain isnt ''
         body += "Click here to login #{domain}."
 
     body += """

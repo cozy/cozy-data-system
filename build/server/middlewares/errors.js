@@ -12,6 +12,12 @@ module.exports = function(err, req, res, next) {
   var message, statusCode, _ref;
   statusCode = err.status || ((_ref = err.headers) != null ? _ref.status : void 0) || 500;
   message = err instanceof Error ? err.message : err.error;
+  if (err.code) {
+    message = {
+      message: message,
+      code: err.code
+    };
+  }
   res.send(statusCode, {
     error: message
   });
