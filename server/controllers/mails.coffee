@@ -59,6 +59,8 @@ module.exports.send = (req, res, next) ->
         sendEmail mailOptions, (error, response) ->
             if error
                 logger.info "[sendMail] Error : " + error
+                error.code = 'postfix_unavailable'
+                error.status = 501
                 next error
             else
                 res.send 200, response
@@ -92,6 +94,8 @@ module.exports.sendToUser = (req, res, next) ->
                 sendEmail mailOptions, (error, response) ->
                     if error
                         logger.info "[sendMail] Error : " + error
+                        error.code = 'postfix_unavailable'
+                        error.status = 501
                         next error
                     else
                         res.send 200, response
@@ -112,15 +116,18 @@ module.exports.sendFromUser = (req, res, next) ->
             db.view 'user/all', (err, users) ->
                 if instance?[0]?.value.domain?
                     domain = instance[0].value.domain
+                    if domain.indexOf('https://') isnt -1
+                        domain = domain.substring(8, domain.length)
                 else
                     domain = 'your.cozy.io'
 
                 # retrieves and slugifies the username if it exists
-                if users?[0]?.value.public_name?
-                    displayName = users[0].value.public_name
-                    displayName = displayName.toLowerCase()
-                                             .replace ' ', '-'
-                    displayName += "-"
+                if users?[0]?.value.public_name? and
+                    users?[0]?.value.public_name? isnt ''
+                        displayName = users[0].value.public_name
+                        displayName = displayName.toLowerCase()
+                                                 .replace ' ', '-'
+                        displayName += "-"
                 else
                     displayName = ''
 
@@ -135,6 +142,8 @@ module.exports.sendFromUser = (req, res, next) ->
                 sendEmail mailOptions, (error, response) ->
                     if error
                         logger.info "[sendMail] Error : " + error
+                        error.code = 'postfix_unavailable'
+                        error.status = 501
                         next error
                     else
                         res.send 200, response

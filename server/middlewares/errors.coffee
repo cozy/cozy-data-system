@@ -4,12 +4,14 @@ logger = require('printit')
     prefix: 'app:error'
 
 module.exports = (err, req, res, next) ->
-
     statusCode = err.status or err.headers?.status or 500
     message = if err instanceof Error then err.message else err.error
 
     # @TODO : also send err.stack ?
-
+    if err.code
+        message =
+            message: message
+            code: err.code
     res.send statusCode, error: message
 
     if err instanceof Error
