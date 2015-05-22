@@ -63,7 +63,6 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
         next()
 
     else if req.url.indexOf('/replication/_changes') is 0
-        # 
         next()
     else if req.url is '/replication/_bulk_docs'
         # Use to add/update/delete a document in replication
@@ -89,23 +88,24 @@ module.exports.checkPermissionsGetReplication = (req, res, next) ->
     #       Content-Type: application/json
     #           <doc>
     #       <id>
-    body = res.body
-    start = body.indexOf '{'
-    end = body.lastIndexOf '}'
-    body = body.substring(start, end + 1)
-    body = JSON.parse body
+    start = req.body.indexOf '{'
+    end = req.body.lastIndexOf '}'
+    doc = body.substring(start, end + 1)
+    doc = JSON.parse doc
     # Check if document in body has a docType
-    if body and body.docType
-        checkPermissions req, body.docType, (err) ->
+    if doc and doc.docType
+        checkPermissions req, doc.docType, (err) ->
             if err
                 res.body = {}
                 next err
             else
                 res.set req.info[0]
                 res.statusCode = req.info[1]
-                res.send res.body
+                res.send req.body
     else
-        res.send res.body
+        res.set req.info[0]
+        res.statusCode = req.info[1]
+        res.send req.body
 
 # Get the permission for a put request in replication protocole
 module.exports.checkPermissionsPutReplication = (req, res, next) ->

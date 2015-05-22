@@ -17,20 +17,18 @@ module.exports.proxy = (req, res, next) ->
         # Do not forward 'authorization' header in other environments
         # in order to avoid wrong authentications in CouchDB
         req.headers['authorization'] = null
-    req.url = req.url.replace('replication', db.name)
+    targetURL = req.url.replace('replication', db.name)
 
-    targetURL = req.url.replace 'replication', 'cozy'
     options =
         method: req.method
         headers: req.headers
         uri: url.resolve "http://#{db.connection.host}:#{db.connection.port}", targetURL
 
     # restringify the body
-    bodyToTransmit = JSON.stringify req.body
-    if bodyToTransmit? and bodyToTransmit.length > 0
+
+    if req.body? and Object.keys(req.body).length > 0
+        bodyToTransmit = JSON.stringify req.body
         options['body'] = bodyToTransmit
-    if options.method is 'HEAD'
-        delete options.body
     request options, (err, couchRes, body) ->
         req.headers['authorization'] = auth
         if err? or not couchRes?
@@ -39,7 +37,7 @@ module.exports.proxy = (req, res, next) ->
         else
             if req.method is 'GET'
                 req.info = [couchRes.headers, couchRes.statusCode]
-                res.body = body
+                req.body = body
                 next()
             else
                 res.set couchRes.headers
