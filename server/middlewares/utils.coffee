@@ -90,7 +90,7 @@ module.exports.checkPermissionsGetReplication = (req, res, next) ->
     #       <id>
     start = req.body.indexOf '{'
     end = req.body.lastIndexOf '}'
-    doc = body.substring(start, end + 1)
+    doc = req.body.substring(start, end + 1)
     doc = JSON.parse doc
     # Check if document in body has a docType
     if doc and doc.docType
