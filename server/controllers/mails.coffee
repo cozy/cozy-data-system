@@ -123,7 +123,7 @@ module.exports.sendFromUser = (req, res, next) ->
 
                 # retrieves and slugifies the username if it exists
                 if users?[0]?.value.public_name? and
-                    users?[0]?.value.public_name? isnt ''
+                    users?[0]?.value.public_name isnt ''
                         displayName = users[0].value.public_name
                         displayName = displayName.toLowerCase()
                                                  .replace ' ', '-'
