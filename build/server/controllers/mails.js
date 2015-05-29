@@ -147,7 +147,7 @@ module.exports.sendFromUser = function(req, res, next) {
         } else {
           domain = 'your.cozy.io';
         }
-        if (((users != null ? (_ref1 = users[0]) != null ? _ref1.value.public_name : void 0 : void 0) != null) && ((users != null ? (_ref2 = users[0]) != null ? _ref2.value.public_name : void 0 : void 0) != null) !== '') {
+        if (((users != null ? (_ref1 = users[0]) != null ? _ref1.value.public_name : void 0 : void 0) != null) && (users != null ? (_ref2 = users[0]) != null ? _ref2.value.public_name : void 0 : void 0) !== '') {
           displayName = users[0].value.public_name;
           displayName = displayName.toLowerCase().replace(' ', '-');
           displayName += "-";
