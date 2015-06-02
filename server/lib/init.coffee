@@ -7,6 +7,18 @@ async = require 'async'
 permissionsManager = require './token'
 thumb = require('./thumb')
 
+
+defaultPermissions =
+    'File':
+        'description' : 'Usefull to synchronize your files',
+    'Folder':
+        'description' : 'Usefull to synchronize your folder',
+    'Notification':
+        'description' : 'Usefull to synchronize your notification'
+    'Binary':
+        'description' : 'Usefull to synchronize your files'
+
+
 # Get all lost binaries
 #    A binary is considered as lost when isn't linked to a document.
 getLostBinaries = exports.getLostBinaries = (callback) ->
@@ -48,17 +60,24 @@ exports.removeLostBinaries = (callback) ->
                     cb()
         , callback
 
+# Patch 01/06/15
 exports.addAccesses = (callback) ->
     addAccess = (docType, cb) ->
         db.view "#{docType}/all", (err, apps) ->
             if not err and apps.length > 0
                 async.forEach apps, (app, cb) ->
+                    # Check if access exists
                     db.view 'access/byApp', key:app._id, (err, accesses) ->
                         if accesses.length is 0
+                            # Create it if necessary
+                            if docType is "device"
+                                app.permissions = defaultPermissions
                             permissionsManager.addAccess app, (err, access) ->
                                 delete app.password
                                 delete app.token
                                 delete app.permissions
+                                # Remove access information
+                                # from application/device document
                                 db.save app, (err, doc) ->
                                     log.error err if err?
                                     cb()
@@ -68,6 +87,7 @@ exports.addAccesses = (callback) ->
             else
                 cb err
 
+    # Add access for all applications and devices
     addAccess 'application', (err) ->
         log.error err if err?
         addAccess 'device', (err) ->

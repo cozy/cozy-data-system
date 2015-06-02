@@ -6,14 +6,6 @@ tokens = {}
 productionOrTest = process.env.NODE_ENV is "production" or
     process.env.NODE_ENV is "test"
 
-
-defaultPermissions =
-    'file': 'Usefull to synchronize your files',
-    'folder': 'Usefull to synchronize your folder',
-    'notification': 'Usefull to synchronize your notification'
-    'binary': 'Usefull to synchronize your files'
-
-
 ## function checkToken (auth, tokens, callback)
 ## @auth {string} Field 'authorization' of request
 ## @tokens {tab} Tab which contains applications and their tokens
@@ -203,6 +195,7 @@ initHomeProxy = (callback) ->
     tokens['proxy'] = token
     permissions.proxy =
         "access": "authorized"
+        "application": "authorized"
         "user": "authorized"
         "cozyinstance": "authorized"
         "device": "authorized"
