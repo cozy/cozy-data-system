@@ -64,9 +64,12 @@ module.exports.checkPermissionsByType = function(req, res, next) {
 };
 
 module.exports.checkPermissionsPostReplication = function(req, res, next) {
+  var err;
   if (req.url === '/replication/_revs_diff') {
     return next();
   } else if (req.url === '/replication/_ensure_full_commit') {
+    return next();
+  } else if (req.url.indexOf('/replication/_changes') === 0) {
     return next();
   } else if (req.url === '/replication/_bulk_docs') {
     return async.forEach(req.body.docs, function(doc, cb) {
@@ -79,34 +82,43 @@ module.exports.checkPermissionsPostReplication = function(req, res, next) {
       }
     }, next);
   } else {
-    return next("Forbidden operation");
+    err = new Error("Forbidden operation");
+    err.status = 403;
+    return next(err);
   }
 };
 
 module.exports.checkPermissionsGetReplication = function(req, res, next) {
-  var body, end, start;
-  body = res.body;
-  start = body.indexOf('{');
-  end = body.lastIndexOf('}');
-  body = body.substring(start, end + 1);
-  body = JSON.parse(body);
-  if (body && body.docType) {
-    return checkPermissions(req, body.docType, function(err) {
+  var doc, end, start;
+  start = req.body.indexOf('{');
+  end = req.body.lastIndexOf('}');
+  doc = req.body.substring(start, end + 1);
+  doc = JSON.parse(doc);
+  if (doc && doc.docType) {
+    return checkPermissions(req, doc.docType, function(err) {
       if (err) {
+        res.body = {};
         return next(err);
       } else {
-        return res.send(res.body);
+        res.set(req.info[0]);
+        res.statusCode = req.info[1];
+        return res.send(req.body);
       }
     });
   } else {
-    return res.send(res.body);
+    res.set(req.info[0]);
+    res.statusCode = req.info[1];
+    return res.send(req.body);
   }
 };
 
 module.exports.checkPermissionsPutReplication = function(req, res, next) {
-  if (req.url.indexOf('/replication/_local' === 0)) {
+  var err;
+  if (req.url.indexOf('/replication/_local') === 0) {
     return next();
   } else {
-    return next("Forbidden operation");
+    err = new Error("Forbidden operation");
+    err.status = 403;
+    return next(err);
   }
 };
