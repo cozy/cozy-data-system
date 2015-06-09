@@ -11,3 +11,4 @@ module.exports = (app, server, callback) ->
         init.addThumbs (err) ->
             log.error err if err?
         callback app, server if callback?
+

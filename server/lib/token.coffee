@@ -133,6 +133,7 @@ initHomeProxy = (callback) ->
         "encryptedkeys": "authorized"
         "stackapplication": "authorized"
         "send mail to user": "authorized"
+        "send mail from user": "authorized"
     # Add proxy token and permissions
     tokens['proxy'] = token
     permissions.proxy =
@@ -178,3 +179,4 @@ module.exports.init = (callback) ->
                     callback tokens, permissions
     else
         callback tokens, permissions
+
