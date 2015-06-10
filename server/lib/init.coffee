@@ -53,11 +53,9 @@ exports.removeLostBinaries = (callback) ->
             db.get binary, (err, doc) =>
                 if not err and doc
                     db.remove doc._id, doc._rev, (err, doc) =>
-                        log.error 'ERROR 1' if err?
                         log.error err if err
                         cb()
                 else
-                    log.error 'ERROR 2' if err?
                     log.error err if err
                     cb()
         , callback
@@ -69,7 +67,7 @@ exports.addAccesses = (callback) ->
             return cb(err) if err? or apps.length is 0
             async.forEachSeries apps, (app, cb) ->
                 # Check if access exists
-                db.view 'access/byApp', key:app._id, (err, accesses) ->
+                db.view 'access/byApp', key:app.id, (err, accesses) ->
                     return cb(err) if err? or accesses.length is 0
                     if accesses?.length is 0
                         # Create it if necessary
@@ -82,7 +80,6 @@ exports.addAccesses = (callback) ->
                             # Remove access information
                             # from application/device document
                             db.save app, (err, doc) ->
-                                log.error 'ERROR 3' if err?
                                 log.error err if err?
                                 cb()
                     else
@@ -91,10 +88,8 @@ exports.addAccesses = (callback) ->
 
     # Add access for all applications and devices
     addAccess 'application', (err) ->
-        log.error 'ERROR 4' if err?
         log.error err if err?
         addAccess 'device', (err) ->
-            log.error 'ERROR 5' if err?
             log.error err if err?
             callback()
 
