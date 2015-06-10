@@ -11,6 +11,7 @@ getCredentialsHeader = ->
     basicCredentials = new Buffer(credentials).toString 'base64'
     return "Basic #{basicCredentials}"
 
+
 uCaseWord = (word) ->
     switch word
         when 'etag' then return 'ETag'
@@ -21,11 +22,13 @@ uCaseWord = (word) ->
 uCaseHeader = (headerName) ->
     return headerName.replace /\w*/g, uCaseWord
 
+# Add uppercase for fields headers (removed by nodejs)
 couchDBHeaders = (nodeHeaders) ->
     couchHeaders = {}
     for  name in Object.keys(nodeHeaders)
         couchHeaders[uCaseHeader(name)] = nodeHeaders[name]
     return couchHeaders
+
 
 retrieveJsonDocument = (data) ->
     # Retrieve separator
@@ -54,7 +57,6 @@ retrieveJsonDocument = (data) ->
     startJson = jsonPart.indexOf '{'
     endJson = jsonPart.lastIndexOf '}'
     json = jsonPart.substring startJson, endJson+1
-    console.log json
     return [null, JSON.parse(json)]
 
 
@@ -81,7 +83,6 @@ requestOptions = (req) ->
     if req.body and options.headers['Content-Type'] is 'application/json'
         if req.body? and Object.keys(req.body).length > 0
             bodyToTransmit = JSON.stringify req.body
-            console.log bodyToTransmit
             options['body'] = bodyToTransmit
             # Check doc : bodyToTransmit
             err = checkPermissions req, bodyToTransmit.docType
@@ -91,6 +92,7 @@ requestOptions = (req) ->
 
 module.exports.proxy = (req, res, next) ->
     [err, options] = requestOptions req
+    # Device isn't authorized if err
     return res.send 403, err if err?
 
     stream = through()
@@ -122,6 +124,7 @@ module.exports.proxy = (req, res, next) ->
                         if doc
                             err = checkPermissions req, doc.docType
                             if err
+                                # Device isn't authorized
                                 res.send 403, err
                                 couchReq.end()
                             else
@@ -143,7 +146,6 @@ module.exports.proxy = (req, res, next) ->
     data = []
     permissions = false
     req.on 'data', (chunk) =>
-        console.log 'data'
         if permissions
             stream.emit 'data', chunk
         else
@@ -152,8 +154,8 @@ module.exports.proxy = (req, res, next) ->
             unless err
                 # Check doc
                 err = checkPermissions req, doc.docType
-                console.log err
                 if err
+                    # Device isn't authorized
                     res.send 403, err
                     stream.emit 'end'
                     couchReq.end()
