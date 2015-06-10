@@ -52,7 +52,7 @@ module.exports.checkPermissionsByBody = (req, res, next) ->
 module.exports.checkPermissionsByType = (req, res, next) ->
     checkPermissions req, req.params.type, next
 
-# Get the permission for a post request in replication protocole
+# Check the permission for a post request in replication protocol
 module.exports.checkPermissionsPostReplication = (req, res, next) ->
     if req.url is '/replication/_revs_diff'
         # Use to retrieve difference in documents revisions
@@ -73,6 +73,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                 db.get doc._id, (err, doc) ->
                     checkPermissions req, doc.docType, cb
             else
+                # Manage in request
                 checkPermissions req, doc.docType, cb
         , next
     else
@@ -80,40 +81,16 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
         err.status = 403
         next err
 
-# Get the permission for a get request in replication protocole
-module.exports.checkPermissionsGetReplication = (req, res, next) ->
-    # Format res.body :
-    #   it should be as
-    #       <id> --------
-    #       Content-Type: application/json
-    #           <doc>
-    #       <id>
-    start = req.body.indexOf '{'
-    end = req.body.lastIndexOf '}'
-    doc = req.body.substring(start, end + 1)
-    doc = JSON.parse doc
-    # Check if document in body has a docType
-    if doc and doc.docType
-        checkPermissions req, doc.docType, (err) ->
-            if err
-                res.body = {}
-                next err
-            else
-                res.set req.info[0]
-                res.statusCode = req.info[1]
-                res.send req.body
-    else
-        res.set req.info[0]
-        res.statusCode = req.info[1]
-        res.send req.body
-
-# Get the permission for a put request in replication protocole
+# Check the permission for a put request in replication protocol
 module.exports.checkPermissionsPutReplication = (req, res, next) ->
-    if req.url.indexOf('/replication/_local') is 0 # ????
+    if req.url.indexOf('/replication/_local') is 0
         # Use to save history replication
         # Local document aren't replicated
+        # By default views don't retrieve local document
+        # but it exists an option (local_seq) which takes local document
+        # in views.
+        delete req.body.docType
         next()
     else
-        err = new Error "Forbidden operation"
-        err.status = 403
-        next err
+        # Manage in request
+        next()

@@ -19,8 +19,10 @@ module.exports.create = (req, res, next) ->
     access = req.body
     access.id = access.app
     addAccess access, (err, access) ->
-        callback next err if err
-        res.send 201, access
+        if err
+            next err
+        else
+            res.send 201, access
 
 # PUT /access/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
@@ -35,5 +37,8 @@ module.exports.update = (req, res, next) ->
 # DELETE /access/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
 module.exports.remove = (req, res, next) ->
-    removeAccess req.doc, () ->
-        res.send 204, success: true
+    removeAccess req.doc, (err) ->
+        if err
+            next err
+        else
+            res.send 204, success: true

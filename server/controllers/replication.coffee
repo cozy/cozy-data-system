@@ -1,45 +1,166 @@
 db = require('../helpers/db_connect_helper').db_connect()
-json = require 'request-json'
+checkPermissions = require('../helpers/utils').checkPermissionsSync
 request = require 'request'
 url = require 'url'
+through = require 'through'
 
 getCredentialsHeader = ->
-    credentials = "#{db.connection.auth.username}:#{db.connection.auth.password}"
+    username = db.connection.auth.username
+    password = db.connection.auth.password
+    credentials = "#{username}:#{password}"
     basicCredentials = new Buffer(credentials).toString 'base64'
     return "Basic #{basicCredentials}"
 
-module.exports.proxy = (req, res, next) ->
+uCaseWord = (word) ->
+    switch word
+        when 'etag' then return 'ETag'
+        else
+            return word.replace /^./,(l) ->
+                return l.toUpperCase()
+
+uCaseHeader = (headerName) ->
+    return headerName.replace /\w*/g, uCaseWord
+
+couchDBHeaders = (nodeHeaders) ->
+    couchHeaders = {}
+    for  name in Object.keys(nodeHeaders)
+        couchHeaders[uCaseHeader(name)] = nodeHeaders[name]
+    return couchHeaders
+
+retrieveJsonDocument = (data) ->
+    # Retrieve separator
+    startJson = data.indexOf 'Content-Type: application/json'
+    if startJson is -1
+        # Document is not full
+        # Appplication/json isn't is data
+        return ['document not full', null]
+    json = data.substring 0, startJson
+    endSeparator = json.lastIndexOf '\n'
+    json = json.substring(0, endSeparator)
+    startSeparator = json.lastIndexOf '\n'
+    separator = data.substring startSeparator+1, endSeparator-1
+
+    # Retrieve Json part
+    startJsonPart = data.indexOf separator
+    json = data.substring startJson, data.length
+    endJsonPart = json.indexOf(separator)
+    if endJsonPart is -1
+        # Document is not full
+        # JSON part isn't full
+        return ['document not full', null]
+    jsonPart = json.substring 0, endJsonPart
+
+    # Retrieve JSON document
+    startJson = jsonPart.indexOf '{'
+    endJson = jsonPart.lastIndexOf '}'
+    json = jsonPart.substring startJson, endJson+1
+    console.log json
+    return [null, JSON.parse(json)]
+
+
+requestOptions = (req) ->
     # Add his creadentials for CouchDB
-    auth = req.headers['authorization']
+    headers = couchDBHeaders(req.headers)
     if process.env.NODE_ENV is "production"
-        req.headers['authorization'] = getCredentialsHeader()
+        headers['Authorization'] = getCredentialsHeader()
     else
         # Do not forward 'authorization' header in other environments
         # in order to avoid wrong authentications in CouchDB
-        req.headers['authorization'] = null
-    targetURL = req.url.replace('replication', db.name)
+        headers['Authorization'] = null
 
+    # Retrieve couchDB url
+    targetURL = req.url.replace('replication', db.name)
+    host = db.connection.host
+    port = db.connection.port
     options =
         method: req.method
-        headers: req.headers
-        uri: url.resolve "http://#{db.connection.host}:#{db.connection.port}", targetURL
+        headers: headers
+        uri: url.resolve "http://#{host}:#{port}", targetURL
 
-    # restringify the body
+    # Retrieve Json body if necessary
+    if req.body and options.headers['Content-Type'] is 'application/json'
+        if req.body? and Object.keys(req.body).length > 0
+            bodyToTransmit = JSON.stringify req.body
+            console.log bodyToTransmit
+            options['body'] = bodyToTransmit
+            # Check doc : bodyToTransmit
+            err = checkPermissions req, bodyToTransmit.docType
+            return [err, options]
+    return [null, options]
 
-    if req.body? and Object.keys(req.body).length > 0
-        bodyToTransmit = JSON.stringify req.body
-        options['body'] = bodyToTransmit
-    request options, (err, couchRes, body) ->
-        req.headers['authorization'] = auth
-        if err? or not couchRes?
-            console.log err
-            res.send 500, err
+
+module.exports.proxy = (req, res, next) ->
+    [err, options] = requestOptions req
+    return res.send 403, err if err?
+
+    stream = through()
+    couchReq  = request options
+        # Receive from couchDB and transmit it to device
+        .on 'response', (response) ->
+            # Set headers and statusCode
+            headers = couchDBHeaders(response.headers)
+            res.set headers
+            res.statusCode = response.statusCode
+
+            # Retrieve body
+            data = []
+            permissions = false
+            response.on 'data', (chunk) ->
+                if req.method is 'GET'
+                    if permissions
+                        res.write chunk
+                    else
+                        data.push chunk
+                        # Retrieve document
+                        if headers['Content-Type'] is 'application/json'
+                            try
+                                doc = JSON.parse Buffer.concat(data)
+                        else
+                            content = Buffer.concat(data).toString()
+                            [err, doc] = retrieveJsonDocument content
+                        # Check document docType
+                        if doc
+                            err = checkPermissions req, doc.docType
+                            if err
+                                res.send 403, err
+                                couchReq.end()
+                            else
+                                permissions = true
+                                res.write Buffer.concat(data)
+                else
+                    res.write chunk
+
+            response.on 'end', ()->
+                res.end()
+
+        .on 'error', (err) ->
+            console.log 'error'
+            return res.send 500, err
+
+    stream.pipe couchReq
+
+    # Receive body from device and transmit it on couchDB
+    data = []
+    permissions = false
+    req.on 'data', (chunk) =>
+        console.log 'data'
+        if permissions
+            stream.emit 'data', chunk
         else
-            if req.method is 'GET'
-                req.info = [couchRes.headers, couchRes.statusCode]
-                req.body = body
-                next()
-            else
-                res.set couchRes.headers
-                res.statusCode = couchRes.statusCode
-                res.send body
+            data.push chunk
+            [err, doc] = retrieveJsonDocument Buffer.concat(data).toString()
+            unless err
+                # Check doc
+                err = checkPermissions req, doc.docType
+                console.log err
+                if err
+                    res.send 403, err
+                    stream.emit 'end'
+                    couchReq.end()
+                    req.destroy()
+                else
+                    permissions = true
+                    stream.emit 'data', Buffer.concat(data)
+
+    req.on 'end', () =>
+        stream.emit 'end'

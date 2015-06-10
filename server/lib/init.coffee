@@ -53,9 +53,11 @@ exports.removeLostBinaries = (callback) ->
             db.get binary, (err, doc) =>
                 if not err and doc
                     db.remove doc._id, doc._rev, (err, doc) =>
+                        log.error 'ERROR 1' if err?
                         log.error err if err
                         cb()
                 else
+                    log.error 'ERROR 2' if err?
                     log.error err if err
                     cb()
         , callback
@@ -64,33 +66,35 @@ exports.removeLostBinaries = (callback) ->
 exports.addAccesses = (callback) ->
     addAccess = (docType, cb) ->
         db.view "#{docType}/all", (err, apps) ->
-            if not err and apps.length > 0
-                async.forEach apps, (app, cb) ->
-                    # Check if access exists
-                    db.view 'access/byApp', key:app._id, (err, accesses) ->
-                        if accesses.length is 0
-                            # Create it if necessary
-                            if docType is "device"
-                                app.permissions = defaultPermissions
-                            permissionsManager.addAccess app, (err, access) ->
-                                delete app.password
-                                delete app.token
-                                delete app.permissions
-                                # Remove access information
-                                # from application/device document
-                                db.save app, (err, doc) ->
-                                    log.error err if err?
-                                    cb()
-                        else
-                            cb()
-                , cb
-            else
-                cb err
+            return cb(err) if err? or apps.length is 0
+            async.forEachSeries apps, (app, cb) ->
+                # Check if access exists
+                db.view 'access/byApp', key:app._id, (err, accesses) ->
+                    return cb(err) if err? or accesses.length is 0
+                    if accesses?.length is 0
+                        # Create it if necessary
+                        if docType is "device"
+                            app.permissions = defaultPermissions
+                        permissionsManager.addAccess app, (err, access) ->
+                            delete app.password
+                            delete app.token
+                            delete app.permissions
+                            # Remove access information
+                            # from application/device document
+                            db.save app, (err, doc) ->
+                                log.error 'ERROR 3' if err?
+                                log.error err if err?
+                                cb()
+                    else
+                        cb()
+            , cb
 
     # Add access for all applications and devices
     addAccess 'application', (err) ->
+        log.error 'ERROR 4' if err?
         log.error err if err?
         addAccess 'device', (err) ->
+            log.error 'ERROR 5' if err?
             log.error err if err?
             callback()
 

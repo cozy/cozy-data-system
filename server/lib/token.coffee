@@ -11,7 +11,7 @@ productionOrTest = process.env.NODE_ENV is "production" or
 ## @tokens {tab} Tab which contains applications and their tokens
 ## @callback {function} Continuation to pass control back to when complete.
 ## Check if application is well authenticated
-checkToken = (auth, callback) ->
+checkToken = (auth) ->
     if auth isnt "undefined" and auth?
         # Recover username and password in field authorization
         auth = auth.substr(5, auth.length - 1)
@@ -20,11 +20,11 @@ checkToken = (auth, callback) ->
         password = auth.split(':')[1]
         # Check if application is well authenticated
         if password isnt undefined and tokens[username] is password
-            callback null, true, username
+            return [null, true, username]
         else
-            callback null, false, username
+            return [null, false, username]
     else
-        callback null, false, null
+        return [null, false, null]
 
 
 ## function checkDocType (docType, app, callback)
@@ -36,26 +36,54 @@ module.exports.checkDocType = (auth, docType, callback) ->
     # Check if application is authenticated
 
     if productionOrTest
-        checkToken auth, (err, isAuthenticated, name) =>
-            if isAuthenticated
-                if docType?
-                    docType = docType.toLowerCase()
-                    # Check if application can manage docType
-                    if permissions[name][docType]?
-                        callback null, name, true
-                    else if permissions[name]["all"]?
-                        callback null, name, true
-                    else
-                        callback null, name, false
-                else
+        [err, isAuthenticated, name] = checkToken auth
+        if isAuthenticated
+            if docType?
+                docType = docType.toLowerCase()
+                # Check if application can manage docType
+                if permissions[name][docType]?
                     callback null, name, true
+                else if permissions[name]["all"]?
+                    callback null, name, true
+                else
+                    callback null, name, false
             else
-                callback null, false, false
+                callback null, name, true
+        else
+            callback null, false, false
     else
-        checkToken auth, (err, isAuthenticated, name) ->
-            name ?= 'unknown'
-            callback null, name, true
+        [err, isAuthenticated, name] = checkToken auth
+        name ?= 'unknown'
+        callback null, name, true
 
+## function checkDocType (docType, app, callback)
+## @docType {String} document's docType that application want manage
+## @name {String} application's name
+## @callback {function} Continuation to pass control back to when complete.
+## Check if application can manage docType
+module.exports.checkDocTypeSync = (auth, docType) ->
+    # Check if application is authenticated
+
+    if productionOrTest
+        [err, isAuthenticated, name] = checkToken auth
+        if isAuthenticated
+            if docType?
+                docType = docType.toLowerCase()
+                # Check if application can manage docType
+                if permissions[name][docType]?
+                    return [null, name, true]
+                else if permissions[name]["all"]?
+                    return [null, name, true]
+                else
+                    return [null, name, false]
+            else
+                return [null, name, true]
+        else
+            return [null, false, false]
+    else
+        [err, isAuthenticated, name] = checkToken auth
+        name ?= 'unknown'
+        return [null, name, true]
 
 ## function checkProxy (auth, callback)
 ## @auth {String} Field 'authorization' i request header
@@ -161,6 +189,7 @@ module.exports.updateAccess = (id, doc, callback) ->
 ## Remove access for application or device
 module.exports.removeAccess = (doc, callback) ->
     db.view 'access/byApp', key:doc._id, (err, accesses) ->
+        return callback err if err? and callback?
         if accesses.length > 0
             access = accesses[0].value
             delete permissions[access.login]

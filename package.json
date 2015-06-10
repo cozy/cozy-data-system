@@ -30,6 +30,7 @@
     "gm": "1.17.0",
     "mime": "1.2.11",
     "http-proxy": "1.11.1",
+    "through": "2.3.7",
     "multiparty": "3.3.0"
   },
   "devDependencies": {
