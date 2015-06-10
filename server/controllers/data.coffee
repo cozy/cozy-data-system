@@ -19,18 +19,6 @@ module.exports.encryptPassword = (req, res, next) ->
     req.body.password = password if password?
     next()
 
-## Encrypt data in field password
-# TODO: merge with encryptPassword
-module.exports.encryptPassword2 = (req, res, next) ->
-    try
-        password = encryption.encrypt req.body.password
-    catch error
-        # do nothing to prevent error in apps
-        # todo add a way to send a warning in the http response
-
-    req.body.password = password if password?
-    next()
-
 # Decrypt data in field password
 module.exports.decryptPassword = (req, res, next) ->
     try

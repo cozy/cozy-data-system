@@ -65,7 +65,7 @@ module.exports =
         utils.checkPermissionsByBody
         utils.getDoc
         utils.checkPermissionsByDoc
-        data.encryptPassword2
+        data.encryptPassword
         data.merge
         utils.unlockRequest
     ]
@@ -163,7 +163,7 @@ module.exports =
         ]
         'get': [
             replication.proxy
-            utils.checkPermissionsGetReplication
+            # Permissions manage in request
         ]
         'put':[
             utils.checkPermissionsPutReplication
