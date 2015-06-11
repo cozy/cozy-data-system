@@ -67,8 +67,9 @@ exports.addAccesses = (callback) ->
             return cb(err) if err? or apps.length is 0
             async.forEachSeries apps, (app, cb) ->
                 # Check if access exists
-                db.view 'access/byApp', key:app.id, (err, accesses) ->
-                    return cb(err) if err? or accesses.length is 0
+                app = app.value
+                db.view 'access/byApp', key:app._id, (err, accesses) ->
+                    return cb(err) if err? or accesses.length > 0
                     if accesses?.length is 0
                         # Create it if necessary
                         if docType is "device"
