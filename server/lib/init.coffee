@@ -6,6 +6,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
 permissionsManager = require './token'
 thumb = require('./thumb')
+initTokens = require('./token').init
 
 
 defaultPermissions =
@@ -92,7 +93,9 @@ exports.addAccesses = (callback) ->
         log.error err if err?
         addAccess 'device', (err) ->
             log.error err if err?
-            callback()
+            # Initialize application access.
+            initTokens (tokens, permissions) =>
+                callback() if callback?
 
 # Add thumbs for images without thumb
 exports.addThumbs = (callback) ->

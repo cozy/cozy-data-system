@@ -170,6 +170,14 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
+            byslug:
+                map: """
+                function(doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "application") {
+                        return emit(doc.slug, doc);
+                    }
+                }
+                """
         # Usefull to remove binary lost
         binary:
             all:
