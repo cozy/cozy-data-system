@@ -10,11 +10,11 @@ logger = require('printit')({
   prefix: 'controllers:mails'
 });
 
+db = require('../helpers/db_connect_helper').db_connect();
+
 User = require('../lib/user');
 
 user = new User();
-
-db = require('../helpers/db_connect_helper').db_connect();
 
 sendEmail = function(mailOptions, callback) {
   var transporter;
@@ -169,7 +169,6 @@ module.exports.sendFromUser = function(req, res, next) {
           text: body.content,
           html: body.html || void 0
         };
-        console.log(mailOptions);
         if (userEmail != null) {
           mailOptions.replyTo = userEmail;
         }
