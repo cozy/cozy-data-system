@@ -164,7 +164,7 @@ module.exports.sendFromUser = function(req, res, next) {
         }
         mailOptions = {
           to: body.to,
-          from: "<" + publicName + "> " + displayName + "noreply@" + domain,
+          from: publicName + " <" + displayName + "noreply@" + domain + ">",
           subject: body.subject,
           text: body.content,
           html: body.html || void 0
