@@ -143,7 +143,7 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
-        # Usefull to manage device access
+        # Usefull to manage application access
         application:
             all:
                 map: """
