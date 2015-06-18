@@ -141,6 +141,11 @@ initializeDSView = function(callback) {
         map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"application\") {\n        return emit(doc._id, doc);\n    }\n}"
       }
     },
+    withoutDocType: {
+      all: {
+        map: "function(doc) {\n    if (!doc.docType) {\n        return emit(doc._id, doc);\n    }\n}"
+      }
+    },
     binary: {
       all: {
         map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"binary\") {\n        emit(doc._id, null);\n    }\n}"

@@ -10,17 +10,22 @@ module.exports = function(app, server, callback) {
   feed = require('./lib/feed');
   feed.initialize(server);
   init = require('./lib/init');
-  return init.removeLostBinaries(function(err) {
+  return init.removeDocWithoutDocType(function(err) {
     if (err != null) {
       log.error(err);
     }
-    init.addThumbs(function(err) {
+    return init.removeLostBinaries(function(err) {
       if (err != null) {
-        return log.error(err);
+        log.error(err);
+      }
+      init.addThumbs(function(err) {
+        if (err != null) {
+          return log.error(err);
+        }
+      });
+      if (callback != null) {
+        return callback(app, server);
       }
     });
-    if (callback != null) {
-      return callback(app, server);
-    }
   });
 };

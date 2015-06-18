@@ -93,3 +93,24 @@ exports.addThumbs = function(callback) {
     }
   });
 };
+
+exports.removeDocWithoutDocType = function(callback) {
+  return db.view('withoutDocType/all', function(err, docs) {
+    if (err) {
+      return callback(err);
+    } else if (docs.length === 0) {
+      return callback();
+    } else {
+      return async.forEachSeries(docs, (function(_this) {
+        return function(doc, cb) {
+          return db.remove(doc.value._id, doc.value._rev, function(err, doc) {
+            if (err) {
+              log.error(err);
+            }
+            return cb();
+          });
+        };
+      })(this), callback);
+    }
+  });
+};
