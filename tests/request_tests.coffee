@@ -29,6 +29,7 @@ createAuthorRequestFunction = (name) ->
 describe "Request handling tests", ->
 
     before helpers.clearDB db
+    before helpers.startApp
     before (done) ->
         docs = []
         for num in [0..100]
@@ -37,7 +38,6 @@ describe "Request handling tests", ->
                 num: num
                 tags: ('tag'+i for i in [0..num])
         db.save docs, done
-    before helpers.startApp
     after helpers.stopApp
 
     describe "View creation", ->
