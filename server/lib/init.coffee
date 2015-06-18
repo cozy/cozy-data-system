@@ -68,3 +68,19 @@ exports.addThumbs = (callback) ->
                     thumb.create file, false
                     cb()
             , callback
+
+exports.removeDocWithoutDocType = (callback) ->
+    db.view 'withoutDocType/all', (err, docs) ->
+        if err
+            callback err
+
+        else if docs.length is 0
+            callback()
+
+        else
+            async.forEachSeries docs, (doc, cb) =>
+                # Create thumb
+                db.remove doc.value._id, doc.value._rev, (err, doc) =>
+                    log.error err if err
+                    cb()
+            , callback
