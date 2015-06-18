@@ -153,6 +153,16 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
+        # Usefull to manage application access
+        withoutDocType:
+            all:
+                map: """
+                function(doc) {
+                    if (!doc.docType) {
+                        return emit(doc._id, doc);
+                    }
+                }
+                """
         # Usefull to remove binary lost
         binary:
             all:
