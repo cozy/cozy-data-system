@@ -5,6 +5,7 @@ request = require '../lib/request'
 encryption = require '../lib/encryption'
 dbHelper = require '../lib/db_remove_helper'
 errors = require '../middlewares/errors'
+util = require 'util'
 
 log = require('printit')
     prefix: 'requests'
@@ -48,7 +49,7 @@ module.exports.results = (req, res, next) ->
             if err
                 log.error err
                 next err
-            else
+            else if util.isArray(docs)
                 docs.forEach (value) ->
                     delete value._rev # CouchDB specific, user don't need it
                     if value.password? and not (
@@ -63,7 +64,8 @@ module.exports.results = (req, res, next) ->
                             # todo add a way to send a warning in the http response
 
                         value.password = password if not err?
-
+                res.send docs
+            else
                 res.send docs
 
 # PUT /request/:type/:req_name/destroy/
