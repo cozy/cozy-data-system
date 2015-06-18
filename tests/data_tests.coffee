@@ -19,6 +19,8 @@ describe "Data handling tests", ->
 
     # Clear DB, create a new one, then init data for tests.
     before helpers.clearDB db
+    before helpers.startApp
+
     before (done) -> db.save '321', value: "val", done
 
     before (done) ->
@@ -26,8 +28,6 @@ describe "Data handling tests", ->
         done()
         #indexer = helpers.fakeServer 'deleted', 204
         #@indexer = indexer.listen helpers.options.indexerPort, done
-
-    before helpers.startApp
 
     after helpers.stopApp
 

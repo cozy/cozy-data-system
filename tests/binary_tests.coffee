@@ -13,10 +13,10 @@ describe "Binaries", ->
 
     # Clear DB, create a new one, then init data for tests.
     before helpers.clearDB db
+    before helpers.startApp
     before (done) ->
         db.save '321', value: "val", done
 
-    before helpers.startApp
 
     # Start application before starting tests.
     before (done) ->

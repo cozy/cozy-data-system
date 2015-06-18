@@ -12,10 +12,10 @@ describe "Attachments", ->
 
     # Clear DB, create a new one, then init data for tests.
     before helpers.clearDB db
+    before helpers.startApp
     before (done) ->
         db.save '321', value: "val", done
 
-    before helpers.startApp
 
     before (done) ->
         @client = new Client serverUrl
@@ -41,7 +41,6 @@ describe "Attachments", ->
         it "When I post an attachment", (done) ->
             @client.sendFile "data/321/attachments/", "./tests/fixtures/test.png", \
                             (err, res, body) =>
-                console.log err if err
                 @response = res
                 done()
 
