@@ -121,7 +121,6 @@ module.exports.definition = (req, res, next) ->
 
         else if err
             next err
-            next()
 
         else
             views = docs.views
