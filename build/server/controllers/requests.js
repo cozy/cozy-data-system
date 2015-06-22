@@ -142,8 +142,7 @@ module.exports.definition = function(req, res, next) {
         }
       });
     } else if (err) {
-      next(err);
-      return next();
+      return next(err);
     } else {
       views = docs.views;
       return request.create(req.appName, req.params, views, req.body, function(err, path) {
