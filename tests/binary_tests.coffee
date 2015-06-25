@@ -453,7 +453,7 @@ describe "Binary not linked to a document (automatic deletion)", ->
                 "All":
                     "description": "This application needs manage binary because ..."
             "docType": "Application"
-        @client.post 'data/', app, (err, res, doc) =>
+        @client.post 'access/', app, (err, res, doc) =>
             @client.setBasicAuth 'test', 'secret'
             binary =
                 docType: "Binary"
@@ -486,7 +486,6 @@ describe "Binary not linked to a document (automatic deletion)", ->
 
     it "And binary linked should not be deleted", (done) ->
         setTimeout () =>
-            @client = new Client serverUrl
             @client.setBasicAuth 'test', 'secret'
             @client.get "data/111/", (err, res, bin) =>
                 should.exist bin
