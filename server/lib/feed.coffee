@@ -3,7 +3,6 @@ S = require 'string'
 async = require 'async'
 Client = require('request-json').JsonClient
 client = null
-updatePermissions = require('./token').updatePermissions
 thumb = require('./thumb')
 
 log = require('printit')
@@ -129,8 +128,6 @@ module.exports = class Feed
                 doctype = doc?.docType?.toLowerCase()
 
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
-                if operation is 'update' and doctype is 'application'
-                    updatePermissions doc
 
                 if doctype is 'file'
                     @db.get change.id, (err, file) ->

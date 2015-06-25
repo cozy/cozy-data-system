@@ -1,6 +1,7 @@
 fs = require 'fs'
 feed = require '../lib/feed'
 checkDocType = require('../lib/token').checkDocType
+checkDocTypeSync = require('../lib/token').checkDocTypeSync
 
 # Delete files on the file system
 module.exports.deleteFiles = (files) ->
@@ -22,3 +23,19 @@ module.exports.checkPermissions = (req, permission, next) ->
             feed.publish 'usage.application', appName
             req.appName = appName
             next()
+
+
+module.exports.checkPermissionsSync = (req, permission) ->
+    [err, appName, isAuthorized] = checkDocTypeSync req.header('authorization'), permission
+    if not appName
+        err = new Error "Application is not authenticated"
+        err.status = 401
+        return err
+    else if not isAuthorized
+        err = new Error "Application is not authorized"
+        err.status = 403
+        return err
+    else
+        feed.publish 'usage.application', appName
+        req.appName = appName
+        return

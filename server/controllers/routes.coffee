@@ -5,11 +5,12 @@ requests = require './requests'
 attachments = require './attachments'
 binaries = require './binaries'
 connectors = require './connectors'
-devices = require './devices'
 indexer = require './indexer'
 mails = require './mails'
 user = require './user'
 account = require './accounts'
+access = require './access'
+replication = require './replication'
 
 utils = require '../middlewares/utils'
 
@@ -64,7 +65,7 @@ module.exports =
         utils.checkPermissionsByBody
         utils.getDoc
         utils.checkPermissionsByDoc
-        data.encryptPassword2
+        data.encryptPassword
         data.merge
         utils.unlockRequest
     ]
@@ -143,15 +144,31 @@ module.exports =
     'connectors/bank/:name/': post: connectors.bank
     'connectors/bank/:name/history': post: connectors.bankHistory
 
-    # Device management
-    'device/': post: [utils.checkPermissionsFactory('device'), devices.create]
-    'device/:id/': delete: [
-        utils.checkPermissionsFactory('device')
-        utils.lockRequest
-        utils.getDoc
-        devices.remove
-        utils.unlockRequest
-    ]
+    # Access management
+    'access/': post: [utils.checkPermissionsFactory('access'), access.create]
+    'access/:id/':
+        'put': [utils.checkPermissionsFactory('access'), access.update]
+        'delete': [
+            utils.checkPermissionsFactory('access')
+            utils.lockRequest
+            utils.getDoc
+            access.remove
+            utils.unlockRequest
+        ]
+
+    'replication/*':
+        'post': [
+            utils.checkPermissionsPostReplication
+            replication.proxy
+        ]
+        'get': [
+            replication.proxy
+            # Permissions manage in request
+        ]
+        'put':[
+            utils.checkPermissionsPutReplication
+            replication.proxy
+        ]
 
     # Indexer management
     'data/index/clear-all/':

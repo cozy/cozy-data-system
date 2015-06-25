@@ -6,59 +6,29 @@ dbHelper = require '../lib/db_remove_helper'
 encryption = require '../lib/encryption'
 client = require '../lib/indexer'
 
-updatePermissions = require('../lib/token').updatePermissions
-
 ## Before and after methods
 
 ## Encrypt data in field password
 module.exports.encryptPassword = (req, res, next) ->
-    doctype = req.body.docType
-    if not doctype? or doctype.toLowerCase() isnt "application"
-        try
-            password = encryption.encrypt req.body.password
-        catch error
-            # do nothing to prevent error in apps
-            # todo add a way to send a warning in the http response
+    try
+        password = encryption.encrypt req.body.password
+    catch error
+        # do nothing to prevent error in apps
+        # todo add a way to send a warning in the http response
 
-        req.body.password = password if password?
-        next()
-    else
-        next()
-
-## Encrypt data in field password
-# TODO: merge with encryptPassword
-module.exports.encryptPassword2 = (req, res, next) ->
-    doctypeBody = req.body.docType
-    doctypeDoc = req.doc.docType
-    if not doctypeBody? or doctypeBody.toLowerCase() isnt "application"
-        if not doctypeDoc? or doctypeDoc.toLowerCase() isnt "application"
-            try
-                password = encryption.encrypt req.body.password
-            catch error
-                # do nothing to prevent error in apps
-                # todo add a way to send a warning in the http response
-
-            req.body.password = password if password?
-            next()
-        else
-            next()
-    else
-        next()
+    req.body.password = password if password?
+    next()
 
 # Decrypt data in field password
 module.exports.decryptPassword = (req, res, next) ->
-    doctype = req.doc.docType
-    if not doctype? or doctype.toLowerCase() isnt "application"
-        try
-            password = encryption.decrypt req.doc.password
-        catch error
-            # do nothing to prevent error in apps
-            # todo add a way to send a warning in the http response
+    try
+        password = encryption.decrypt req.doc.password
+    catch error
+        # do nothing to prevent error in apps
+        # todo add a way to send a warning in the http response
 
-        req.doc.password = password if password?
-        next()
-    else
-        next()
+    req.doc.password = password if password?
+    next()
 
 
 ## Actions
@@ -94,12 +64,8 @@ module.exports.find = (req, res) ->
 # POST /data/:id/
 # POST /data/
 module.exports.create = (req, res, next) ->
+
     delete req.body._attachments # attachments management has a dedicated API
-
-    doctype = req.body.docType
-    if doctype? and doctype.toLowerCase() is "application"
-        updatePermissions req.body
-
     if req.params.id?
         db.get req.params.id, (err, doc) -> # this GET needed because of cache
             if doc?
@@ -155,6 +121,7 @@ module.exports.delete = (req, res, next) ->
     send_success = () ->
         res.send 204, success: true
         next()
+
     dbHelper.remove req.doc, (err, res) ->
         if err
             next err
@@ -167,7 +134,6 @@ module.exports.delete = (req, res, next) ->
 # this doesn't take care of conflict (erase DB with the sent value)
 module.exports.merge = (req, res, next) ->
     delete req.body._attachments # attachments management has a dedicated API
-
     db.merge req.params.id, req.body, (err, doc) ->
         if err
             next err

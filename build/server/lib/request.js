@@ -139,11 +139,22 @@ initializeDSView = function(callback) {
     application: {
       all: {
         map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"application\") {\n        return emit(doc._id, doc);\n    }\n}"
+      },
+      byslug: {
+        map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"application\") {\n        return emit(doc.slug, doc);\n    }\n}"
       }
     },
     withoutDocType: {
       all: {
         map: "function(doc) {\n    if (!doc.docType) {\n        return emit(doc._id, doc);\n    }\n}"
+      }
+    },
+    access: {
+      all: {
+        map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"access\") {\n        return emit(doc._id, doc);\n    }\n}"
+      },
+      byApp: {
+        map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"access\") {\n        return emit(doc.app, doc);\n    }\n}"
       }
     },
     binary: {

@@ -54,7 +54,7 @@ describe "Request handling tests", ->
                             "description": "This application needs manage notes because ..."
                     "docType": "Application"
                 client.setBasicAuth "home", "token"
-                client.post 'data/', data, (err, res, body) =>
+                client.post 'access/', data, (err, res, body) =>
                     @body = body
                     @err = err
                     @res = res
@@ -77,7 +77,7 @@ describe "Request handling tests", ->
                             "description": "This application needs manage notes because ..."
                     "docType": "Application"
                 client.setBasicAuth "home", "token"
-                client.post 'data/', data, (err, res, body) =>
+                client.post 'access/', data, (err, res, body) =>
                     @body = body
                     @err = err
                     @res = res
@@ -445,6 +445,6 @@ describe "Request handling tests", ->
 
                 should.exist body
                 body.length.should.eql 2
-                body[0].should.eql 'Application'
+                body[0].should.eql 'Access'
                 body[1].should.eql 'author'
                 done()

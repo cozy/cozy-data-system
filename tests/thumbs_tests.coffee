@@ -30,7 +30,7 @@ describe "Thumbs", ->
                 "All":
                     "description": "This application needs manage binary because ..."
             "docType": "Application"
-        @client.post 'data/', app, (err, res, doc) =>
+        @client.post 'access/', app, (err, res, doc) =>
             @client.setBasicAuth 'test', 'secret'
             done()
 
