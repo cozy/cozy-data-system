@@ -11,7 +11,7 @@ tokens = {};
 
 productionOrTest = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "test";
 
-checkToken = function(auth, callback) {
+checkToken = function(auth) {
   var password, username;
   if (auth !== "undefined" && (auth != null)) {
     auth = auth.substr(5, auth.length - 1);
@@ -19,44 +19,70 @@ checkToken = function(auth, callback) {
     username = auth.split(':')[0];
     password = auth.split(':')[1];
     if (password !== void 0 && tokens[username] === password) {
-      return callback(null, true, username);
+      return [null, true, username];
     } else {
-      return callback(null, false, username);
+      return [null, false, username];
     }
   } else {
-    return callback(null, false, null);
+    return [null, false, null];
   }
 };
 
 module.exports.checkDocType = function(auth, docType, callback) {
+  var err, isAuthenticated, name, ref, ref1;
   if (productionOrTest) {
-    return checkToken(auth, (function(_this) {
-      return function(err, isAuthenticated, name) {
-        if (isAuthenticated) {
-          if (docType != null) {
-            docType = docType.toLowerCase();
-            if (permissions[name][docType] != null) {
-              return callback(null, name, true);
-            } else if (permissions[name]["all"] != null) {
-              return callback(null, name, true);
-            } else {
-              return callback(null, name, false);
-            }
-          } else {
-            return callback(null, name, true);
-          }
+    ref = checkToken(auth), err = ref[0], isAuthenticated = ref[1], name = ref[2];
+    if (isAuthenticated) {
+      if (docType != null) {
+        docType = docType.toLowerCase();
+        if (permissions[name][docType] != null) {
+          return callback(null, name, true);
+        } else if (permissions[name]["all"] != null) {
+          return callback(null, name, true);
         } else {
-          return callback(null, false, false);
+          return callback(null, name, false);
         }
-      };
-    })(this));
-  } else {
-    return checkToken(auth, function(err, isAuthenticated, name) {
-      if (name == null) {
-        name = 'unknown';
+      } else {
+        return callback(null, name, true);
       }
-      return callback(null, name, true);
-    });
+    } else {
+      return callback(null, false, false);
+    }
+  } else {
+    ref1 = checkToken(auth), err = ref1[0], isAuthenticated = ref1[1], name = ref1[2];
+    if (name == null) {
+      name = 'unknown';
+    }
+    return callback(null, name, true);
+  }
+};
+
+module.exports.checkDocTypeSync = function(auth, docType) {
+  var err, isAuthenticated, name, ref, ref1;
+  if (productionOrTest) {
+    ref = checkToken(auth), err = ref[0], isAuthenticated = ref[1], name = ref[2];
+    if (isAuthenticated) {
+      if (docType != null) {
+        docType = docType.toLowerCase();
+        if (permissions[name][docType] != null) {
+          return [null, name, true];
+        } else if (permissions[name]["all"] != null) {
+          return [null, name, true];
+        } else {
+          return [null, name, false];
+        }
+      } else {
+        return [null, name, true];
+      }
+    } else {
+      return [null, false, false];
+    }
+  } else {
+    ref1 = checkToken(auth), err = ref1[0], isAuthenticated = ref1[1], name = ref1[2];
+    if (name == null) {
+      name = 'unknown';
+    }
+    return [null, name, true];
   }
 };
 
@@ -164,6 +190,9 @@ module.exports.removeAccess = function(doc, callback) {
     key: doc._id
   }, function(err, accesses) {
     var access;
+    if ((err != null) && (callback != null)) {
+      return callback(err);
+    }
     if (accesses.length > 0) {
       access = accesses[0].value;
       delete permissions[access.login];

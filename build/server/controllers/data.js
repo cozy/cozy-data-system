@@ -26,19 +26,6 @@ module.exports.encryptPassword = function(req, res, next) {
   return next();
 };
 
-module.exports.encryptPassword2 = function(req, res, next) {
-  var error, password;
-  try {
-    password = encryption.encrypt(req.body.password);
-  } catch (_error) {
-    error = _error;
-  }
-  if (password != null) {
-    req.body.password = password;
-  }
-  return next();
-};
-
 module.exports.decryptPassword = function(req, res, next) {
   var error, password;
   try {

@@ -88,37 +88,11 @@ module.exports.checkPermissionsPostReplication = function(req, res, next) {
   }
 };
 
-module.exports.checkPermissionsGetReplication = function(req, res, next) {
-  var doc, end, start;
-  start = req.body.indexOf('{');
-  end = req.body.lastIndexOf('}');
-  doc = req.body.substring(start, end + 1);
-  doc = JSON.parse(doc);
-  if (doc && doc.docType) {
-    return checkPermissions(req, doc.docType, function(err) {
-      if (err) {
-        res.body = {};
-        return next(err);
-      } else {
-        res.set(req.info[0]);
-        res.statusCode = req.info[1];
-        return res.send(req.body);
-      }
-    });
-  } else {
-    res.set(req.info[0]);
-    res.statusCode = req.info[1];
-    return res.send(req.body);
-  }
-};
-
 module.exports.checkPermissionsPutReplication = function(req, res, next) {
-  var err;
   if (req.url.indexOf('/replication/_local') === 0) {
+    delete req.body.docType;
     return next();
   } else {
-    err = new Error("Forbidden operation");
-    err.status = 403;
-    return next(err);
+    return next();
   }
 };

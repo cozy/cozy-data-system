@@ -27,9 +27,10 @@ module.exports.create = function(req, res, next) {
   access.id = access.app;
   return addAccess(access, function(err, access) {
     if (err) {
-      callback(next(err));
+      return next(err);
+    } else {
+      return res.send(201, access);
     }
-    return res.send(201, access);
   });
 };
 
@@ -48,9 +49,13 @@ module.exports.update = function(req, res, next) {
 };
 
 module.exports.remove = function(req, res, next) {
-  return removeAccess(req.doc, function() {
-    return res.send(204, {
-      success: true
-    });
+  return removeAccess(req.doc, function(err) {
+    if (err) {
+      return next(err);
+    } else {
+      return res.send(204, {
+        success: true
+      });
+    }
   });
 };

@@ -45,7 +45,7 @@ module.exports = {
     put: [utils.lockRequest, utils.checkPermissionsByBody, data.encryptPassword, data.upsert, utils.unlockRequest]
   },
   'data/merge/:id/': {
-    put: [utils.lockRequest, utils.checkPermissionsByBody, utils.getDoc, utils.checkPermissionsByDoc, data.encryptPassword2, data.merge, utils.unlockRequest]
+    put: [utils.lockRequest, utils.checkPermissionsByBody, utils.getDoc, utils.checkPermissionsByDoc, data.encryptPassword, data.merge, utils.unlockRequest]
   },
   'request/:type/:req_name/': {
     post: [utils.checkPermissionsByType, requests.results],
@@ -93,7 +93,7 @@ module.exports = {
   },
   'replication/*': {
     'post': [utils.checkPermissionsPostReplication, replication.proxy],
-    'get': [replication.proxy, utils.checkPermissionsGetReplication],
+    'get': [replication.proxy],
     'put': [utils.checkPermissionsPutReplication, replication.proxy]
   },
   'data/index/clear-all/': {
