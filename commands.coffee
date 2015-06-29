@@ -29,7 +29,7 @@ switch  process.argv[2]
 
         client = new Client "http://localhost:9101/"
         client.setBasicAuth 'home', 'token'
-        client.post "data/", data, (err, res, body) ->
+        client.post "access/", data, (err, res, body) ->
             if err
                 console.log "Cannot create app"
                 console.log err.stack or err
