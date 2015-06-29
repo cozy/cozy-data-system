@@ -70,7 +70,7 @@ describe "Indexation", ->
                         "description": "This application needs ..."
                 "docType": "Application"
             client.setBasicAuth "home", "token"
-            client.post 'data/', data, (err, res, body) =>
+            client.post 'access/', data, (err, res, body) =>
                 @body = body
                 @err = err
                 @res = res
