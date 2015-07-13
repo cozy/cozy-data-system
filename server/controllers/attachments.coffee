@@ -95,7 +95,7 @@ module.exports.get = (req, res, next) ->
         else
 
             if req.headers['range']?
-                stream.setHeader 'range', req.headers['range']
+                res.setHeader 'range', req.headers['range']
 
             # Set response header from attachment infos
             length = req.doc._attachments[name].length

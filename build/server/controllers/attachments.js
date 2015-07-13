@@ -83,7 +83,7 @@ module.exports.get = function(req, res, next) {
       return next(err);
     } else {
       if (req.headers['range'] != null) {
-        stream.setHeader('range', req.headers['range']);
+        res.setHeader('range', req.headers['range']);
       }
       length = req.doc._attachments[name].length;
       type = req.doc._attachments[name]['content-type'];
