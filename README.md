@@ -18,7 +18,7 @@ To set it up inside your cozy instance:
 
 You can contribute to the Cozy Data System in many ways:
 
-* Pick up an [issue](https://github.com/mycozycloud/cozy-data-system/issues?state=open) and solve it.
+* Pick up an [issue](https://github.com/cozy/cozy-data-system/issues?state=open) and solve it.
 * Add bulk features.
 * Improve mass deletion.
 * Write new tests.
@@ -26,12 +26,12 @@ You can contribute to the Cozy Data System in many ways:
 ## Hack
 
 Install
-[CouchDB](https://github.com/mycozycloud/cozy-data-system/wiki/Couchdb-help)
+[CouchDB](https://github.com/cozy/cozy-data-system/wiki/Couchdb-help)
 (>= 1.2.0),
-[NodeJS](https://github.com/mycozycloud/cozy-data-system/wiki/Nodejs-help)
+[NodeJS](https://github.com/cozy/cozy-data-system/wiki/Nodejs-help)
 (>= 0.8.0) then:
 
-    git clone git://github.com/mycozycloud/cozy-data-system.git
+    git clone git://github.com/cozy/cozy-data-system.git
     cd cozy-data-system
 
     # Load dependencies
@@ -48,7 +48,7 @@ Or you can start it in dev mode with:
 ## Tests
 
 [![Build
-Status](https://travis-ci.org/mycozycloud/cozy-data-system.png?branch=master)](https://travis-ci.org/mycozycloud/cozy-data-system)
+Status](https://travis-ci.org/cozy/cozy-data-system.png?branch=master)](https://travis-ci.org/cozy/cozy-data-system)
 
 Run tests with following commmand
 
@@ -82,7 +82,7 @@ Cozy Data System is developed by Cozy Cloud and distributed under the AGPL v3 li
 
 ## What is Cozy?
 
-![Cozy Logo](https://raw.github.com/mycozycloud/cozy-setup/gh-pages/assets/images/happycloud.png)
+![Cozy Logo](https://raw.github.com/cozy/cozy-setup/gh-pages/assets/images/happycloud.png)
 
 [Cozy](http://cozy.io) is a platform that brings all your web services in the
 same private space.  With it, your web apps and your devices can share data
@@ -95,6 +95,6 @@ profiles you.
 You can reach the Cozy Community by:
 
 * Chatting with us on IRC #cozycloud on irc.freenode.net
-* Posting on our [Forum](https://groups.google.com/forum/?fromgroups#!forum/cozy-cloud)
-* Posting issues on the [Github repos](https://github.com/mycozycloud/)
+* Posting on our [Forum](https://forum.cozy.io/)
+* Posting issues on the [Github repos](https://github.com/cozy/)
 * Mentioning us on [Twitter](http://twitter.com/mycozycloud)
