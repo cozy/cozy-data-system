@@ -125,11 +125,11 @@ createThumb = (file, force, callback) ->
             return callback 'Error in thumb creation.'
         stream.pipe writeStream
         stream.on 'error', callback
-        stream.on 'end', =>
+        stream.on 'end', ->
             # Resize and create if necessary thumb and screen for file
-            resize rawFile, file, 'thumb', mimetype, force, (err) =>
+            resize rawFile, file, 'thumb', mimetype, force, (err) ->
                 log.error(err) if err?
-                resize rawFile, file, 'screen', mimetype, force, (err) =>
+                resize rawFile, file, 'screen', mimetype, force, (err) ->
                     log.error(err) if err?
                     # Remove original file
                     fs.unlink rawFile, (err) ->
@@ -153,11 +153,11 @@ createThumb = (file, force, callback) ->
         callback()
 
     else if mimetype not in whiteList
-            log.info """
-                createThumb: #{file.id} / #{file.name}: 
-                No thumb to create for this kind of file.
-            """
-            callback()
+        log.info """
+            createThumb: #{file.id} / #{file.name}:
+            No thumb to create for this kind of file.
+        """
+        callback()
 
     else
         # Download original file

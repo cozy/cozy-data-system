@@ -14,35 +14,33 @@ log = require('printit')({
 module.exports.addBinary = function(doc, attachData, readStream, callback) {
   var attachFile, binary, name, ref;
   name = attachData.name;
-  attachFile = (function(_this) {
-    return function(binary, cb) {
-      var stream;
-      attachData.name = querystring.escape(name);
-      stream = db.saveAttachment(binary, attachData, function(err, binDoc) {
-        var bin, binList;
-        if (err) {
-          return log.error("" + (JSON.stringify(err)));
-        } else {
-          log.info("Binary " + name + " stored in Couchdb");
-          bin = {
-            id: binDoc.id,
-            rev: binDoc.rev
-          };
-          binList = doc.binary || {};
-          binList[name] = bin;
-          return db.merge(doc._id, {
-            binary: binList
-          }, function(err) {
-            if (err != null) {
-              log.error(err);
-            }
-            return cb();
-          });
-        }
-      });
-      return readStream.pipe(stream);
-    };
-  })(this);
+  attachFile = function(binary, cb) {
+    var stream;
+    attachData.name = querystring.escape(name);
+    stream = db.saveAttachment(binary, attachData, function(err, binDoc) {
+      var bin, binList;
+      if (err) {
+        return log.error("" + (JSON.stringify(err)));
+      } else {
+        log.info("Binary " + name + " stored in Couchdb");
+        bin = {
+          id: binDoc.id,
+          rev: binDoc.rev
+        };
+        binList = doc.binary || {};
+        binList[name] = bin;
+        return db.merge(doc._id, {
+          binary: binList
+        }, function(err) {
+          if (err != null) {
+            log.error(err);
+          }
+          return cb();
+        });
+      }
+    });
+    return readStream.pipe(stream);
+  };
   if (((ref = doc.binary) != null ? ref[name] : void 0) != null) {
     return db.get(doc.binary[name].id, function(err, binary) {
       return attachFile(binary, function() {

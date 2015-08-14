@@ -138,28 +138,26 @@ createThumb = function(file, force, callback) {
     }
     stream.pipe(writeStream);
     stream.on('error', callback);
-    return stream.on('end', (function(_this) {
-      return function() {
-        return resize(rawFile, file, 'thumb', mimetype, force, function(err) {
+    return stream.on('end', function() {
+      return resize(rawFile, file, 'thumb', mimetype, force, function(err) {
+        if (err != null) {
+          log.error(err);
+        }
+        return resize(rawFile, file, 'screen', mimetype, force, function(err) {
           if (err != null) {
             log.error(err);
           }
-          return resize(rawFile, file, 'screen', mimetype, force, function(err) {
-            if (err != null) {
+          return fs.unlink(rawFile, function(err) {
+            if (err) {
               log.error(err);
+            } else {
+              log.info("createThumb " + file.id + " /\n " + file.name + ": Thumbnail created");
             }
-            return fs.unlink(rawFile, function(err) {
-              if (err) {
-                log.error(err);
-              } else {
-                log.info("createThumb " + file.id + " /\n " + file.name + ": Thumbnail created");
-              }
-              return callback();
-            });
+            return callback();
           });
         });
-      };
-    })(this));
+      });
+    });
   };
   if (file.binary == null) {
     return callback(new Error('no binary'));
@@ -169,7 +167,7 @@ createThumb = function(file, force, callback) {
     log.info("createThumb " + file.id + "/" + file.name + ": already created.");
     return callback();
   } else if (indexOf.call(whiteList, mimetype) < 0) {
-    log.info("createThumb: " + file.id + " / " + file.name + ": \nNo thumb to create for this kind of file.");
+    log.info("createThumb: " + file.id + " / " + file.name + ":\nNo thumb to create for this kind of file.");
     return callback();
   } else {
     log.info("createThumb: " + file.id + " / " + file.name + ": Creation started...");

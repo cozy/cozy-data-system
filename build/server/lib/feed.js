@@ -146,16 +146,15 @@ module.exports = Feed = (function() {
                     if (err) {
                       return callback(err);
                     }
-                    if (doc) {
-                      return _this.db.remove(doc._id, doc._rev, function(err, doc) {
-                        if (err == null) {
-                          _this._publish("binary.delete", doc.id);
-                        }
-                        return callback(err);
-                      });
-                    } else {
+                    if (!doc) {
                       return callback();
                     }
+                    return _this.db.remove(doc._id, doc._rev, function(err, doc) {
+                      if (err == null) {
+                        _this._publish("binary.delete", doc.id);
+                      }
+                      return callback(err);
+                    });
                   });
                 } else {
                   return callback();

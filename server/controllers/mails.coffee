@@ -60,9 +60,10 @@ module.exports.send = (req, res, next) ->
 
         if body.attachments?
             mailOptions.attachments = body.attachments.map (attachment) ->
+                content = new Buffer attachment.content.split(",")[1], 'base64'
                 newAttach =
                     filename: attachment.filename
-                    content: new Buffer attachment.content.split(",")[1], 'base64'
+                    content: content
                     contentType: attachment.contentType
 
         sendEmail mailOptions, (error, response) ->
@@ -135,12 +136,11 @@ module.exports.sendFromUser = (req, res, next) ->
 
                 # retrieves and slugifies the username if it exists
                 if users?[0]?.value.public_name? and
-                    users?[0]?.value.public_name isnt ''
-                        publicName = users[0].value.public_name
-                        displayName = publicName.toLowerCase()
-                                                .replace ' ', '-'
-                        displayName += "-"
-                        userEmail = users[0].value.email
+                        users?[0]?.value.public_name isnt ''
+                    publicName = users[0].value.public_name
+                    displayName = publicName.toLowerCase().replace ' ', '-'
+                    displayName += "-"
+                    userEmail = users[0].value.email
                 else
                     displayName = ''
 

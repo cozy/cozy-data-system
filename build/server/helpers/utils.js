@@ -22,7 +22,9 @@ module.exports.deleteFiles = function(files) {
 };
 
 module.exports.checkPermissions = function(req, permission, next) {
-  return checkDocType(req.header('authorization'), permission, function(err, appName, isAuthorized) {
+  var authHeader;
+  authHeader = req.header('authorization');
+  return checkDocType(authHeader, permission, function(err, appName, isAuthorized) {
     if (!appName) {
       err = new Error("Application is not authenticated");
       err.status = 401;
@@ -40,8 +42,9 @@ module.exports.checkPermissions = function(req, permission, next) {
 };
 
 module.exports.checkPermissionsSync = function(req, permission) {
-  var appName, err, isAuthorized, ref;
-  ref = checkDocTypeSync(req.header('authorization'), permission), err = ref[0], appName = ref[1], isAuthorized = ref[2];
+  var appName, authHeader, err, isAuthorized, ref;
+  authHeader = req.header('authorization');
+  ref = checkDocTypeSync(authHeader, permission), err = ref[0], appName = ref[1], isAuthorized = ref[2];
   if (!appName) {
     err = new Error("Application is not authenticated");
     err.status = 401;

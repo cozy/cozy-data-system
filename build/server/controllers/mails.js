@@ -71,10 +71,11 @@ module.exports.send = function(req, res, next) {
     };
     if (body.attachments != null) {
       mailOptions.attachments = body.attachments.map(function(attachment) {
-        var newAttach;
+        var content, newAttach;
+        content = new Buffer(attachment.content.split(",")[1], 'base64');
         return newAttach = {
           filename: attachment.filename,
-          content: new Buffer(attachment.content.split(",")[1], 'base64'),
+          content: content,
           contentType: attachment.contentType
         };
       });

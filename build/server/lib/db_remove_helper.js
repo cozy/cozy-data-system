@@ -13,22 +13,18 @@ getDeletedDoc = function(doc) {
   };
 };
 
-exports.remove = (function(_this) {
-  return function(doc, callback) {
-    var deletedDoc;
-    deletedDoc = getDeletedDoc(doc);
-    return db.save(doc._id, deletedDoc, callback);
-  };
-})(this);
+exports.remove = function(doc, callback) {
+  var deletedDoc;
+  deletedDoc = getDeletedDoc(doc);
+  return db.save(doc._id, deletedDoc, callback);
+};
 
-exports.removeAll = (function(_this) {
-  return function(docs, callback) {
-    var deletedDocs, doc, i, len;
-    deletedDocs = [];
-    for (i = 0, len = docs.length; i < len; i++) {
-      doc = docs[i];
-      deletedDocs.push(getDeletedDoc(doc.value));
-    }
-    return db.save(deletedDocs, callback);
-  };
-})(this);
+exports.removeAll = function(docs, callback) {
+  var deletedDocs, doc, i, len;
+  deletedDocs = [];
+  for (i = 0, len = docs.length; i < len; i++) {
+    doc = docs[i];
+    deletedDocs.push(getDeletedDoc(doc.value));
+  }
+  return db.save(deletedDocs, callback);
+};

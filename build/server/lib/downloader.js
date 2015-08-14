@@ -51,38 +51,40 @@ module.exports = {
       var basic, credentialsBuffer, options, pwd;
       if (err && process.NODE_ENV === 'production') {
         return callback(err);
-      } else if (aborted) {
-        return callback(new Error('aborted'));
-      } else {
-        options = {
-          host: process.env.COUCH_HOST || 'localhost',
-          port: process.env.COUCH_PORT || 5984,
-          path: path
-        };
-        if (!err && process.env.NODE_ENV === 'production') {
-          id = couchCredentials[0];
-          pwd = couchCredentials[1];
-          credentialsBuffer = new Buffer(id + ":" + pwd);
-          basic = "Basic " + (credentialsBuffer.toString('base64'));
-          options.headers = {
-            Authorization: basic
-          };
-        }
-        request = http.get(options, function(res) {
-          if (res.statusCode === 404) {
-            callback(errors.http(404, 'Not Found'));
-            return releaseStream(res);
-          } else if (res.statusCode !== 200) {
-            err = callback(new Error("error occured while downloading attachment " + err.message + " "));
-            err.status = res.statusCode;
-            callback(err);
-            return releaseStream(res);
-          } else {
-            return callback(null, res);
-          }
-        });
-        return request.on('error', callback);
       }
+      if (aborted) {
+        return callback(new Error('aborted'));
+      }
+      options = {
+        host: process.env.COUCH_HOST || 'localhost',
+        port: process.env.COUCH_PORT || 5984,
+        path: path
+      };
+      if (!err && process.env.NODE_ENV === 'production') {
+        id = couchCredentials[0];
+        pwd = couchCredentials[1];
+        credentialsBuffer = new Buffer(id + ":" + pwd);
+        basic = "Basic " + (credentialsBuffer.toString('base64'));
+        options.headers = {
+          Authorization: basic
+        };
+      }
+      request = http.get(options, function(res) {
+        var msg;
+        if (res.statusCode === 404) {
+          callback(errors.http(404, 'Not Found'));
+          return releaseStream(res);
+        } else if (res.statusCode !== 200) {
+          msg = err.message;
+          err = callback(new Error("error occured while downloading attachment " + msg + " "));
+          err.status = res.statusCode;
+          callback(err);
+          return releaseStream(res);
+        } else {
+          return callback(null, res);
+        }
+      });
+      return request.on('error', callback);
     });
     return abortable = {
       abort: function() {

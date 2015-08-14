@@ -118,34 +118,32 @@ module.exports.remove = function(req, res, next) {
     return db.save(req.doc, function(err) {
       return db.view('binary/byDoc', {
         key: id
-      }, (function(_this) {
-        return function(err, result) {
-          if (result.length !== 0) {
-            res.send(204, {
-              success: true
-            });
-            return next();
-          }
-          return db.get(id, function(err, binary) {
-            if (binary == null) {
-              err = new Error('Binary not found');
-              err.status = 404;
-              return next(err);
-            }
-            return dbHelper.remove(binary, function(err) {
-              if (err) {
-                console.log("[Attachment] err: " + JSON.stringify(err));
-                return next(err);
-              } else {
-                res.send(204, {
-                  success: true
-                });
-                return next();
-              }
-            });
+      }, function(err, result) {
+        if (result.length !== 0) {
+          res.send(204, {
+            success: true
           });
-        };
-      })(this));
+          return next();
+        }
+        return db.get(id, function(err, binary) {
+          if (binary == null) {
+            err = new Error('Binary not found');
+            err.status = 404;
+            return next(err);
+          }
+          return dbHelper.remove(binary, function(err) {
+            if (err) {
+              console.log("[Attachment] err: " + JSON.stringify(err));
+              return next(err);
+            } else {
+              res.send(204, {
+                success: true
+              });
+              return next();
+            }
+          });
+        });
+      });
     });
   } else {
     err = new Error("no binary ID is provided");
@@ -155,71 +153,68 @@ module.exports.remove = function(req, res, next) {
 };
 
 module.exports.convert = function(req, res, next) {
-  var binaries, createBinary, id, removeOldAttach;
+  var binaries, createBinary, id, keys, removeOldAttach;
   binaries = {};
   id = req.doc.id;
-  removeOldAttach = (function(_this) {
-    return function(attach, binaryId, callback) {
-      return db.get(req.doc.id, function(err, doc) {
-        if (err) {
-          return callback(err);
-        } else {
-          return db.removeAttachment(doc, attach, function(err) {
-            if (err) {
-              return callback(err);
-            } else {
-              return db.get(binaryId, function(err, doc) {
-                if (err) {
-                  return callback(err);
-                } else {
-                  return callback(null, doc);
-                }
-              });
-            }
-          });
-        }
-      });
-    };
-  })(this);
-  createBinary = (function(_this) {
-    return function(attach, callback) {
-      var binary;
-      binary = {
-        docType: "Binary"
-      };
-      return db.save(binary, function(err, binDoc) {
-        var attachmentData, readStream, writeStream;
-        readStream = db.getAttachment(req.doc.id, attach, function(err) {
-          if (err) {
-            return console.log(err);
-          }
-        });
-        attachmentData = {
-          name: attach,
-          body: ''
-        };
-        writeStream = db.saveAttachment(binDoc, attachmentData, function(err, res) {
+  removeOldAttach = function(attach, binaryId, callback) {
+    return db.get(req.doc.id, function(err, doc) {
+      if (err) {
+        return callback(err);
+      } else {
+        return db.removeAttachment(doc, attach, function(err) {
           if (err) {
             return callback(err);
+          } else {
+            return db.get(binaryId, function(err, doc) {
+              if (err) {
+                return callback(err);
+              } else {
+                return callback(null, doc);
+              }
+            });
           }
-          return removeOldAttach(attach, binDoc._id, function(err, doc) {
-            if (err) {
-              return callback(err);
-            } else {
-              binaries[attach] = {
-                id: doc._id,
-                rev: doc._rev
-              };
-              return callback();
-            }
-          });
         });
-        return readStream.pipe(writeStream);
-      });
+      }
+    });
+  };
+  createBinary = function(attach, callback) {
+    var binary;
+    binary = {
+      docType: "Binary"
     };
-  })(this);
+    return db.save(binary, function(err, binDoc) {
+      var data, readStream, writeStream;
+      readStream = db.getAttachment(req.doc.id, attach, function(err) {
+        if (err) {
+          return console.log(err);
+        }
+      });
+      data = {
+        name: attach,
+        body: ''
+      };
+      writeStream = db.saveAttachment(binDoc, data, function(err, res) {
+        if (err) {
+          return callback(err);
+        }
+        return removeOldAttach(attach, binDoc._id, function(err, doc) {
+          if (err) {
+            return callback(err);
+          } else {
+            binaries[attach] = {
+              id: doc._id,
+              rev: doc._rev
+            };
+            return callback();
+          }
+        });
+      });
+      return readStream.pipe(writeStream);
+    });
+  };
   if (req.doc._attachments != null) {
-    return async.eachSeries(Object.keys(req.doc._attachments), createBinary, function(err) {
+    keys = Object.keys(req.doc._attachments);
+    return async.eachSeries(keys, createBinary, function(err) {
       if (err) {
         return next(err);
       } else {

@@ -13,13 +13,13 @@ getDeletedDoc = (doc) ->
 
 
 # Remove givend document.
-exports.remove = (doc, callback) =>
+exports.remove = (doc, callback) ->
     deletedDoc = getDeletedDoc doc
     db.save doc._id, deletedDoc, callback
 
 
 # Take advantage of bulk update to delete a batch of docs.
-exports.removeAll = (docs, callback) =>
+exports.removeAll = (docs, callback) ->
     deletedDocs = []
     deletedDocs.push getDeletedDoc doc.value for doc in docs
 

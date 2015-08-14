@@ -66,26 +66,24 @@ exports.removeLostBinaries = function(callback) {
     if (err != null) {
       return callback(err);
     }
-    return async.forEachSeries(binaries, (function(_this) {
-      return function(binary, cb) {
-        log.info("Remove binary " + binary);
-        return db.get(binary, function(err, doc) {
-          if (!err && doc) {
-            return db.remove(doc._id, doc._rev, function(err, doc) {
-              if (err) {
-                log.error(err);
-              }
-              return cb();
-            });
-          } else {
+    return async.forEachSeries(binaries, function(binary, cb) {
+      log.info("Remove binary " + binary);
+      return db.get(binary, function(err, doc) {
+        if (!err && doc) {
+          return db.remove(doc._id, doc._rev, function(err, doc) {
             if (err) {
               log.error(err);
             }
             return cb();
+          });
+        } else {
+          if (err) {
+            log.error(err);
           }
-        });
-      };
-    })(this), callback);
+          return cb();
+        }
+      });
+    }, callback);
   });
 };
 
@@ -134,13 +132,9 @@ exports.addAccesses = function(callback) {
       if (err != null) {
         log.error(err);
       }
-      return initTokens((function(_this) {
-        return function(tokens, permissions) {
-          if (callback != null) {
-            return callback();
-          }
-        };
-      })(this));
+      return initTokens(function(tokens, permissions) {
+        return typeof callback === "function" ? callback() : void 0;
+      });
     });
   });
 };
@@ -152,12 +146,10 @@ exports.addThumbs = function(callback) {
     } else if (files.length === 0) {
       return callback();
     } else {
-      return async.forEach(files, (function(_this) {
-        return function(file, cb) {
-          thumb.create(file.id, false);
-          return cb();
-        };
-      })(this), callback);
+      return async.forEach(files, function(file, cb) {
+        thumb.create(file.id, false);
+        return cb();
+      }, callback);
     }
   });
 };
@@ -169,16 +161,14 @@ exports.removeDocWithoutDocType = function(callback) {
     } else if (docs.length === 0) {
       return callback();
     } else {
-      return async.forEachSeries(docs, (function(_this) {
-        return function(doc, cb) {
-          return db.remove(doc.value._id, doc.value._rev, function(err, doc) {
-            if (err) {
-              log.error(err);
-            }
-            return cb();
-          });
-        };
-      })(this), callback);
+      return async.forEachSeries(docs, function(doc, cb) {
+        return db.remove(doc.value._id, doc.value._rev, function(err, doc) {
+          if (err) {
+            log.error(err);
+          }
+          return cb();
+        });
+      }, callback);
     }
   });
 };
