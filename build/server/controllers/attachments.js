@@ -88,7 +88,9 @@ module.exports.get = function(req, res, next) {
       length = req.doc._attachments[name].length;
       type = req.doc._attachments[name]['content-type'];
       res.setHeader('Content-Length', length);
-      res.setHeader('Content-Type', type);
+      if (type != null) {
+        res.setHeader('Content-Type', type);
+      }
       req.once('close', function() {
         return request.abort();
       });

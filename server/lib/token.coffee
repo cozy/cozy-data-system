@@ -1,5 +1,7 @@
 db = require('../helpers/db_connect_helper').db_connect()
 fs = require 'fs'
+log = require('printit')
+    prefix: 'token'
 permissions = {}
 tokens = {}
 
