@@ -48,11 +48,7 @@ module.exports.addBinary = function(doc, attachData, readStream, callback) {
       return attachFile(binary, function() {
         callback();
         if (doc.docType.toLowerCase() === 'file' && doc["class"] === 'image' && name === 'file') {
-          return thumb.create(doc, true, function(err) {
-            if (err != null) {
-              return log.error(err);
-            }
-          });
+          return thumb.create(doc.id, true);
         }
       });
     });

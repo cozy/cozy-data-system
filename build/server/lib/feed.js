@@ -187,7 +187,7 @@ module.exports = Feed = (function() {
             return _this.db.get(change.id, function(err, file) {
               var ref1;
               if (file["class"] === 'image' && (((ref1 = file.binary) != null ? ref1.file : void 0) != null) && !file.binary.thumb) {
-                return thumb.create(file, false);
+                return thumb.create(file.id, false);
               }
             });
           }

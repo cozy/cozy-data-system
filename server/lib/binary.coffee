@@ -42,8 +42,7 @@ module.exports.addBinary = (doc, attachData, readStream, callback) ->
                 callback()
                 if doc.docType.toLowerCase() is 'file' and doc.class is 'image' and
                     name is 'file'
-                        thumb.create doc, true, (err) ->
-                            log.error err if err?
+                        thumb.create doc.id, true
     else
         # Else create a new binary to store uploaded file..
         binary =
