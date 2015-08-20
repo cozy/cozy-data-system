@@ -7,13 +7,12 @@ DataLock = (function() {
   }
 
   DataLock.prototype.isLock = function(lock) {
-    return (this.locks[lock] != null) && this.locks[lock];
+    return this.locks[lock] != null;
   };
 
   DataLock.prototype.addLock = function(lock) {
     if (!this.isLock[lock]) {
-      this.locks[lock] = true;
-      return setTimeout((function(_this) {
+      return this.locks[lock] = setTimeout((function(_this) {
         return function() {
           if (_this.isLock(lock)) {
             return delete _this.locks[lock];
@@ -24,7 +23,10 @@ DataLock = (function() {
   };
 
   DataLock.prototype.removeLock = function(lock) {
-    return delete this.locks[lock];
+    if (this.isLock(lock)) {
+      clearTimeout(this.locks[lock]);
+      return delete this.locks[lock];
+    }
   };
 
   DataLock.prototype.runIfUnlock = function(lock, callback) {
