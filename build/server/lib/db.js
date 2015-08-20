@@ -64,21 +64,21 @@ module.exports = function(callback) {
       "password": process.env.TOKEN
     };
     couchClient.setBasicAuth(loginCouch[0], loginCouch[1]);
-    return couchClient.get('_users/org.couchdb.user:proxy', (function(_this) {
-      return function(err, res, body) {
-        if (body != null) {
-          return couchClient.del("_users/org.couchdb.user:proxy?rev=" + body._rev, function(err, res, body) {
-            return couchClient.post('_users', data, function(err, res, body) {
-              return callback(err);
-            });
-          });
-        } else {
+    return couchClient.get('_users/org.couchdb.user:proxy', function(err, res, body) {
+      var revURL;
+      if (body != null) {
+        revURL = "_users/org.couchdb.user:proxy?rev=" + body._rev;
+        return couchClient.del(revURL, function(err, res, body) {
           return couchClient.post('_users', data, function(err, res, body) {
             return callback(err);
           });
-        }
-      };
-    })(this));
+        });
+      } else {
+        return couchClient.post('_users', data, function(err, res, body) {
+          return callback(err);
+        });
+      }
+    });
   };
 
   /* Logger */
@@ -111,17 +111,15 @@ module.exports = function(callback) {
               logger.error("Error on database" + (" Add user : " + err));
               return callback();
             } else {
-              return addCozyAdmin((function(_this) {
-                return function(err) {
-                  if (err) {
-                    logger.error("Error on database" + (" Add admin : " + err));
-                    return callback();
-                  } else {
-                    logFound();
-                    return callback();
-                  }
-                };
-              })(this));
+              return addCozyAdmin(function(err) {
+                if (err) {
+                  logger.error("Error on database" + (" Add admin : " + err));
+                  return callback();
+                } else {
+                  logFound();
+                  return callback();
+                }
+              });
             }
           });
         } else {
@@ -149,17 +147,14 @@ module.exports = function(callback) {
             logger.error("Error on database" + (" Add user : " + err));
             return callback();
           } else {
-            return addCozyAdmin((function(_this) {
-              return function(err) {
-                if (err) {
-                  logError(err);
-                  return callback();
-                } else {
-                  logCreated();
-                  return callback();
-                }
-              };
-            })(this));
+            return addCozyAdmin(function(err) {
+              if (err) {
+                logError(err);
+              } else {
+                logCreated();
+              }
+              return callback();
+            });
           }
         });
       } else {
@@ -172,14 +167,10 @@ module.exports = function(callback) {
     return feed.startListening(db);
   };
   return db_ensure(function() {
-    return request.init((function(_this) {
-      return function(err) {
-        return initTokens(function(tokens, permissions) {
-          if (callback != null) {
-            return callback();
-          }
-        });
-      };
-    })(this));
+    return request.init(function(err) {
+      return initTokens(function(tokens, permissions) {
+        return typeof callback === "function" ? callback() : void 0;
+      });
+    });
   });
 };

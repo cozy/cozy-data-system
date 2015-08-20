@@ -48,12 +48,12 @@ exports.removeLostBinaries = (callback) ->
     # Recover all lost binaries
     getLostBinaries (err, binaries) ->
         return callback err if err?
-        async.forEachSeries binaries, (binary, cb) =>
+        async.forEachSeries binaries, (binary, cb) ->
             log.info "Remove binary #{binary}"
             # Retrieve binary and remove it
-            db.get binary, (err, doc) =>
+            db.get binary, (err, doc) ->
                 if not err and doc
-                    db.remove doc._id, doc._rev, (err, doc) =>
+                    db.remove doc._id, doc._rev, (err, doc) ->
                         log.error err if err
                         cb()
                 else
@@ -94,8 +94,8 @@ exports.addAccesses = (callback) ->
         addAccess 'device', (err) ->
             log.error err if err?
             # Initialize application access.
-            initTokens (tokens, permissions) =>
-                callback() if callback?
+            initTokens (tokens, permissions) ->
+                callback?()
 
 # Add thumbs for images without thumb
 exports.addThumbs = (callback) ->
@@ -103,20 +103,12 @@ exports.addThumbs = (callback) ->
     db.view 'file/withoutThumb', (err, files) ->
         if err
             callback err
-
         else if files.length is 0
             callback()
-
         else
-            async.forEachSeries files, (file, cb) =>
-                # Create thumb
-                db.get file.id, (err, file) =>
-                    if err
-                        log.info "Cant get File #{file.id} for thumb"
-                        log.info err
-                        return cb()
-                    thumb.create file, false
-                    cb()
+            async.forEach files, (file, cb) ->
+                thumb.create file.id, false
+                cb()
             , callback
 
 exports.removeDocWithoutDocType = (callback) ->
@@ -128,9 +120,9 @@ exports.removeDocWithoutDocType = (callback) ->
             callback()
 
         else
-            async.forEachSeries docs, (doc, cb) =>
+            async.forEachSeries docs, (doc, cb) ->
                 # Create thumb
-                db.remove doc.value._id, doc.value._rev, (err, doc) =>
+                db.remove doc.value._id, doc.value._rev, (err, doc) ->
                     log.error err if err
                     cb()
             , callback

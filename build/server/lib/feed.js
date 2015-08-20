@@ -146,16 +146,15 @@ module.exports = Feed = (function() {
                     if (err) {
                       return callback(err);
                     }
-                    if (doc) {
-                      return _this.db.remove(doc._id, doc._rev, function(err, doc) {
-                        if (err == null) {
-                          _this._publish("binary.delete", doc.id);
-                        }
-                        return callback(err);
-                      });
-                    } else {
+                    if (!doc) {
                       return callback();
                     }
+                    return _this.db.remove(doc._id, doc._rev, function(err, doc) {
+                      if (err == null) {
+                        _this._publish("binary.delete", doc.id);
+                      }
+                      return callback(err);
+                    });
                   });
                 } else {
                   return callback();
@@ -187,7 +186,7 @@ module.exports = Feed = (function() {
             return _this.db.get(change.id, function(err, file) {
               var ref1;
               if (file["class"] === 'image' && (((ref1 = file.binary) != null ? ref1.file : void 0) != null) && !file.binary.thumb) {
-                return thumb.create(file, false);
+                return thumb.create(file.id, false);
               }
             });
           }

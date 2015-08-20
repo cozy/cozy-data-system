@@ -29,7 +29,8 @@ getBody = (domain) ->
         Your Cozy has been recently restarted.
         For security reasons, a restart disables encryption and decryption.
         Some features of your applications are therefore desactivated.
-        They will be reactivated automatically when you will log into your Cozy instance.
+        Don't worry, nothing is lost and they will be reactivated automatically
+        when you will log into your Cozy instance.
         """
     if domain? and domain isnt ''
         body += "Click here to login #{domain}."
@@ -38,7 +39,8 @@ getBody = (domain) ->
 
         Cozy Team.
 
-        P-S: If you have any question, let us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.
+        P-S: If you have any question, let us know at contact@cozycloud.cc
+        or in our IRC channel #cozycloud on freenode.net.
 
         """
     return body
@@ -109,7 +111,7 @@ exports.encrypt = (password) ->
         return password
 
 
-exports.get = () -> return masterKey
+exports.get = -> return masterKey
 
 
 ## function decrypt (password, callback)
@@ -146,7 +148,7 @@ exports.init = (password, user, callback) ->
     encryptedSlaveKey = cryptoTools.encrypt masterKey, slaveKey
     # Store in database
     data = salt: salt, slaveKey: encryptedSlaveKey
-    db.merge user._id, data, (err, res) =>
+    db.merge user._id, data, (err, res) ->
         if err
             logger.error "[initializeKeys] err: #{err}"
             callback err
@@ -186,8 +188,8 @@ exports.update = (password, user, callback) ->
         logger.error "[update] : #{err}"
         return callback err
 
-    updateKeys masterKey, password, slaveKey, (data) =>
-        db.merge user._id, data, (err, res) =>
+    updateKeys masterKey, password, slaveKey, (data) ->
+        db.merge user._id, data, (err, res) ->
             if err
                 logger.error "[update] : #{err}"
                 return callback err
@@ -201,7 +203,7 @@ exports.update = (password, user, callback) ->
 ## Reset keys when user resets his password
 exports.reset = (user, callback) ->
     data = slaveKey: null, salt: null
-    db.merge user._id, data, (err, res) =>
+    db.merge user._id, data, (err, res) ->
         if err
             callback new Error "[resetKeys] err: #{err}"
         else
@@ -209,5 +211,5 @@ exports.reset = (user, callback) ->
 
 ## function isLog ()
 ## Return if keys exist so if user is connected
-exports.isLog = () ->
+exports.isLog = ->
     return slaveKey? and masterKey?

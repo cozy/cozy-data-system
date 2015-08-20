@@ -42,19 +42,17 @@ module.exports = User = (function() {
       if (err) {
         return callback(err);
       } else {
-        return db.view('user/all', (function(_this) {
-          return function(err, res) {
-            if (err) {
-              return callback(err);
+        return db.view('user/all', function(err, res) {
+          if (err) {
+            return callback(err);
+          } else {
+            if (res.length > 0) {
+              return callback(null, res[0].value);
             } else {
-              if (res.length > 0) {
-                return callback(null, res[0].value);
-              } else {
-                return callback(new Error("No user found"));
-              }
+              return callback(new Error("No user found"));
             }
-          };
-        })(this));
+          }
+        });
       }
     });
   };

@@ -23,8 +23,8 @@ productionOrTest = process.env.NODE_ENV is "production" or
 ## @callback {function} Continuation to pass control back to when complete.
 ## Store new view with name <app>-request name in case of conflict
 ## Callback view name (req.req_name or name-req.req_name)
-module.exports.create = (app, req, views, newView, callback) =>
-    storeRam = (path) =>
+module.exports.create = (app, req, views, newView, callback) ->
+    storeRam = (path) ->
         request[app] ?= {}
         request[app]["#{req.type}/#{req.req_name}"] = path
         callback null, path
@@ -56,7 +56,7 @@ module.exports.create = (app, req, views, newView, callback) =>
 ## @req {Object} contains type and request name
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback correct request name
-module.exports.get = (app, req, callback) =>
+module.exports.get = (app, req, callback) ->
     if productionOrTest and request[app]?["#{req.type}/#{req.req_name}"]?
         callback request[app]["#{req.type}/#{req.req_name}"]
     else
@@ -68,15 +68,15 @@ module.exports.get = (app, req, callback) =>
 ## function recoverApp (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback all application names from database
-recoverApp = (callback) =>
+recoverApp = (callback) ->
     apps = []
-    db.view 'application/all', (err, res) =>
+    db.view 'application/all', (err, res) ->
         if err
             callback err
         else if not res
             callback null, []
         else
-            res.forEach (app) =>
+            res.forEach (app) ->
                 apps.push app.name
             callback null, apps
 
@@ -85,10 +85,10 @@ recoverApp = (callback) =>
 ## @docs {tab} design docs with view
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback all design documents from database
-recoverDocs = (res, docs, callback) =>
+recoverDocs = (res, docs, callback) ->
     if res and res.length isnt 0
         doc = res.pop()
-        db.get doc.id, (err, result) =>
+        db.get doc.id, (err, result) ->
             docs.push(result)
             recoverDocs res, docs, callback
     else
@@ -97,19 +97,19 @@ recoverDocs = (res, docs, callback) =>
 ## function recoverDocs (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback all design documents from database
-recoverDesignDocs = (callback) =>
+recoverDesignDocs = (callback) ->
     filterRange =
         startkey: "_design/"
         endkey: "_design0"
-    db.all filterRange, (err, res) =>
+    db.all filterRange, (err, res) ->
         return callback err if err?
         recoverDocs res, [], callback
 
 
-# Data system uses some views, this function initialize it.
+# Data system uses some views, this function initializes them.
 initializeDSView = (callback) ->
     views =
-        # Usefull for function 'doctypes' (controller/request. Databrowser)
+        # Useful for function 'doctypes' (controller/request. Databrowser)
         doctypes:
             all:
                 map: """
@@ -125,7 +125,7 @@ initializeDSView = (callback) ->
                     return true;
                 }
                 """
-        # Usefull to manage device access
+        # Useful to manage device access
         device:
             all:
                 map: """
@@ -143,12 +143,13 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
-        # Usefull to manage application access
+        # Useful to manage application access
         application:
             all:
                 map: """
                 function(doc) {
-                    if(doc.docType && doc.docType.toLowerCase() === "application") {
+                    if(doc.docType &&
+                            doc.docType.toLowerCase() === "application") {
                         return emit(doc._id, doc);
                     }
                 }
@@ -157,13 +158,14 @@ initializeDSView = (callback) ->
             byslug:
                 map: """
                 function(doc) {
-                    if(doc.docType && doc.docType.toLowerCase() === "application") {
+                    if(doc.docType &&
+                            doc.docType.toLowerCase() === "application") {
                         return emit(doc.slug, doc);
                     }
                 }
                 """
 
-        # Usefull to manage application access
+        # Useful to manage application access
         withoutDocType:
             all:
                 map: """
@@ -174,7 +176,7 @@ initializeDSView = (callback) ->
                 }
                 """
 
-        # Usefull to manage access
+        # Useful to manage access
         access:
             all:
                 map: """
@@ -193,7 +195,7 @@ initializeDSView = (callback) ->
                 }
                 """
 
-        # Usefull to remove binary lost
+        # Useful to remove binary lost
         binary:
             all:
                 map: """
@@ -213,27 +215,29 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
-        # Usefull for thumbs creation
+        # Useful for thumbs creation
         file:
             withoutThumb:
                 map: """
                 function(doc) {
                     if(doc.docType && doc.docType.toLowerCase() === "file") {
-                        if(doc.class === "image" && doc.binary && doc.binary.file && !doc.binary.thumb) {
+                        if(doc.class === "image" && doc.binary &&
+                                doc.binary.file && !doc.binary.thumb) {
                             emit(doc._id, null);
                         }
                     }
                 }
                 """
-        # Usefull for API tags
+        # Useful for API tags
         tags:
             all:
                 map: """
                 function (doc) {
-                var _ref;
-                return (_ref = doc.tags) != null ? typeof _ref.forEach === "function" ? _ref.forEach(function(tag) {
-                   return emit(tag, null);
-                    }) : void 0 : void 0;
+                    var _ref = doc.tags;
+                    return _ref != null ? typeof _ref.forEach === "function" ?
+                        _ref.forEach(function(tag) {
+                            return emit(tag, null);
+                        }) : void 0 : void 0;
                 }
                 """
                 # use to make a "distinct"
@@ -260,7 +264,7 @@ initializeDSView = (callback) ->
 ## function init (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize request
-module.exports.init = (callback) =>
+module.exports.init = (callback) ->
     removeEmptyView = (doc, callback) ->
         if Object.keys(doc.views).length is 0 or not doc?.views?
             db.remove doc._id, doc._rev, (err, response) ->
@@ -302,10 +306,10 @@ module.exports.init = (callback) =>
     initializeDSView ->
         if productionOrTest
             # Recover all applications in database
-            recoverApp (err, apps) =>
+            recoverApp (err, apps) ->
                 return callback err if err?
                 # Recover all design docs in database
-                recoverDesignDocs (err, docs) =>
+                recoverDesignDocs (err, docs) ->
                     return callback err if err?
                     async.forEach docs, (doc, cb) ->
                         async.forEach Object.keys(doc.views), (view, cb) ->

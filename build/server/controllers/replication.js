@@ -151,32 +151,28 @@ module.exports.proxy = function(req, res, next) {
   stream.pipe(couchReq);
   data = [];
   permissions = false;
-  req.on('data', (function(_this) {
-    return function(chunk) {
-      var doc, ref1;
-      if (permissions) {
-        return stream.emit('data', chunk);
-      } else {
-        data.push(chunk);
-        ref1 = retrieveJsonDocument(Buffer.concat(data).toString()), err = ref1[0], doc = ref1[1];
-        if (!err) {
-          err = checkPermissions(req, doc.docType);
-          if (err) {
-            res.send(403, err);
-            stream.emit('end');
-            couchReq.end();
-            return req.destroy();
-          } else {
-            permissions = true;
-            return stream.emit('data', Buffer.concat(data));
-          }
+  req.on('data', function(chunk) {
+    var doc, ref1;
+    if (permissions) {
+      return stream.emit('data', chunk);
+    } else {
+      data.push(chunk);
+      ref1 = retrieveJsonDocument(Buffer.concat(data).toString()), err = ref1[0], doc = ref1[1];
+      if (!err) {
+        err = checkPermissions(req, doc.docType);
+        if (err) {
+          res.send(403, err);
+          stream.emit('end');
+          couchReq.end();
+          return req.destroy();
+        } else {
+          permissions = true;
+          return stream.emit('data', Buffer.concat(data));
         }
       }
-    };
-  })(this));
-  return req.on('end', (function(_this) {
-    return function() {
-      return stream.emit('end');
-    };
-  })(this));
+    }
+  });
+  return req.on('end', function() {
+    return stream.emit('end');
+  });
 };

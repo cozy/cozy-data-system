@@ -12,7 +12,7 @@ client = require '../lib/indexer'
 module.exports.encryptPassword = (req, res, next) ->
     try
         password = encryption.encrypt req.body.password
-    catch error
+    # catch error
         # do nothing to prevent error in apps
         # todo add a way to send a warning in the http response
 
@@ -23,7 +23,7 @@ module.exports.encryptPassword = (req, res, next) ->
 module.exports.decryptPassword = (req, res, next) ->
     try
         password = encryption.decrypt req.doc.password
-    catch error
+    # catch error
         # do nothing to prevent error in apps
         # todo add a way to send a warning in the http response
 
@@ -118,7 +118,7 @@ module.exports.upsert = (req, res, next) ->
 # this doesn't take care of conflict (erase DB with the sent value)
 module.exports.delete = (req, res, next) ->
     id = req.params.id
-    send_success = () ->
+    send_success = ->
         res.send 204, success: true
         next()
 

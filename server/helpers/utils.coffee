@@ -10,7 +10,8 @@ module.exports.deleteFiles = (files) ->
 
 # Check the application has the permissions to access the route
 module.exports.checkPermissions = (req, permission, next) ->
-    checkDocType req.header('authorization'), permission, (err, appName, isAuthorized) ->
+    authHeader = req.header('authorization')
+    checkDocType authHeader, permission, (err, appName, isAuthorized) ->
         if not appName
             err = new Error "Application is not authenticated"
             err.status = 401
@@ -26,7 +27,8 @@ module.exports.checkPermissions = (req, permission, next) ->
 
 
 module.exports.checkPermissionsSync = (req, permission) ->
-    [err, appName, isAuthorized] = checkDocTypeSync req.header('authorization'), permission
+    authHeader = req.header('authorization')
+    [err, appName, isAuthorized] = checkDocTypeSync authHeader, permission
     if not appName
         err = new Error "Application is not authenticated"
         err.status = 401

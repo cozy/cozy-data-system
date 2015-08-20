@@ -50,13 +50,14 @@ module.exports = (callback) ->
             "roles": [],
             "password": process.env.TOKEN
         couchClient.setBasicAuth(loginCouch[0],loginCouch[1])
-        couchClient.get  '_users/org.couchdb.user:proxy', (err, res, body) =>
+        couchClient.get  '_users/org.couchdb.user:proxy', (err, res, body) ->
             if body?
-                couchClient.del  "_users/org.couchdb.user:proxy?rev=#{body._rev}", (err, res, body) =>
-                    couchClient.post '_users', data, (err, res, body)->
+                revURL = "_users/org.couchdb.user:proxy?rev=#{body._rev}"
+                couchClient.del  revURL, (err, res, body) ->
+                    couchClient.post '_users', data, (err, res, body) ->
                         callback err
             else
-                couchClient.post '_users', data, (err, res, body)->
+                couchClient.post '_users', data, (err, res, body) ->
                     callback err
 
 
@@ -93,7 +94,7 @@ module.exports = (callback) ->
                             " Add user : #{err}"
                             callback()
                         else
-                            addCozyAdmin (err) =>
+                            addCozyAdmin (err) ->
                                 if err
                                     logger.error "Error on database" +
                                     " Add admin : #{err}"
@@ -124,13 +125,12 @@ module.exports = (callback) ->
                         " Add user : #{err}"
                         callback()
                     else
-                        addCozyAdmin (err) =>
+                        addCozyAdmin (err) ->
                             if err
                                 logError(err)
-                                callback()
                             else
                                 logCreated()
-                                callback()
+                            callback()
             else
                 logCreated()
                 callback()
@@ -138,10 +138,10 @@ module.exports = (callback) ->
     feed_start = -> feed.startListening db
 
     # Check if database exists and add admin.
-    db_ensure () ->
+    db_ensure ->
         # Initialize request view.
-        request.init (err) =>
+        request.init (err) ->
             # Initialize application access.
-            initTokens (tokens, permissions) =>
-                callback() if callback?
+            initTokens (tokens, permissions) ->
+                callback?()
 

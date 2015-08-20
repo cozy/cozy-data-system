@@ -42,11 +42,11 @@ sendEmail = function(mailOptions, callback) {
 
 getBody = function(domain) {
   var body;
-  body = "Hello,\n\nYour Cozy has been recently restarted.\nFor security reasons, a restart disables encryption and decryption.\nSome features of your applications are therefore desactivated.\nThey will be reactivated automatically when you will log into your Cozy instance.";
+  body = "Hello,\n\nYour Cozy has been recently restarted.\nFor security reasons, a restart disables encryption and decryption.\nSome features of your applications are therefore desactivated.\nDon't worry, nothing is lost and they will be reactivated automatically\nwhen you will log into your Cozy instance.";
   if ((domain != null) && domain !== '') {
     body += "Click here to login " + domain + ".";
   }
-  body += "\nCozy Team.\n\nP-S: If you have any question, let us know at contact@cozycloud.cc or in our IRC channel #cozycloud on freenode.net.\n";
+  body += "\nCozy Team.\n\nP-S: If you have any question, let us know at contact@cozycloud.cc\nor in our IRC channel #cozycloud on freenode.net.\n";
   return body;
 };
 
@@ -156,16 +156,14 @@ exports.init = function(password, user, callback) {
     salt: salt,
     slaveKey: encryptedSlaveKey
   };
-  return db.merge(user._id, data, (function(_this) {
-    return function(err, res) {
-      if (err) {
-        logger.error("[initializeKeys] err: " + err);
-        return callback(err);
-      } else {
-        return callback(null);
-      }
-    };
-  })(this));
+  return db.merge(user._id, data, function(err, res) {
+    if (err) {
+      logger.error("[initializeKeys] err: " + err);
+      return callback(err);
+    } else {
+      return callback(null);
+    }
+  });
 };
 
 exports.logIn = function(password, user, callback) {
@@ -188,17 +186,15 @@ exports.update = function(password, user, callback) {
     logger.error("[update] : " + err);
     return callback(err);
   }
-  return updateKeys(masterKey, password, slaveKey, (function(_this) {
-    return function(data) {
-      return db.merge(user._id, data, function(err, res) {
-        if (err) {
-          logger.error("[update] : " + err);
-          return callback(err);
-        }
-        return callback(null);
-      });
-    };
-  })(this));
+  return updateKeys(masterKey, password, slaveKey, function(data) {
+    return db.merge(user._id, data, function(err, res) {
+      if (err) {
+        logger.error("[update] : " + err);
+        return callback(err);
+      }
+      return callback(null);
+    });
+  });
 };
 
 exports.reset = function(user, callback) {
@@ -207,15 +203,13 @@ exports.reset = function(user, callback) {
     slaveKey: null,
     salt: null
   };
-  return db.merge(user._id, data, (function(_this) {
-    return function(err, res) {
-      if (err) {
-        return callback(new Error("[resetKeys] err: " + err));
-      } else {
-        return callback();
-      }
-    };
-  })(this));
+  return db.merge(user._id, data, function(err, res) {
+    if (err) {
+      return callback(new Error("[resetKeys] err: " + err));
+    } else {
+      return callback();
+    }
+  });
 };
 
 exports.isLog = function() {

@@ -72,7 +72,7 @@ describe "Thumbs", ->
                     should.exist file.binary.thumb
                     should.exist file.binary.screen
                     done()
-            , 5 * 1000
+            , 8 * 1000
 
         it "And thumb corresponds to thumb file", (done) ->
             dstPath = 'thumb.png'

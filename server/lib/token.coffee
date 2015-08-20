@@ -153,7 +153,7 @@ addAccess = module.exports.addAccess = (doc, callback) ->
     db.save access, (err, doc) ->
         log.error err if err?
         # Update permissions in RAM
-        updatePermissions access, () ->
+        updatePermissions access, ->
             callback null, access if callback?
 
 ## function updateAccess (doc, callback)
@@ -178,7 +178,7 @@ module.exports.updateAccess = (id, doc, callback) ->
             db.save access._id, access, (err, body) ->
                 log.error err if err?
                 # Update permissions in RAM
-                updatePermissions access, () ->
+                updatePermissions access, ->
                     callback null, access if callback?
         else
             addAccess doc, callback
@@ -263,13 +263,13 @@ initAccess = (access, callback) ->
 module.exports.init = (callback) ->
     # Read shared token
     if productionOrTest
-        initHomeProxy () ->
+        initHomeProxy ->
             # Add token and permissions for other started applications
             db.view 'access/all', (err, accesses) ->
                 return callback new Error("Error in view") if err?
                 # Search application
                 accesses.forEach (access) ->
-                    initAccess access, () ->
+                    initAccess access, ->
                 callback tokens, permissions
     else
         callback tokens, permissions

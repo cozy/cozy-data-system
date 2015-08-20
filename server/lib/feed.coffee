@@ -40,7 +40,7 @@ module.exports = class Feed
         @axonSock.bind axonPort
         @logger.info 'Pub server started'
 
-        @axonSock.sock.on 'connect', () =>
+        @axonSock.sock.on 'connect', =>
             @logger.info "An application connected to the change feeds"
 
         @axonSock.sock.on 'message', (event,id) =>
@@ -103,13 +103,11 @@ module.exports = class Feed
                                 # Retrieve binary and remove it
                                 @db.get binary, (err, doc) =>
                                     return callback err if err
-                                    if doc
-                                        @db.remove doc._id, doc._rev, (err, doc) =>
-                                            if not err?
-                                                @_publish "binary.delete", doc.id
-                                            callback err
-                                    else
-                                        callback()
+                                    return callback() unless doc
+                                    @db.remove doc._id, doc._rev, (err, doc) =>
+                                        if not err?
+                                            @_publish "binary.delete", doc.id
+                                        callback err
 
                             else
                                 # Binary is linked to another document.
@@ -132,7 +130,7 @@ module.exports = class Feed
                 if doctype is 'file'
                     @db.get change.id, (err, file) ->
                         if file.class is 'image' and
-                            file.binary?.file? and not file.binary.thumb
-                                # Creates thumb for image.
-                                thumb.create file, false
+                                file.binary?.file? and not file.binary.thumb
+                            # Creates thumb for image.
+                            thumb.create file.id, false
 module.exports = new Feed()

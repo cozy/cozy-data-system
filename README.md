@@ -29,7 +29,7 @@ Install
 [CouchDB](https://github.com/cozy/cozy-data-system/wiki/Couchdb-help)
 (>= 1.2.0),
 [NodeJS](https://github.com/cozy/cozy-data-system/wiki/Nodejs-help)
-(>= 0.8.0) then:
+(>= 0.10.0) then:
 
     git clone git://github.com/cozy/cozy-data-system.git
     cd cozy-data-system

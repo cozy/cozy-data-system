@@ -63,14 +63,12 @@ module.exports.results = function(req, res, next) {
         return next(err);
       } else if (util.isArray(docs)) {
         docs.forEach(function(value) {
-          var error, password;
+          var password;
           delete value._rev;
           if ((value.password != null) && !((value.docType != null) && (value.docType.toLowerCase() === "application" || value.docType.toLowerCase() === "user"))) {
             try {
               password = encryption.decrypt(value.password);
-            } catch (_error) {
-              error = _error;
-            }
+            } catch (_error) {}
             if (err == null) {
               return value.password = password;
             }
