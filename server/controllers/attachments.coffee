@@ -101,7 +101,7 @@ module.exports.get = (req, res, next) ->
             length = req.doc._attachments[name].length
             type = req.doc._attachments[name]['content-type']
             res.setHeader 'Content-Length', length
-            res.setHeader 'Content-Type', type
+            res.setHeader 'Content-Type', type if type?
 
             req.once 'close', -> request.abort()
 
