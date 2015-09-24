@@ -14,10 +14,13 @@ encryption = require('../lib/encryption');
 client = require('../lib/indexer');
 
 module.exports.encryptPassword = function(req, res, next) {
-  var password;
+  var error, password;
   try {
     password = encryption.encrypt(req.body.password);
-  } catch (_error) {}
+  } catch (_error) {
+    error = _error;
+    return next(error);
+  }
   if (password != null) {
     req.body.password = password;
   }
@@ -25,10 +28,15 @@ module.exports.encryptPassword = function(req, res, next) {
 };
 
 module.exports.decryptPassword = function(req, res, next) {
-  var password;
+  var error, password;
   try {
     password = encryption.decrypt(req.doc.password);
-  } catch (_error) {}
+  } catch (_error) {
+    error = _error;
+    if (req.doc.password != null) {
+      req.doc._passwordStillEncrypted = true;
+    }
+  }
   if (password != null) {
     req.doc.password = password;
   }
