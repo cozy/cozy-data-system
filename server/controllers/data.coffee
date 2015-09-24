@@ -12,9 +12,8 @@ client = require '../lib/indexer'
 module.exports.encryptPassword = (req, res, next) ->
     try
         password = encryption.encrypt req.body.password
-    # catch error
-        # do nothing to prevent error in apps
-        # todo add a way to send a warning in the http response
+    catch error
+        return next error
 
     req.body.password = password if password?
     next()
@@ -23,9 +22,8 @@ module.exports.encryptPassword = (req, res, next) ->
 module.exports.decryptPassword = (req, res, next) ->
     try
         password = encryption.decrypt req.doc.password
-    # catch error
-        # do nothing to prevent error in apps
-        # todo add a way to send a warning in the http response
+    catch error
+        req.doc._passwordStillEncrypted = true if req.doc.password?
 
     req.doc.password = password if password?
     next()
