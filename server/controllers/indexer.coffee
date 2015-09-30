@@ -21,7 +21,11 @@ module.exports.index = (req, res, next) ->
         fieldsType: req.body.fieldsType
 
     client.post "index/", data, (err, response, body) ->
-        if err or response.statusCode isnt 200
+        if err
+            next err
+        else if response.statusCode isnt 200
+            err = new Error
+            err.status = response.statusCode
             next err
         else
             res.send 200, success: true
