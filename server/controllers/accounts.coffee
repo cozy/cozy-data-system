@@ -16,9 +16,8 @@ correctWitness = "Encryption is correct"
 apps = []
 
 restartApp = (app, cb) =>
-    controllerClient = new Client 'http://localhost:9002'
-    controllerClient.setToken process.env.TOKEN
-    controllerClient.post "apps/#{app}/stop", {}, (err, res) ->
+    homeClient = new Client 'http://localhost:9103'
+    homeClient.post "api/applications/#{app}/stop", {}, (err, res) ->
         console.log err if err?
         db.view 'application/byslug', {key: app}, (err, appli) ->
             if appli[0]?
@@ -33,7 +32,7 @@ restartApp = (app, cb) =>
                     scripts:
                         start: "server.coffee"
                     password: appli.password
-                controllerClient.post "apps/#{app}/start", {start: descriptor}, (err, res) ->
+                homeClient.post "api/applications/#{app}/start", {start: descriptor}, (err, res) ->
                     console.log err
                     cb()
 
