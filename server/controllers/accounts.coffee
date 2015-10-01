@@ -16,7 +16,7 @@ correctWitness = "Encryption is correct"
 apps = []
 
 restartApp = (app, cb) =>
-    homeClient = new Client 'http://localhost:9103'
+    homeClient = new Client 'http://localhost:9103' 
     homeClient.post "api/applications/#{app}/stop", {}, (err, res) ->
         console.log err if err?
         db.view 'application/byslug', {key: app}, (err, appli) ->
@@ -35,6 +35,8 @@ restartApp = (app, cb) =>
                 homeClient.post "api/applications/#{app}/start", {start: descriptor}, (err, res) ->
                     console.log err
                     cb()
+            else
+                cb()
 
 module.exports.addApp = (app) =>
     unless app in apps
