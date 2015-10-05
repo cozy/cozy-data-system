@@ -5,6 +5,7 @@ feed = require '../lib/feed'
 dbHelper = require '../lib/db_remove_helper'
 encryption = require '../lib/encryption'
 client = require '../lib/indexer'
+account = require './accounts'
 
 ## Before and after methods
 
@@ -24,6 +25,7 @@ module.exports.decryptPassword = (req, res, next) ->
         password = encryption.decrypt req.doc.password
     catch error
         req.doc._passwordStillEncrypted = true if req.doc.password?
+        account.addApp req.appName
 
     req.doc.password = password if password?
     next()
