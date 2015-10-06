@@ -15,11 +15,15 @@ user = new User()
 correctWitness = "Encryption is correct"
 apps = []
 
+
+# Restart Application <app>
 restartApp = (app, cb) =>
-    homeClient = new Client 'http://localhost:9103' 
+    homeClient = new Client 'http://localhost:9103'
+    # Stop application via cozy-home
     homeClient.post "api/applications/#{app}/stop", {}, (err, res) ->
         console.log err if err?
         db.view 'application/byslug', {key: app}, (err, appli) ->
+            # Recover manifest
             if appli[0]?
                 appli = appli[0].value
                 descriptor =
@@ -32,12 +36,14 @@ restartApp = (app, cb) =>
                     scripts:
                         start: "server.coffee"
                     password: appli.password
+                # Start application via cozy-home
                 homeClient.post "api/applications/#{app}/start", {start: descriptor}, (err, res) ->
-                    console.log err
+                    console.log err if err?
                     cb()
             else
                 cb()
 
+# Add application in array <tabs> : use to restart application
 module.exports.addApp = (app) =>
     unless app in apps
         apps.push app
