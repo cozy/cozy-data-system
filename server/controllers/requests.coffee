@@ -57,11 +57,11 @@ module.exports.results = (req, res, next) ->
                         (value.docType.toLowerCase() is "application" or
                             value.docType.toLowerCase() is "user")
                         ))
-                        try
-                            password = encryption.decrypt value.password
-                        # catch error
-                            # do nothing to prevent error in apps
-                            # todo send a warning in the http response
+                            try
+                                password = encryption.decrypt value.password
+                            # catch error
+                                # do nothing to prevent error in apps
+                                # todo send a warning in the http response
 
                         value.password = password if not err?
                 res.send docs

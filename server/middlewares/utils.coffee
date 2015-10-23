@@ -2,6 +2,7 @@ locker = require '../lib/locker'
 db = require('../helpers/db_connect_helper').db_connect()
 logger = require('printit')(prefix: 'middleware/utils')
 async = require 'async'
+errors = require './errors'
 
 # Helpers
 helpers = require '../helpers/utils'

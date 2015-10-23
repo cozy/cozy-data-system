@@ -17,7 +17,7 @@ apps = []
 
 
 # Restart Application <app>
-restartApp = (app, cb) =>
+restartApp = (app, cb) ->
     homeClient = new Client 'http://localhost:9103'
     # Stop application via cozy-home
     homeClient.post "api/applications/#{app}/stop", {}, (err, res) ->
@@ -37,14 +37,15 @@ restartApp = (app, cb) =>
                         start: "server.coffee"
                     password: appli.password
                 # Start application via cozy-home
-                homeClient.post "api/applications/#{app}/start", {start: descriptor}, (err, res) ->
+                url = "api/applications/#{app}/start"
+                homeClient.post url, {start: descriptor}, (err, res) ->
                     console.log err if err?
                     cb()
             else
                 cb()
 
 # Add application in array <tabs> : use to restart application
-module.exports.addApp = (app) =>
+module.exports.addApp = (app) ->
     unless app in apps
         apps.push app
 

@@ -177,9 +177,7 @@ exports.search = (docTypes, options, callback) ->
         params.filter ?= {}
         params.filter.docType = docTypes.map (t) -> [t, t]
 
-    indexer.search params, (err, results) ->
-        return next err if err
-        callback null, results
+    indexer.search params, callback
 
 ###*
 # Register the indexdefintion for a docType

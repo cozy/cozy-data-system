@@ -15,7 +15,7 @@ module.exports.index = (req, res, next) ->
         res.send 200, success: true
 
 # POST /data/index/define/:type
-# Register parameters on how to index Index given fields of document matching id.
+# Register parameters on how to index given docType
 module.exports.defineIndex = (req, res, next) ->
     docType = req.params.type.toLowerCase()
     indexer.registerIndexDefinition docType, req.body, (err) ->
