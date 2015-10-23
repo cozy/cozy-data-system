@@ -5,7 +5,6 @@ feed = require '../lib/feed'
 dbHelper = require '../lib/db_remove_helper'
 errors = require '../middlewares/errors'
 encryption = require '../lib/encryption'
-client = require '../lib/indexer'
 
 addAccess = require('../lib/token').addAccess
 updateAccess = require('../lib/token').updateAccess

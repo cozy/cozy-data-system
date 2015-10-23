@@ -115,7 +115,7 @@ initializeDSView = (callback) ->
                 map: """
                 function(doc) {
                     if(doc.docType) {
-                        return emit(doc.docType, null);
+                        return emit(doc.docType.toLowerCase(), null);
                     }
                 }
                 """
@@ -246,6 +246,18 @@ initializeDSView = (callback) ->
                     return true;
                 }
                 """
+
+        indexdefinition:
+            all:
+                map: """
+                function(doc) {
+                    if(doc.docType &&
+                       doc.docType.toLowerCase() === "indexdefinition") {
+                        emit(doc._id, null)
+                    }
+                }
+                """
+
     async.forEach Object.keys(views), (docType, cb) ->
         view = views[docType]
         db.get "_design/#{docType}", (err, doc) ->

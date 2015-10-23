@@ -25,6 +25,11 @@ module.exports =
             data.encryptPassword
             data.create
         ]
+
+    'data/search/':
+        post: [utils.checkPermissionsFactory('all'), indexer.search]
+
+
     'data/:id/':
         get: [
             utils.getDoc
@@ -177,23 +182,29 @@ module.exports =
             indexer.removeAll
         ]
 
+    'data/index/status':
+        'get': [
+            indexer.indexingStatus
+        ]
+
+    'data/index/define/:type':
+        'post': [
+            utils.checkPermissionsByType
+            indexer.defineIndex
+        ]
+
     'data/index/:id':
         post: [
-            utils.lockRequest
-            utils.getDoc
-            utils.checkPermissionsByDoc
             indexer.index
-            utils.unlockRequest
         ]
         'delete': [
-            utils.lockRequest
-            utils.getDoc
-            utils.checkPermissionsByDoc
             indexer.remove
-            utils.unlockRequest
         ]
-    'data/search/:type': post: [utils.checkPermissionsByType, indexer.search]
-    'data/search/': post: [utils.checkPermissionsFactory('all'), indexer.search]
+
+    'data/search/:type':
+        post: [utils.checkPermissionsByType, indexer.search]
+
+
 
     # Mail management
     'mail/': post: [utils.checkPermissionsFactory('send mail'), mails.send]

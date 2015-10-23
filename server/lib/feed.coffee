@@ -4,6 +4,7 @@ async = require 'async'
 Client = require('request-json').JsonClient
 client = null
 thumb = require('./thumb')
+indexer = require './indexer'
 
 log = require('printit')
     prefix: 'feed'
@@ -76,7 +77,7 @@ module.exports = class Feed
 
     # [INTERNAL] publish to available outputs
     _publish: (event, id) ->
-        @logger.info "Publishing #{event} #{id}"
+        # @logger.info "Publishing #{event} #{id}"
         @axonSock.emit event, id if @axonSock?
 
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
@@ -89,6 +90,8 @@ module.exports = class Feed
                     doc = doc[0].ok
                     # Publish deletion
                     @_publish "#{doc.docType.toLowerCase()}.delete", change.id
+                    indexer.onDocumentDelete doc, change.seq
+
                 # If document has a binary, remove the binary
                 if doc.binary?
                     removeBinary = (name, callback) =>
@@ -126,6 +129,7 @@ module.exports = class Feed
                 doctype = doc?.docType?.toLowerCase()
 
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
+                indexer.onDocumentUpdate doc, change.seq
 
                 if doctype is 'file'
                     @db.get change.id, (err, file) ->

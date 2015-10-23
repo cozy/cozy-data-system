@@ -35,5 +35,16 @@ class DataLock
                 callback()
         handleCallback()
 
+    wrap: (lock, fn) => (args) =>
+        args = (arg for arg in arguments)
+        callback = args.pop()
+        @runIfUnlock lock, =>
+            @addLock lock
+            args.push newCallback = =>
+                @removeLock lock
+                callback.apply null, arguments
+
+            fn.apply this, args
+
 
 module.exports = new DataLock()
