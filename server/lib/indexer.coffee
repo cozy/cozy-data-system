@@ -233,7 +233,7 @@ exports.registerIndexDefinition = (docType, indexdefinition, callback) ->
 
             reindexDocTypeAll docType, (err) ->
 
-                return callback err if err
+                return callbackOnce err if err
                 checkpointDocTypeRev docType, savedDoc.rev, callbackOnce
 
     else
