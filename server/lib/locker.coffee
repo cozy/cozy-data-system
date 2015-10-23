@@ -35,8 +35,7 @@ class DataLock
                 callback()
         handleCallback()
 
-    wrap: (lock, fn) => (args) =>
-        args = (arg for arg in arguments)
+    wrap: (lock, fn) => (args...) =>
         callback = args.pop()
         @runIfUnlock lock, =>
             @addLock lock

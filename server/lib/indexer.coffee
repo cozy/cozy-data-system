@@ -86,7 +86,7 @@ dequeue = ->
     # try to find a docType with some docs to be indexed
     for docType, docs of indexQueue when docs.length > 0
         # Take BATCH_SIZE docs, leave the rest
-        docs = docs[0...(BATCH_SIZE-1)]
+        docs = docs[0...BATCH_SIZE]
         indexQueue[docType] = docs[BATCH_SIZE..]
         batchInProgress = true
         break # stop when we find one
@@ -284,8 +284,7 @@ reindexDocTypeStep = (docType, definition, callback, skip = 0) ->
         return callback new Error('abort')
 
     query =
-        startkey: docType
-        endkey: docType
+        key: docType
         inclusive_end: true
         limit: FETCH_AT_ONCE_FOR_REINDEX
         skip: skip
