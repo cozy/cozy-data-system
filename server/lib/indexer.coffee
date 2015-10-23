@@ -2,6 +2,9 @@ indexer = require 'cozy-indexer'
 db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
 locker = require '../lib/locker'
+log =  require('printit')
+    date: true
+    prefix: 'indexer'
 
 indexQueue = {}
 batchInProgress = false
@@ -94,11 +97,11 @@ dequeue = ->
     options = indexdefinitions[docType].ftsIndexedFields
     maxseqno = docs[docs.length-1]._seqno
     batchName = "batch #{batchCounter++}"
-    console.log "add #{batchName} of #{docs.length} #{docType}"
+    log.info "add #{batchName} of #{docs.length} #{docType}"
     addBatch docs, options, (err) ->
-        console.log "#{batchName} done", err?.stack or "success"
+        log.info "#{batchName} done #{err?.stack or 'success'}"
         checkpointSeqNumber maxseqno, (err) ->
-            console.log "checkpoint error", err if err
+            log.error "checkpoint error", err if err
             batchInProgress = false
             status[docType].done += docs.length
             setImmediate dequeue
@@ -136,7 +139,7 @@ exports.onDocumentDelete = (doc, seqno) ->
 
     else if doc.docType of indexdefinitions
         forgetDoc doc._id, ->
-            console.log "doc#{doc._id} unindexed"
+            log.info "doc#{doc._id} unindexed"
 
 ###*
 # Perform a search in the index
@@ -236,7 +239,7 @@ exports.registerIndexDefinition = (docType, indexdefinition, callback) ->
                 checkpointDocTypeRev docType, savedDoc.rev, callbackOnce
 
     else
-        console.log "rev is different, but definition not changed"
+        log.info "rev is different, but definition not changed"
         setImmediate callbackOnce
 
 ###*
@@ -279,7 +282,7 @@ reindexDocTypeStep = (docType, definition, callback, skip = 0) ->
     if definition isnt indexdefinitions[docType]
         # a new definition has been added and a new reindexing should be
         # in progress
-        console.log "aborting reindex"
+        log.info "aborting reindex"
         return callback new Error('abort')
 
     query =
@@ -290,11 +293,10 @@ reindexDocTypeStep = (docType, definition, callback, skip = 0) ->
         skip: skip
         include_docs: true
         reduce: false
-        raw: true
 
     db.view "doctypes/all", query, (err, rows) ->
         return callback err if err
-        console.log "step #{docType} #{skip}, got #{rows.length} docs"
+        log.info "step #{docType} #{skip}, got #{rows.length} docs"
         status[docType].total = rows.total_rows
         return callback null if rows.length is 0
 
@@ -343,7 +345,7 @@ maybeReindexDocType = (docType, callback) ->
 
     indexer.store.get "indexedrev/#{docType}", (err, lastrev) ->
 
-        console.log """
+        log.info """
             Check index revision for #{docType}
                 in indexer:#{lastrev} , in ds:#{definition._rev}
         """

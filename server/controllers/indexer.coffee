@@ -1,5 +1,7 @@
 feed = require '../lib/feed'
 indexer = require '../lib/indexer'
+log = require('printit')
+    prefix: 'indexcontroller'
 
 db = require('../helpers/db_connect_helper').db_connect()
 
@@ -8,11 +10,9 @@ db = require('../helpers/db_connect_helper').db_connect()
 # POST /data/index/:id
 # Index given fields of document matching id.
 module.exports.index = (req, res, next) ->
-    console.log 'app used deprecated POST /data/index/:id'
-    setTimeout ->
-        indexer.waitIndexing req.params.id, (err) ->
-            res.send 200, success: true
-    , 300
+    log.info 'app used deprecated POST /data/index/:id'
+    indexer.waitIndexing req.params.id, (err) ->
+        res.send 200, success: true
 
 # POST /data/index/define/:type
 # Register parameters on how to index Index given fields of document matching id.
@@ -50,7 +50,7 @@ module.exports.search = (req, res, next) ->
 
 # Remove index for given document
 module.exports.remove = (req, res, next) ->
-    console.log 'app used deprecated DELETE /data/index/:id'
+    log.info 'app used deprecated DELETE /data/index/:id'
     setTimeout (-> res.send 200, success: true), 100
 
 
