@@ -63,7 +63,7 @@ exports.initialize = (callback) ->
                 callback err, seq
 
         (seqno, callback) -> # GET CHANGES SINCE STORED seqno
-            options = {include_docs: true, since: seqno, raw: true}
+            options = {include_docs: true, since: seqno}
             db.changes options, (err, changes) ->
                 callback err, changes
 
@@ -86,7 +86,7 @@ dequeue = ->
     # try to find a docType with some docs to be indexed
     for docType, docs of indexQueue when docs.length > 0
         # Take BATCH_SIZE docs, leave the rest
-        docs = docs[0..(BATCH_SIZE-1)]
+        docs = docs[0...(BATCH_SIZE-1)]
         indexQueue[docType] = docs[BATCH_SIZE..]
         batchInProgress = true
         break # stop when we find one

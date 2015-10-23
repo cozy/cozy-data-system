@@ -77,7 +77,7 @@ module.exports = class Feed
 
     # [INTERNAL] publish to available outputs
     _publish: (event, id) ->
-        # @logger.info "Publishing #{event} #{id}"
+        @logger.info "Publishing #{event} #{id}"
         @axonSock.emit event, id if @axonSock?
 
     # [INTERNAL]  transform db change to (doctype.op, id) message and publish
