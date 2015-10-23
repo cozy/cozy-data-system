@@ -15,3 +15,5 @@ env:
 before_install:
     - npm config set ca ""
     - npm install coffee-script -g
+before_test:
+    - cake build
