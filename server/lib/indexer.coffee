@@ -285,7 +285,6 @@ reindexDocTypeStep = (docType, definition, callback, skip = 0) ->
 
     query =
         key: docType
-        inclusive_end: true
         limit: FETCH_AT_ONCE_FOR_REINDEX
         skip: skip
         include_docs: true
