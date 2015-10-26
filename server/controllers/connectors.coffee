@@ -1,4 +1,13 @@
-client = require '../lib/indexer'
+Client = require("request-json").JsonClient
+if process.env.INDEXER_PORT
+    port = process.env.INDEXER_PORT
+else if process.env.NODE_ENV is "test"
+    port = 9092
+else
+    port = 9102
+
+host = process.env.INDEXER_HOST or 'localhost'
+client = new Client "http://#{host}:#{port}/"
 
 ## Actions
 

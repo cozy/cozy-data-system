@@ -1,5 +1,7 @@
 feed = require '../lib/feed'
-client = require '../lib/indexer'
+indexer = require '../lib/indexer'
+log = require('printit')
+    prefix: 'indexcontroller'
 
 db = require('../helpers/db_connect_helper').db_connect()
 
@@ -8,89 +10,53 @@ db = require('../helpers/db_connect_helper').db_connect()
 # POST /data/index/:id
 # Index given fields of document matching id.
 module.exports.index = (req, res, next) ->
-    req.doc.id = req.doc._id
+    log.info 'app used deprecated POST /data/index/:id'
+    indexer.waitIndexing req.params.id, (err) ->
+        res.send 200, success: true
 
-    # if the app has sent mapped values, we replace the actual values
-    # by the mapped ones
-    if req.body.mappedValues?
-        for field, mappedValue of req.body.mappedValues
-            req.doc[field] = mappedValue
-    data =
-        doc: req.doc
-        fields: req.body.fields
-        fieldsType: req.body.fieldsType
+# POST /data/index/define/:type
+# Register parameters on how to index given docType
+module.exports.defineIndex = (req, res, next) ->
+    docType = req.params.type.toLowerCase()
+    indexer.registerIndexDefinition docType, req.body, (err) ->
+        return next err if err
+        res.send 200, success: true
 
-    client.post "index/", data, (err, response, body) ->
-        if err or response.statusCode isnt 200
-            next err
-        else
-            res.send 200, success: true
-            next()
-    , false # body = indexation succeeds, do not parse
+module.exports.indexingStatus = (req, res, next) ->
+    indexer.status (err, status) ->
+        return next err if err
+        res.send 200, status
 
 # POST /data/search/
+# POST /data/search/:type
 # Returns documents matching given text query
 module.exports.search = (req, res, next) ->
 
-    doctypes = req.params.type or req.body.doctypes or []
+    if req.params.type
+        docTypes = [req.params.type]
+    else
+        docTypes = req.body.doctypes or []
 
-    showNumResults = req.body.showNumResults
-    data =
-        docType: doctypes
-        query: req.body.query
-        numPage: req.body.numPage
-        numByPage: req.body.numByPage
-        showNumResults: showNumResults
+    indexer.search docTypes, req.body, (err, results) ->
+        return next err if err
 
-    client.post "search/", data, (err, response, body) ->
-        if err
-            next err
-        else if not response?
-            next new Error "Response not found"
-        else if response.statusCode isnt 200
-            res.send response.statusCode, body
-        else
+        ids = results.hits.map (hit) -> hit.id
 
-            db.get body.ids, (err, docs) ->
-                if err
-                    next err
-                else
-                    results = []
-                    for doc in docs
-                        if doc.doc?
-                            resDoc = doc.doc
-                            resDoc.id = doc.id
-                            results.push resDoc
+        db.get ids, (err, rows) ->
+            return next err if err
 
+            results.rows = (row.doc for row in rows)
+            res.send results
 
-                    resultObject = rows: results
-
-                    # Preserves old format while supporting "show number
-                    # of results" response
-                    if showNumResults
-                        resultObject.numResults = body.numResults
-
-                    res.send 200, resultObject
-
-
-# DELETE /data/index/:id
 # Remove index for given document
 module.exports.remove = (req, res, next) ->
-    client.del "index/#{req.params.id}/", (err, response, body) ->
-        if err
-            next err
-        else
-            res.send 200, success: true
-            next()
-    , false # body is not JSON
+    log.info 'app used deprecated DELETE /data/index/:id'
+    setTimeout (-> res.send 200, success: true), 100
 
 
 # DELETE /data/index/clear-all/
 # Remove all index from data system
 module.exports.removeAll = (req, res, next) ->
-    client.del "clear-all/", (err, response, body) ->
-        if err
-            next err
-        else
-            res.send 200, success: true
-    , false  # body is not JSON
+    indexer.cleanup (err) ->
+        return next err if err
+        res.send 200, success: true

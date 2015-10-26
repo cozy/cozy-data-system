@@ -4,7 +4,6 @@ db = require('../helpers/db_connect_helper').db_connect()
 feed = require '../lib/feed'
 dbHelper = require '../lib/db_remove_helper'
 encryption = require '../lib/encryption'
-client = require '../lib/indexer'
 account = require './accounts'
 
 ## Before and after methods
@@ -117,18 +116,12 @@ module.exports.upsert = (req, res, next) ->
 # DELETE /data/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
 module.exports.delete = (req, res, next) ->
-    id = req.params.id
-    send_success = ->
-        res.send 204, success: true
-        next()
-
-    dbHelper.remove req.doc, (err, res) ->
+    dbHelper.remove req.doc, (err) ->
         if err
             next err
         else
-            # Doc is removed from indexation
-            client.del "index/#{id}/", (err, response, resbody) ->
-                send_success()
+            res.send 204, success: true
+            next()
 
 # PUT /data/merge/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
