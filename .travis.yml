@@ -15,6 +15,7 @@ env:
 before_install:
     - npm config set ca ""
     - npm install coffee-script -g
-    - mkdir -p /usr/local/var/cozy/data-system/
+    - sudo mkdir -p /usr/local/var/cozy/data-system/
+    - sudo chown $(whoami) /usr/local/var/cozy/data-system/
 before_script:
     - cake build
