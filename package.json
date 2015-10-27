@@ -39,13 +39,19 @@
     "should": "3.1.2",
     "chai": "1.9.0",
     "mocha": "1.17.1",
+    "coffee-jshint": "0.2.3",
     "coffee-script": "latest",
+    "coffeelint": "1.13.0",
     "coffee-coverage": "0.4.2"
   },
   "main": "server.coffee",
   "scripts": {
     "test": "cake --use-js tests",
-    "start": "node build/server.js"
+    "start": "node build/server.js",
+    "build": "cake build",
+    "lint": "npm run lint1 && npm run lint2",
+    "lint1": "coffeelint -f coffeelint.json ./server/**/*.coffee",
+    "lint2": "coffee-jshint -o node ./server/**/*.coffee"
   },
   "config": {
     "blanket": {
