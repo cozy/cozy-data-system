@@ -1,3 +1,10 @@
+path = require 'path'
+# @FOLLOW : https://github.com/cozy/cozy-controller/issues/92
+# change .travis.yml if you change this value
+dataDirectory = '/usr/local/var/cozy/data-system/'
+# set env for cozy-indexer
+process.env.INDEXES_PATH ?= path.join dataDirectory, 'indexes'
+
 indexer = require 'cozy-indexer'
 db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
