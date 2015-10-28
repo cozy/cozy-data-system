@@ -6,9 +6,10 @@ log = require('printit')({
 });
 
 module.exports = function(app, server, callback) {
-  var feed, init;
+  var feed, indexer, init;
   feed = require('./lib/feed');
   feed.initialize(server);
+  indexer = require('./lib/indexer');
   init = require('./lib/init');
   return init.removeDocWithoutDocType(function(err) {
     if (err != null) {
@@ -18,19 +19,24 @@ module.exports = function(app, server, callback) {
       if (err != null) {
         log.error(err);
       }
-      init.addThumbs(function(err) {
+      return init.addThumbs(function(err) {
         if (err != null) {
           log.error(err);
         }
         return init.addAccesses(function(err) {
           if (err != null) {
-            return log.error(err);
+            log.error(err);
           }
+          return indexer.initialize(function(err) {
+            if (err != null) {
+              log.error(err);
+            }
+            if (callback != null) {
+              return callback(app, server);
+            }
+          });
         });
       });
-      if (callback != null) {
-        return callback(app, server);
-      }
     });
   });
 };

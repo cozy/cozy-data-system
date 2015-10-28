@@ -69,9 +69,9 @@ module.exports.results = function(req, res, next) {
             try {
               password = encryption.decrypt(value.password);
             } catch (_error) {}
-            if (err == null) {
-              return value.password = password;
-            }
+          }
+          if (err == null) {
+            return value.password = password;
           }
         });
         return res.send(docs);

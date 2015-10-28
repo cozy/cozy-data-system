@@ -229,7 +229,6 @@ initHomeProxy = function(callback) {
     "folder": "authorized",
     "contact": "authorized",
     "album": "authorized",
-    "event": "authorized",
     "message": "authorized",
     "binary": "authorized",
     "user": "authorized",

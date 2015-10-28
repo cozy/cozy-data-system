@@ -114,7 +114,7 @@ initializeDSView = function(callback) {
   views = {
     doctypes: {
       all: {
-        map: "function(doc) {\n    if(doc.docType) {\n        return emit(doc.docType, null);\n    }\n}",
+        map: "function(doc) {\n    if(doc.docType) {\n        return emit(doc.docType.toLowerCase(), null);\n    }\n}",
         reduce: "function(key, values) {\n    return true;\n}"
       }
     },
@@ -164,6 +164,11 @@ initializeDSView = function(callback) {
       all: {
         map: "function (doc) {\n    var _ref = doc.tags;\n    return _ref != null ? typeof _ref.forEach === \"function\" ?\n        _ref.forEach(function(tag) {\n            return emit(tag, null);\n        }) : void 0 : void 0;\n}",
         reduce: "function(key, values) {\n    return true;\n}"
+      }
+    },
+    indexdefinition: {
+      all: {
+        map: "function(doc) {\n    if(doc.docType &&\n       doc.docType.toLowerCase() === \"indexdefinition\") {\n        emit(doc._id, null)\n    }\n}"
       }
     }
   };

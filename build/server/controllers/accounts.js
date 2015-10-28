@@ -28,56 +28,53 @@ correctWitness = "Encryption is correct";
 
 apps = [];
 
-restartApp = (function(_this) {
-  return function(app, cb) {
-    var homeClient;
-    homeClient = new Client('http://localhost:9103');
-    return homeClient.post("api/applications/" + app + "/stop", {}, function(err, res) {
-      if (err != null) {
-        console.log(err);
-      }
-      return db.view('application/byslug', {
-        key: app
-      }, function(err, appli) {
-        var descriptor;
-        if (appli[0] != null) {
-          appli = appli[0].value;
-          descriptor = {
-            user: appli.slug,
-            name: appli.slug,
-            domain: "127.0.0.1",
-            repository: {
-              type: "git",
-              url: appli.git
-            },
-            scripts: {
-              start: "server.coffee"
-            },
-            password: appli.password
-          };
-          return homeClient.post("api/applications/" + app + "/start", {
-            start: descriptor
-          }, function(err, res) {
-            if (err != null) {
-              console.log(err);
-            }
-            return cb();
-          });
-        } else {
-          return cb();
-        }
-      });
-    });
-  };
-})(this);
-
-module.exports.addApp = (function(_this) {
-  return function(app) {
-    if (indexOf.call(apps, app) < 0) {
-      return apps.push(app);
+restartApp = function(app, cb) {
+  var homeClient;
+  homeClient = new Client('http://localhost:9103');
+  return homeClient.post("api/applications/" + app + "/stop", {}, function(err, res) {
+    if (err != null) {
+      console.log(err);
     }
-  };
-})(this);
+    return db.view('application/byslug', {
+      key: app
+    }, function(err, appli) {
+      var descriptor, url;
+      if (appli[0] != null) {
+        appli = appli[0].value;
+        descriptor = {
+          user: appli.slug,
+          name: appli.slug,
+          domain: "127.0.0.1",
+          repository: {
+            type: "git",
+            url: appli.git
+          },
+          scripts: {
+            start: "server.coffee"
+          },
+          password: appli.password
+        };
+        url = "api/applications/" + app + "/start";
+        return homeClient.post(url, {
+          start: descriptor
+        }, function(err, res) {
+          if (err != null) {
+            console.log(err);
+          }
+          return cb();
+        });
+      } else {
+        return cb();
+      }
+    });
+  });
+};
+
+module.exports.addApp = function(app) {
+  if (indexOf.call(apps, app) < 0) {
+    return apps.push(app);
+  }
+};
 
 module.exports.checkPermissions = function(req, res, next) {
   return checkProxyHome(req.header('authorization'), function(err, isAuthorized) {

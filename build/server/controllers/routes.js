@@ -32,6 +32,9 @@ module.exports = {
   'data/': {
     post: [utils.checkPermissionsByBody, data.encryptPassword, data.create]
   },
+  'data/search/': {
+    post: [utils.checkPermissionsFactory('all'), indexer.search]
+  },
   'data/:id/': {
     get: [utils.getDoc, utils.checkPermissionsByDoc, data.decryptPassword, data.find],
     post: [utils.checkPermissionsByBody, data.encryptPassword, data.create],
@@ -99,15 +102,18 @@ module.exports = {
   'data/index/clear-all/': {
     'delete': [utils.checkPermissionsFactory('all'), indexer.removeAll]
   },
+  'data/index/status': {
+    'get': [indexer.indexingStatus]
+  },
+  'data/index/define/:type': {
+    'post': [utils.checkPermissionsByType, indexer.defineIndex]
+  },
   'data/index/:id': {
-    post: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, indexer.index, utils.unlockRequest],
-    'delete': [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, indexer.remove, utils.unlockRequest]
+    post: [indexer.index],
+    'delete': [indexer.remove]
   },
   'data/search/:type': {
     post: [utils.checkPermissionsByType, indexer.search]
-  },
-  'data/search/': {
-    post: [utils.checkPermissionsFactory('all'), indexer.search]
   },
   'mail/': {
     post: [utils.checkPermissionsFactory('send mail'), mails.send]
