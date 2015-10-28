@@ -43,7 +43,8 @@ Once datasystem is installed, run it with:
 
 Or you can start it in dev mode with:
 
-    coffee server.coffee
+    INDEXES_PATH="../search-indexes" coffee server.coffee
+    
 
 ## Tests
 
