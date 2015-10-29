@@ -52,16 +52,16 @@ module.exports.results = (req, res, next) ->
             else if util.isArray(docs)
                 docs.forEach (value) ->
                     delete value._rev # CouchDB specific, user don't need it
-                    if value.password? and not (
-                        (value.docType? and
-                        (value.docType.toLowerCase() is "application" or
-                            value.docType.toLowerCase() is "user")
-                        ))
-                            try
-                                password = encryption.decrypt value.password
-                            # catch error
-                                # do nothing to prevent error in apps
-                                # todo send a warning in the http response
+
+                    if value.password? and
+                    not value.docType?.toLowerCase() in ['application', 'user']
+
+
+                        try
+                            password = encryption.decrypt value.password
+                        # catch error
+                            # do nothing to prevent error in apps
+                            # todo send a warning in the http response
 
                         value.password = password if not err?
                 res.send docs
