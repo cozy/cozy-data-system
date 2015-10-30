@@ -157,7 +157,7 @@ module.exports.sendFromUser = function(req, res, next) {
         }
         if (((users != null ? (ref1 = users[0]) != null ? ref1.value.public_name : void 0 : void 0) != null) && (users != null ? (ref2 = users[0]) != null ? ref2.value.public_name : void 0 : void 0) !== '') {
           publicName = users[0].value.public_name;
-          displayName = publicName.toLowerCase().replace(' ', '-');
+          displayName = publicName.toLowerCase().replace(/\W/g, '-');
           displayName += "-";
           userEmail = users[0].value.email;
         } else {

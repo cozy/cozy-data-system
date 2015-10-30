@@ -138,7 +138,7 @@ module.exports.sendFromUser = (req, res, next) ->
                 if users?[0]?.value.public_name? and
                         users?[0]?.value.public_name isnt ''
                     publicName = users[0].value.public_name
-                    displayName = publicName.toLowerCase().replace ' ', '-'
+                    displayName = publicName.toLowerCase().replace /\W/g, '-'
                     displayName += "-"
                     userEmail = users[0].value.email
                 else

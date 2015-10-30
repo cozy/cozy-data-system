@@ -150,3 +150,11 @@ describe "Encryption handling tests", ->
                 db.get "#{@id}", (err, body) =>
                     body.password.should.not.equal "password"
                     done()
+
+       describe "Request document with password", ->
+            before cleanRequest
+
+            it "When I add a document with password", (done) ->
+                client.post '/request/user/all/', {}, (err, res, body) =>
+                    body[0].value.password.should.equal "password"
+                    done()
