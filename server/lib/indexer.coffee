@@ -400,6 +400,7 @@ registerDefaultIndexes = (callback) ->
     actions = []
     actions.push registerNote unless indexdefinitions.note
     actions.push registerFile unless indexdefinitions.file
+    actions.push registerFolder unless indexdefinitions.folder
     async.series actions, (err) -> callback err
 
 ###*
