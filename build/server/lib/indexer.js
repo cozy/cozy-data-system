@@ -545,6 +545,9 @@ registerDefaultIndexes = function(callback) {
   if (!indexdefinitions.file) {
     actions.push(registerFile);
   }
+  if (!indexdefinitions.folder) {
+    actions.push(registerFolder);
+  }
   return async.series(actions, function(err) {
     return callback(err);
   });
