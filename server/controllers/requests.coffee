@@ -44,6 +44,8 @@ module.exports.tags = (req, res, next) ->
 
 # POST /request/:type/:req_name/
 module.exports.results = (req, res, next) ->
+    sendRev = req.body.show_revs
+    delete req.body.show_revs
     request.get req.appName, req.params, (path) ->
         db.view "#{req.params.type}/" + path, req.body, (err, docs) ->
             if err
@@ -51,7 +53,9 @@ module.exports.results = (req, res, next) ->
                 next err
             else if util.isArray(docs)
                 docs.forEach (value) ->
-                    delete value._rev # CouchDB specific, user don't need it
+                    unless sendRev
+                        # Revisions are usefull for devices
+                        delete value._rev # CouchDB specific, user don't need it
 
                     if value.password? and
                     not value.docType?.toLowerCase() in ['application', 'user']
