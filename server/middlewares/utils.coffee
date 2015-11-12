@@ -55,7 +55,7 @@ module.exports.checkPermissionsByType = (req, res, next) ->
 
 # Check the permission for a post request in replication protocol
 module.exports.checkPermissionsPostReplication = (req, res, next) ->
-    if req.url is '/replication/_revs_diff'
+    if req.url.indexOf('/replication/_revs_diff') is 0
         # Use to retrieve difference in documents revisions
         next()
     else if req.url is '/replication/_ensure_full_commit'
