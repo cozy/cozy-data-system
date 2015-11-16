@@ -67,13 +67,13 @@ module.exports.checkPermissionsByType = function(req, res, next) {
 
 module.exports.checkPermissionsPostReplication = function(req, res, next) {
   var err;
-  if (req.url === '/replication/_revs_diff') {
+  if (req.url.indexOf('/replication/_revs_diff') === 0) {
     return next();
   } else if (req.url === '/replication/_ensure_full_commit') {
     return next();
   } else if (req.url.indexOf('/replication/_changes') === 0) {
     return next();
-  } else if (req.url === '/replication/_bulk_docs') {
+  } else if (req.url.indexOf('/replication/_bulk_docs') === 0) {
     return async.forEach(req.body.docs, function(doc, cb) {
       if (doc._deleted) {
         return db.get(doc._id, function(err, doc) {

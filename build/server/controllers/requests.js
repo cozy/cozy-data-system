@@ -56,6 +56,9 @@ module.exports.tags = function(req, res, next) {
 };
 
 module.exports.results = function(req, res, next) {
+  var sendRev;
+  sendRev = req.body.show_revs;
+  delete req.body.show_revs;
   return request.get(req.appName, req.params, function(path) {
     return db.view((req.params.type + "/") + path, req.body, function(err, docs) {
       if (err) {
@@ -64,7 +67,9 @@ module.exports.results = function(req, res, next) {
       } else if (util.isArray(docs)) {
         docs.forEach(function(value) {
           var password, ref, ref1;
-          delete value._rev;
+          if (!sendRev) {
+            delete value._rev;
+          }
           if ((value.password != null) && ((ref = !((ref1 = value.docType) != null ? ref1.toLowerCase() : void 0)) === 'application' || ref === 'user')) {
             try {
               password = encryption.decrypt(value.password);
