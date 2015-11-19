@@ -1,6 +1,4 @@
 path = require 'path'
-# @FOLLOW : https://github.com/cozy/cozy-controller/issues/92
-
 # set env for cozy-indexer
 # if we have APPLICATION_PERSISTENT_DIRECTORY, we have the new controller
 # and we use the provided directory
