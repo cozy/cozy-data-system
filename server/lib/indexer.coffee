@@ -1,9 +1,14 @@
 path = require 'path'
 # @FOLLOW : https://github.com/cozy/cozy-controller/issues/92
-# change .travis.yml if you change this value
-dataDirectory = '/usr/local/var/cozy/data-system/'
+
 # set env for cozy-indexer
-process.env.INDEXES_PATH ?= path.join dataDirectory, 'indexes'
+# if we have APPLICATION_PERSISTENT_DIRECTORY, we have the new controller
+# and we use the provided directory
+# if we dont have it, let cozy-indexer use its default, which
+# create the indexes inside node_modules/cozy-indexer
+persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY
+if persistentDirectory
+    process.env.INDEXES_PATH ?= path.join persistentDirectory, 'indexes'
 
 indexer = require 'cozy-indexer'
 db = require('../helpers/db_connect_helper').db_connect()
