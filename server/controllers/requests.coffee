@@ -58,7 +58,7 @@ module.exports.results = (req, res, next) ->
                         delete value._rev # CouchDB specific, user don't need it
 
                     if value.password? and
-                    not value.docType?.toLowerCase() in ['application', 'user']
+                    not(value.docType?.toLowerCase() in ['application', 'user'])
 
 
                         try
