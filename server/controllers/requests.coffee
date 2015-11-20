@@ -58,16 +58,14 @@ module.exports.results = (req, res, next) ->
                         delete value._rev # CouchDB specific, user don't need it
 
                     if value.password? and
-                    not(value.docType?.toLowerCase() in ['application', 'user'])
-
+                    not (value.docType?.toLowerCase() in ['application', 'user'])
 
                         try
-                            password = encryption.decrypt value.password
-                        # catch error
-                            # do nothing to prevent error in apps
-                            # todo send a warning in the http response
+                            value.password = encryption.decrypt value.password
+                        catch
+                            # catch error
+                            value._passwordStillEncrypted = true
 
-                        value.password = password if not err?
                 res.send docs
             else
                 res.send docs
