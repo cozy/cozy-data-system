@@ -131,6 +131,8 @@ module.exports.sendFromUser = (req, res, next) ->
                     domain = instance[0].value.domain
                     if domain.indexOf('https://') isnt -1
                         domain = domain.substring(8, domain.length)
+                    # if domain ends with port number, remove it
+                    domain = domain.split(':')[0]
                 else
                     domain = 'your.cozy.io'
 

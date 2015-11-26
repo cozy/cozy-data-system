@@ -3,12 +3,7 @@
   "description": "Data-layer between cozy applications and persistence systems",
   "version": "2.1.0",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
-  "licenses": [
-    {
-      "type": "AGPL v3",
-      "url": "http://www.gnu.org/licenses/agpl-3.0.html"
-    }
-  ],
+  "license": "AGPL-3.0",
   "engines": [
     "*"
   ],
