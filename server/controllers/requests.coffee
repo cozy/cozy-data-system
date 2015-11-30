@@ -59,7 +59,6 @@ module.exports.results = (req, res, next) ->
 
                     if value.password? and
                     not (value.docType?.toLowerCase() in ['application', 'user'])
-
                         try
                             value.password = encryption.decrypt value.password
                         catch
