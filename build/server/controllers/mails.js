@@ -152,6 +152,7 @@ module.exports.sendFromUser = function(req, res, next) {
           if (domain.indexOf('https://') !== -1) {
             domain = domain.substring(8, domain.length);
           }
+          domain = domain.split(':')[0];
         } else {
           domain = 'your.cozy.io';
         }

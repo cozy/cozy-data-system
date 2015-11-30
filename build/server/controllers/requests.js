@@ -66,16 +66,15 @@ module.exports.results = function(req, res, next) {
         return next(err);
       } else if (util.isArray(docs)) {
         docs.forEach(function(value) {
-          var password, ref, ref1;
+          var ref, ref1;
           if (!sendRev) {
             delete value._rev;
           }
-          if ((value.password != null) && ((ref = !((ref1 = value.docType) != null ? ref1.toLowerCase() : void 0)) === 'application' || ref === 'user')) {
+          if ((value.password != null) && !((ref = (ref1 = value.docType) != null ? ref1.toLowerCase() : void 0) === 'application' || ref === 'user')) {
             try {
-              password = encryption.decrypt(value.password);
-            } catch (_error) {}
-            if (err == null) {
-              return value.password = password;
+              return value.password = encryption.decrypt(value.password);
+            } catch (_error) {
+              return value._passwordStillEncrypted = true;
             }
           }
         });
