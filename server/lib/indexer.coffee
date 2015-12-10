@@ -68,19 +68,10 @@ exports.initialize = (callback) ->
             docTypes = Object.keys indexdefinitions
             async.eachSeries docTypes, maybeReindexDocType, callback
 
-        (callback) -> # GET LAST PROPERLY INDEXED SEQNUMBER
-            indexer.store.get 'indexedseq', (err, seq) ->
-                callback err, seq
-
-        (seqno, callback) -> # GET CHANGES SINCE STORED seqno
-            options = {include_docs: true, since: seqno}
-            db.changes options, (err, changes) ->
-                callback err, changes
-
-        (changes, callback) -> # PUT THEM IN THE QUEUE
-            for change in changes when not change.deleted
-                exports.onDocumentUpdate change.doc, change.seq
-            callback null
+        (callback) -> # REINDEX CHANGES SINCE LAST
+            indexer.store.get 'indexedseq', (err, seqno) ->
+                return callback err if err
+                reindexChanges seqno, callback
 
     ], callback
 
@@ -272,6 +263,55 @@ checkpointDocTypeRev = (docType, rev, callback) ->
 ###
 checkpointSeqNumber = (seqno, callback) ->
     indexer.store.set 'indexedseq', seqno, callback
+
+
+groupChangesByDoctypes = (changes) ->
+    byDoctype = {}
+    out = []
+    for change in changes
+        docType = change.doc.docType
+        definition = indexdefinitions[docType]
+        if definition and not change.deleted
+
+            unless byDoctype[docType]
+                docs = byDoctype[docType] = []
+                out.push {docType, docs, definition}
+
+            byDoctype[docType].push change.doc
+
+    return out
+
+###
+# Recursive function to reindex all docs which have changed since
+# the given seqno
+#
+# @params seqno {number} sequence number to start from
+#
+# @return (callback) when done
+#
+###
+reindexChanges = (seqno, callback) ->
+
+    options =
+        include_docs: true
+        since: seqno
+        limit: FETCH_AT_ONCE_FOR_REINDEX
+
+    db.changes options, (err, changes) ->
+        return callback err if err
+        return callback null if changes.length < FETCH_AT_ONCE_FOR_REINDEX
+
+        batches = groupChangesByDoctypes changes
+        maxSeqNo = changes[changes.length-1].seq
+
+        async.eachSeries batches, ({docs, docType, definition}, next) ->
+            indexer.addBatch docs, definition.ftsIndexedFields, next
+
+        , (err) ->
+            return callback err if err
+            checkpointSeqNumber maxSeqNo, (err) ->
+                return callback err if err
+                reindexChanges maxSeqNo, callback
 
 
 ###*
