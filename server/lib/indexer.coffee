@@ -18,7 +18,7 @@ log =  require('printit')
 
 indexQueue = {}
 batchInProgress = false
-BATCH_SIZE = 100
+BATCH_SIZE = 20
 batchCounter = 1
 indexdefinitions = {}
 indexdefinitionsID = {}
