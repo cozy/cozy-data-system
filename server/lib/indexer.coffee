@@ -227,14 +227,14 @@ exports.registerIndexDefinition = (docType, indexdefinition, callback) ->
 
             setTimeout callbackOnce.bind(null, new Error('timeout')), 10000
 
-            reindexDocTypeAll docType, (err) ->
+            initializeReindexing docType, (err) ->
 
                 return callbackOnce err if err
                 checkpointDocTypeRev docType, savedDoc.rev, callbackOnce
 
     else
         log.info "rev is different, but definition not changed"
-        setImmediate callbackOnce
+        checkpointDocTypeRev docType, savedDoc.rev, callbackOnce
 
 ###*
 # Store the indexdefintion rev within the index file
@@ -246,7 +246,10 @@ exports.registerIndexDefinition = (docType, indexdefinition, callback) ->
 #
 ###
 checkpointDocTypeRev = (docType, rev, callback) ->
-    indexer.store.set "indexedrev/#{docType}", rev, callback
+    getStatus docType, (err, status) ->
+        return callback err if err
+        status.rev = rev
+        saveStatus docType, status, callback
 
 ###*
 # Store the last indexed sequence number within the index file
@@ -309,6 +312,57 @@ reindexChanges = (seqno, callback) ->
                 reindexChanges maxSeqNo, callback
 
 
+getDocs = (docType, skip, limit, callback) ->
+    docType = docType.toLowerCase()
+    db.view "doctypes/all",
+        key: docType
+        limit: FETCH_AT_ONCE_FOR_REINDEX
+        skip: skip
+        include_docs: true
+        reduce: false
+    , callback
+
+getStatus = (docType, callback) ->
+    indexer.store.get "indexingstatus/#{docType}", (err, status) ->
+        if err or not status
+            status =
+                skip: 0
+                state: "indexing-by-doctype"
+                rev: 'no-revision'
+
+        else if status
+            status = JSON.parse status
+
+        callback null, status
+
+saveStatus = (docType, status, callback) ->
+    status = JSON.stringify status
+    indexer.store.set "indexingstatus/#{docType}", status, callback
+
+###*
+# Reindex a given docType from the beginning
+#
+# @params docType {string} docType to reindex
+#
+# @return (callback) when done
+#
+###
+initializeReindexing = (docType, callback) ->
+
+    definition = indexdefinitions[docType]
+
+    db.info (err, infos) ->
+        return callback err if err
+        status =
+            state: "indexing-by-doctype"
+            rev: definition._rev
+            skip: 0
+            checkpointedSeqNumber: infos.update_seq
+
+        saveStatus docType, status, (err) ->
+            return callback err if err
+            resumeReindexing docType, status, callback
+
 ###*
 # Recursive function to reindex all docs for a given docType
 # get doc in batch of FETCH_AT_ONCE_FOR_REINDEX and add them immediately
@@ -321,59 +375,41 @@ reindexChanges = (seqno, callback) ->
 # @return (callback) when done
 #
 ###
-reindexDocTypeStep = (docType, definition, callback, skip = 0) ->
-    if definition isnt indexdefinitions[docType]
-        # a new definition has been added and a new reindexing should be
-        # in progress
+resumeReindexing = (docType, status, callback) ->
+    definition = indexdefinitions[docType]
+
+    # if the definition changed while we are still reindexing
+    # we need to abort.
+    # A new indexing as been triggered in registerIndexDefinition
+    if status.rev isnt definition._rev
         log.info "aborting reindex"
         return callback new Error('abort')
 
-    query =
-        key: docType
-        limit: FETCH_AT_ONCE_FOR_REINDEX
-        skip: skip
-        include_docs: true
-        reduce: false
-
-    db.view "doctypes/all", query, (err, rows) ->
+    getDocs docType, status.skip, FETCH_AT_ONCE_FOR_REINDEX, (err, rows) ->
         return callback err if err
-        log.info "step #{docType} #{skip}, got #{rows.length} docs"
-        status[docType].total = rows.total_rows
-        return callback null if rows.length is 0
+
+        # end recursion if getDocs returns nothing
+        if rows.length is 0
+            return finishReindexing docType, status, callback
 
         docs = rows.toArray()
-
         indexer.addBatch docs, definition.ftsIndexedFields, (err) ->
             return callback err if err
 
-            if docs.length < FETCH_AT_ONCE_FOR_REINDEX
-                setImmediate callback
-            else
-                skip = skip + FETCH_AT_ONCE_FOR_REINDEX
-                reindexDocTypeStep docType, definition, callback, skip
+            status.skip = status.skip + FETCH_AT_ONCE_FOR_REINDEX
+            saveStatus docType, status, (err) ->
+                return callback err if err
+                resumeReindexing docType, status, callback
 
-###*
-# Reindex a given docType from the beginning
-#
-# @params docType {string} docType to reindex
-#
-# @return (callback) when done
-#
-###
-reindexDocTypeAll = (docType, callback) ->
-    db.info (err, infos) ->
-        return callback err if err
-        lastSeq = infos.update_seq
 
-        definition = indexdefinitions[docType]
-        reindexDocTypeStep docType, definition, (err) ->
-            return callback err if err
-
-            checkpointSeqNumber lastSeq, callback
+finishReindexing = (docType, status, callback) ->
+    status.state = 'indexing-by-changes'
+    status.skip = 0
+    saveStatus docType, status, callback
 
 ###*
 # Check if given docType definition is the same we used to index it
-# if not, fire up a reindexing using reindexDocTypeAll
+# if not, fire up a reindexing using initializeReindexing
 #
 # @params docType {string} docType to test
 #
@@ -384,19 +420,27 @@ maybeReindexDocType = (docType, callback) ->
 
     definition = indexdefinitions[docType]
 
-    indexer.store.get "indexedrev/#{docType}", (err, lastrev) ->
-
+    getStatus docType, (err, status) ->
         log.info """
-            Check index revision for #{docType}
-                in indexer:#{lastrev} , in ds:#{definition._rev}
+            Check index status for #{docType} :
+                in indexer:#{status.rev} #{status.state} #{status.skip} ,
+                in data-system:#{definition._rev}
         """
 
-        if not lastrev or lastrev isnt definition._rev
-            reindexDocTypeAll docType, (err) ->
-                return callback err if err
-                checkpointDocTypeRev docType, definition._rev, callback
+        if status.rev is definition._rev
+            if status.state is 'indexing-by-doctype'
+                # the DS probably crashed, but the definition hasnt changed
+                # state should be 'indexing', we want to start again
+                # at checkpointed skip
+                resumeReindexing docType, status, callback
+            else
+                # nothing to do
+                setImmediate callback
+
         else
-            setImmediate callback
+            # the definition has changed, it doesnt matter if we already
+            # had some indexing done, we need to start fresh
+            initializeReindexing docType, callback
 
 ###*
 # [TMP] Register default indexes used by most cozy on October 2015,
