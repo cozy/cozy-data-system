@@ -22,7 +22,6 @@ BATCH_SIZE = 20
 batchCounter = 1
 indexdefinitions = {}
 indexdefinitionsID = {}
-status = {}
 
 FETCH_AT_ONCE_FOR_REINDEX = BATCH_SIZE
 
@@ -60,7 +59,6 @@ exports.initialize = (callback) ->
                         definitionDocument.ftsIndexedFields[k] = v
                     indexdefinitions[docType] = definitionDocument
                     indexdefinitionsID[row.id] = docType
-                    status[docType] = {total: 0, done: 0}
 
                 registerDefaultIndexes callback
 
@@ -104,7 +102,6 @@ dequeue = ->
         checkpointSeqNumber maxseqno, (err) ->
             log.error "checkpoint error", err if err
             batchInProgress = false
-            status[docType].done += docs.length
             setImmediate dequeue
 
 ###*
@@ -125,7 +122,6 @@ exports.onDocumentUpdate = (doc, seqno) ->
         doc._seqno = seqno
         indexQueue[docType] ?= []
         indexQueue[docType].push doc
-        status[docType].total++
         setImmediate dequeue
 
 ###*
@@ -198,7 +194,6 @@ exports.registerIndexDefinition = (docType, indexdefinition, callback) ->
     docType = docType.toLowerCase()
     existing = indexdefinitions[docType]
     changed = false
-    status[docType] ?= {total: 0, done: 0}
 
     if existing
         mergedFields = {}
