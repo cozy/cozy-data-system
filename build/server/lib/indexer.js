@@ -28,7 +28,7 @@ indexQueue = {};
 
 batchInProgress = false;
 
-BATCH_SIZE = 20;
+BATCH_SIZE = 10;
 
 batchCounter = 1;
 
@@ -522,10 +522,12 @@ resumeReindexing = function(docType, status, callback) {
       }
       status.skip = status.skip + FETCH_AT_ONCE_FOR_REINDEX;
       return saveStatus(docType, status, function(err) {
+        var next;
         if (err) {
           return callback(err);
         }
-        return resumeReindexing(docType, status, callback);
+        next = resumeReindexing.bind(null, docType, status, callback);
+        return setTimeout(next, 500);
       });
     });
   });
