@@ -18,7 +18,7 @@ log =  require('printit')
 
 indexQueue = {}
 batchInProgress = false
-BATCH_SIZE = 20
+BATCH_SIZE = 10
 batchCounter = 1
 indexdefinitions = {}
 indexdefinitionsID = {}
@@ -399,7 +399,8 @@ resumeReindexing = (docType, status, callback) ->
             status.skip = status.skip + FETCH_AT_ONCE_FOR_REINDEX
             saveStatus docType, status, (err) ->
                 return callback err if err
-                resumeReindexing docType, status, callback
+                next = resumeReindexing.bind null, docType, status, callback
+                setTimeout next, 500 # let leveldb breath
 
 
 finishReindexing = (docType, status, callback) ->
