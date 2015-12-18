@@ -108,7 +108,7 @@ module.exports.proxy = (req, res, next) ->
             data = []
             permissions = false
             # Permissions already checked
-            if req.route.path is '/replication/:id/:name*'
+            if req.route.path is '/replication/:id([^_]*)/:name*'
                 permissions = true
             response.on 'data', (chunk) ->
                 if req.method is 'GET'
