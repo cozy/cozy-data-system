@@ -162,7 +162,8 @@ module.exports =
         ]
 
     # Get attachment in a replication
-    'replication/:id/:name*':
+    # Remove route as replication/_local/:id
+    'replication/:id([^_]*)/:name*':
         'get': [
             utils.getDoc
             utils.checkPermissionsByDoc
