@@ -161,6 +161,14 @@ module.exports =
             utils.unlockRequest
         ]
 
+    # Get attachment in a replication
+    'replication/:id/:name*':
+        'get': [
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            replication.proxy
+        ]
+
     'replication/*':
         'post': [
             utils.checkPermissionsPostReplication
