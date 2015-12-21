@@ -161,6 +161,15 @@ module.exports =
             utils.unlockRequest
         ]
 
+    # Get attachment in a replication
+    # Remove route as replication/_local/:id
+    'replication/:id([^_]*)/:name*':
+        'get': [
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            replication.proxy
+        ]
+
     'replication/*':
         'post': [
             utils.checkPermissionsPostReplication
