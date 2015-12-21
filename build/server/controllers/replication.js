@@ -111,6 +111,9 @@ module.exports.proxy = function(req, res, next) {
     res.statusCode = response.statusCode;
     data = [];
     permissions = false;
+    if (req.route.path === '/replication/:id([^_]*)/:name*') {
+      permissions = true;
+    }
     response.on('data', function(chunk) {
       var content, doc, ref1;
       if (req.method === 'GET') {

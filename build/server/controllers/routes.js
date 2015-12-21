@@ -94,6 +94,9 @@ module.exports = {
     'put': [utils.checkPermissionsFactory('access'), access.update],
     'delete': [utils.checkPermissionsFactory('access'), utils.lockRequest, utils.getDoc, access.remove, utils.unlockRequest]
   },
+  'replication/:id([^_]*)/:name*': {
+    'get': [utils.getDoc, utils.checkPermissionsByDoc, replication.proxy]
+  },
   'replication/*': {
     'post': [utils.checkPermissionsPostReplication, replication.proxy],
     'get': [replication.proxy],
