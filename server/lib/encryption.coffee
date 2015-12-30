@@ -124,6 +124,8 @@ exports.decrypt = (password) ->
             newPwd = password
             try
                 newPwd = cryptoTools.decrypt slaveKey, password
+            catch err
+                logger.error err
             return newPwd
         else
             sendMail()

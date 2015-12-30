@@ -70,7 +70,7 @@ module.exports.results = function(req, res, next) {
           if (!sendRev) {
             delete value._rev;
           }
-          if ((value.password != null) && !((ref = (ref1 = value.docType) != null ? ref1.toLowerCase() : void 0) === 'application' || ref === 'user')) {
+          if ((value.password != null) && ((ref = (ref1 = value.docType) != null ? ref1.toLowerCase() : void 0) !== 'application' && ref !== 'user')) {
             try {
               return value.password = encryption.decrypt(value.password);
             } catch (error) {

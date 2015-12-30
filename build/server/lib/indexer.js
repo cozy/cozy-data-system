@@ -314,7 +314,7 @@ exports.registerIndexDefinition = function(docType, indexdefinition, callback) {
     });
   } else {
     log.info("rev is different, but definition not changed");
-    return checkpointDocTypeRev(docType, savedDoc.rev, callbackOnce);
+    return checkpointDocTypeRev(docType, definitionDocument.rev, callbackOnce);
   }
 };
 

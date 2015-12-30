@@ -57,8 +57,9 @@ module.exports.results = (req, res, next) ->
                         # Revisions are usefull for devices
                         delete value._rev # CouchDB specific, user don't need it
 
-                    if value.password? and
-                    not (value.docType?.toLowerCase() in ['application', 'user'])
+                    if value.password? and value.docType?.toLowerCase() not in [
+                        'application', 'user'
+                    ]
                         try
                             value.password = encryption.decrypt value.password
                         catch

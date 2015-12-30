@@ -127,13 +127,16 @@ exports.get = function() {
 };
 
 exports.decrypt = function(password) {
-  var err, newPwd;
+  var err, error1, newPwd;
   if ((password != null) && process.env.NODE_ENV !== "development") {
     if ((masterKey != null) && (slaveKey != null)) {
       newPwd = password;
       try {
         newPwd = cryptoTools.decrypt(slaveKey, password);
-      } catch (undefined) {}
+      } catch (error1) {
+        err = error1;
+        logger.error(err);
+      }
       return newPwd;
     } else {
       sendMail();

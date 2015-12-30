@@ -234,7 +234,7 @@ exports.registerIndexDefinition = (docType, indexdefinition, callback) ->
 
     else
         log.info "rev is different, but definition not changed"
-        checkpointDocTypeRev docType, savedDoc.rev, callbackOnce
+        checkpointDocTypeRev docType, definitionDocument.rev, callbackOnce
 
 ###*
 # Store the indexdefintion rev within the index file
