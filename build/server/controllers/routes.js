@@ -27,7 +27,7 @@ utils = require('../middlewares/utils');
 
 module.exports = {
   '': {
-    get: data.index
+    get: [data.index]
   },
   'data/': {
     post: [utils.checkPermissionsByBody, data.encryptPassword, data.create]
@@ -42,7 +42,7 @@ module.exports = {
     "delete": [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, data["delete"], utils.unlockRequest]
   },
   'data/exist/:id/': {
-    get: data.exist
+    get: [data.exist]
   },
   'data/upsert/:id/': {
     put: [utils.lockRequest, utils.checkPermissionsByBody, data.encryptPassword, data.upsert, utils.unlockRequest]
@@ -59,10 +59,10 @@ module.exports = {
     put: [utils.checkPermissionsByType, requests.removeResults]
   },
   'tags': {
-    get: requests.tags
+    get: [requests.tags]
   },
   'doctypes': {
-    get: requests.doctypes
+    get: [requests.doctypes]
   },
   'data/:id/attachments/': {
     post: [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, attachments.add, utils.unlockRequest]
@@ -82,38 +82,38 @@ module.exports = {
     "delete": [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, binaries.remove, utils.unlockRequest]
   },
   'connectors/bank/:name/': {
-    post: connectors.bank
+    post: [connectors.bank]
   },
   'connectors/bank/:name/history': {
-    post: connectors.bankHistory
+    post: [connectors.bankHistory]
   },
   'access/': {
     post: [utils.checkPermissionsFactory('access'), access.create]
   },
   'access/:id/': {
-    'put': [utils.checkPermissionsFactory('access'), access.update],
-    'delete': [utils.checkPermissionsFactory('access'), utils.lockRequest, utils.getDoc, access.remove, utils.unlockRequest]
+    put: [utils.checkPermissionsFactory('access'), access.update],
+    "delete": [utils.checkPermissionsFactory('access'), utils.lockRequest, utils.getDoc, access.remove, utils.unlockRequest]
   },
   'replication/:id([^_]*)/:name*': {
-    'get': [utils.getDoc, utils.checkPermissionsByDoc, replication.proxy]
+    get: [utils.getDoc, utils.checkPermissionsByDoc, replication.proxy]
   },
   'replication/*': {
-    'post': [utils.checkPermissionsPostReplication, replication.proxy],
-    'get': [replication.proxy],
-    'put': [utils.checkPermissionsPutReplication, replication.proxy]
+    post: [utils.checkPermissionsPostReplication, replication.proxy],
+    get: [replication.proxy],
+    put: [utils.checkPermissionsPutReplication, replication.proxy]
   },
   'data/index/clear-all/': {
-    'delete': [utils.checkPermissionsFactory('all'), indexer.removeAll]
+    "delete": [utils.checkPermissionsFactory('all'), indexer.removeAll]
   },
   'data/index/status': {
-    'get': [indexer.indexingStatus]
+    get: [indexer.indexingStatus]
   },
   'data/index/define/:type': {
-    'post': [utils.checkPermissionsByType, indexer.defineIndex]
+    post: [utils.checkPermissionsByType, indexer.defineIndex]
   },
   'data/index/:id': {
     post: [indexer.index],
-    'delete': [indexer.remove]
+    "delete": [indexer.remove]
   },
   'data/search/:type': {
     post: [utils.checkPermissionsByType, indexer.search]
