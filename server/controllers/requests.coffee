@@ -1,5 +1,3 @@
-async = require "async"
-
 db = require('../helpers/db_connect_helper').db_connect()
 request = require '../lib/request'
 encryption = require '../lib/encryption'

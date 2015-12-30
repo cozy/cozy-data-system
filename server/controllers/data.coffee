@@ -1,7 +1,6 @@
 git = require 'git-rev'
 
 db = require('../helpers/db_connect_helper').db_connect()
-feed = require '../lib/feed'
 dbHelper = require '../lib/db_remove_helper'
 encryption = require '../lib/encryption'
 account = require './accounts'

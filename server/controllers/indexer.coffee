@@ -1,4 +1,3 @@
-feed = require '../lib/feed'
 indexer = require '../lib/indexer'
 log = require('printit')
     prefix: 'indexcontroller'

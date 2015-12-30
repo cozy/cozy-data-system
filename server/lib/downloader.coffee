@@ -4,10 +4,6 @@ querystring = require 'querystring'
 S = require 'string'
 errors = require '../middlewares/errors'
 
-log =  require('printit')
-    date: true
-    prefix: 'downloader'
-
 # Get Couch credentials from config file.
 initLoginCouch = (callback) ->
     data = fs.readFile '/etc/cozy/couchdb.login', (err, data) ->

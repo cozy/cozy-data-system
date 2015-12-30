@@ -5,15 +5,7 @@ log = require('printit')
     date: true
     prefix: 'lib/request'
 
-# Define random function for application's token
-randomString = (length) ->
-    string = ""
-    while (string.length < length)
-        string = string + Math.random().toString(36).substr(2)
-    return string.substr 0, length
-
-productionOrTest = process.env.NODE_ENV is "production" or
-    process.env.NODE_ENV is "test"
+productionOrTest = process.env.NODE_ENV in ['production', 'test']
 
 ## function create (app, req, views, newView, callback)
 ## @app {String} application name

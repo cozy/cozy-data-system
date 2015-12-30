@@ -5,8 +5,7 @@ log = require('printit')
 permissions = {}
 tokens = {}
 
-productionOrTest = process.env.NODE_ENV is "production" or
-    process.env.NODE_ENV is "test"
+productionOrTest = process.env.NODE_ENV in ['production', 'test']
 
 ## function checkToken (auth, tokens, callback)
 ## @auth {string} Field 'authorization' of request

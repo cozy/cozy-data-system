@@ -1,11 +1,3 @@
-git = require 'git-rev'
-
-db = require('../helpers/db_connect_helper').db_connect()
-feed = require '../lib/feed'
-dbHelper = require '../lib/db_remove_helper'
-errors = require '../middlewares/errors'
-encryption = require '../lib/encryption'
-
 addAccess = require('../lib/token').addAccess
 updateAccess = require('../lib/token').updateAccess
 removeAccess = require('../lib/token').removeAccess

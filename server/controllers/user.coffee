@@ -1,5 +1,4 @@
 db = require('../helpers/db_connect_helper').db_connect()
-keys = require '../lib/encryption'
 logger = require('printit')(prefix: 'controllers/user')
 errors = require '../middlewares/errors'
 

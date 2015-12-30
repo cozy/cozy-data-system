@@ -1,4 +1,3 @@
-fs = require 'fs'
 db = require('../helpers/db_connect_helper').db_connect()
 nodemailer = require "nodemailer"
 CryptoTools = require('./crypto_tools')
