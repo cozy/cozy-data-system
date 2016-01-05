@@ -11,6 +11,7 @@ user = require './user'
 account = require './accounts'
 access = require './access'
 replication = require './replication'
+filters = require './filters'
 
 utils = require '../middlewares/utils'
 
@@ -59,7 +60,7 @@ module.exports =
             utils.lockRequest
             utils.getDoc
             utils.checkPermissionsByDoc
-            data.delete
+            data.softdelete
             utils.unlockRequest
         ]
     'data/exist/:id/':
@@ -206,6 +207,34 @@ module.exports =
             utils.lockRequest
             utils.getDoc
             access.remove
+            utils.unlockRequest
+        ]
+
+
+    # Filter Management
+    'filters/:id':
+        get: [
+            filters.checkDevice
+            utils.getDoc
+            data.find
+        ]
+        post: [
+            filters.checkDevice
+            filters.fixBody
+            data.create
+        ]
+        put: [
+            filters.checkDevice
+            filters.fixBody
+            utils.lockRequest
+            data.upsert
+            utils.unlockRequest
+        ]
+        delete: [
+            filters.checkDevice
+            utils.lockRequest
+            utils.getDoc
+            data.delete
             utils.unlockRequest
         ]
 

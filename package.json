@@ -45,8 +45,8 @@
     "start": "node build/server.js",
     "build": "cake build",
     "lint": "npm run lint1 && npm run lint2",
-    "lint1": "coffeelint -f coffeelint.json ./server/**/*.coffee",
-    "lint2": "coffee-jshint -o node ./server/**/*.coffee"
+    "lint1": "coffeelint -f coffeelint.json ./server/**/*.coffee ./server/*.coffee",
+    "lint2": "coffee-jshint -o node ./server/**/*.coffee ./server/*.coffee"
   },
   "config": {
     "blanket": {

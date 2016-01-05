@@ -15,7 +15,7 @@ tokens = {};
 
 productionOrTest = (ref = process.env.NODE_ENV) === 'production' || ref === 'test';
 
-checkToken = function(auth) {
+checkToken = module.exports.checkToken = function(auth) {
   var password, username;
   if (auth !== "undefined" && (auth != null)) {
     auth = auth.substr(5, auth.length - 1);

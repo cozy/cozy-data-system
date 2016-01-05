@@ -143,7 +143,7 @@ module.exports.upsert = function(req, res, next) {
   });
 };
 
-module.exports["delete"] = function(req, res, next) {
+module.exports.softdelete = function(req, res, next) {
   return dbHelper.remove(req.doc, function(err) {
     if (err) {
       return next(err);
@@ -152,6 +152,18 @@ module.exports["delete"] = function(req, res, next) {
         success: true
       });
       return next();
+    }
+  });
+};
+
+module.exports["delete"] = function(req, res, next) {
+  return db.remove(req.doc.id, function(err, doc) {
+    if (err) {
+      return next(err);
+    } else {
+      return res.send(200, {
+        success: true
+      });
     }
   });
 };
