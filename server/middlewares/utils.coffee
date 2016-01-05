@@ -72,7 +72,13 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                 # Document deletion:
                 #   Get doc and check docType of current document
                 db.get doc._id, (err, doc) ->
-                    checkPermissions req, doc.docType, cb
+                    if err? and err.error is 'not_found'
+                        cb()
+                    else if err
+                        console.log err
+                        cb err
+                    else
+                        checkPermissions req, doc.docType, cb
             else
                 # Manage in request
                 checkPermissions req, doc.docType, cb
