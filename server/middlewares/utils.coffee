@@ -75,7 +75,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                     if err? and err.error is 'not_found'
                         cb()
                     else if err
-                        console.log err
+                        logger.error err
                         cb err
                     else
                         checkPermissions req, doc.docType, cb
