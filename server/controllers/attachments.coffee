@@ -1,4 +1,3 @@
-fs = require "fs"
 querystring = require "querystring"
 multiparty = require 'multiparty'
 log =  require('printit')
@@ -6,7 +5,6 @@ log =  require('printit')
     prefix: 'attachment'
 
 db = require('../helpers/db_connect_helper').db_connect()
-deleteFiles = require('../helpers/utils').deleteFiles
 downloader = require '../lib/downloader'
 
 

@@ -39,7 +39,7 @@ describe "Thumbs", ->
     describe "Thumb creation", ->
 
         it "When I post a file (without thumb)", (done) ->
-            file = 
+            file =
                 "docType": "File"
                 "name": "test.png"
                 "class": 'image'
@@ -63,8 +63,8 @@ describe "Thumbs", ->
                 should.exist file.binary.file
                 done()
 
-        it "And after 5 seconds file has a thumb and a screen defined in binary field", (done)->
-            @timeout 10 * 1000
+        it "And after 8 seconds file has a thumb and a screen defined in binary field", (done)->
+            @timeout 12 * 1000
             setTimeout () =>
                 @client.get "data/#{@id}/", (err, res, file) =>
                     should.exist file.binary
@@ -120,8 +120,8 @@ describe "Thumbs", ->
                 should.exist file.binary.file
                 done()
 
-        it "And after 5 seconds file has a thumb and a screen defined in binary field", (done)->
-            @timeout 10 * 1000
+        it "And after 8 seconds file has a thumb and a screen defined in binary field", (done)->
+            @timeout 12 * 1000
             setTimeout () =>
                 @client.get "data/111/", (err, res, file) =>
                     should.exist file.binary
@@ -129,7 +129,7 @@ describe "Thumbs", ->
                     should.exist file.binary.thumb
                     should.exist file.binary.screen
                     done()
-            , 5 * 1000
+            , 8 * 1000
 
         it "And thumb corresponds to thumb file", (done) ->
             dstPath = 'thumb.png'

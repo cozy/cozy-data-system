@@ -1,5 +1,3 @@
-fs = require "fs"
-querystring = require 'querystring'
 multiparty = require 'multiparty'
 log =  require('printit')
     date: true
@@ -7,7 +5,6 @@ log =  require('printit')
 
 db = require('../helpers/db_connect_helper').db_connect()
 binaryManagement = require '../lib/binary'
-deleteFiles = require('../helpers/utils').deleteFiles
 dbHelper = require '../lib/db_remove_helper'
 downloader = require '../lib/downloader'
 async = require 'async'

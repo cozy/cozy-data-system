@@ -3,16 +3,12 @@ encryption = require '../lib/encryption'
 
 async = require 'async'
 Client = require("request-json").JsonClient
-CryptoTools = require '../lib/crypto_tools'
 User = require '../lib/user'
 
-randomString = require('../lib/random').randomString
 checkProxyHome = require('../lib/token').checkProxyHome
 errors = require '../middlewares/errors'
 
-cryptoTools = new CryptoTools()
 user = new User()
-correctWitness = "Encryption is correct"
 apps = []
 
 

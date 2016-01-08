@@ -1,7 +1,6 @@
 git = require 'git-rev'
 
 db = require('../helpers/db_connect_helper').db_connect()
-feed = require '../lib/feed'
 dbHelper = require '../lib/db_remove_helper'
 encryption = require '../lib/encryption'
 account = require './accounts'
@@ -115,13 +114,20 @@ module.exports.upsert = (req, res, next) ->
 
 # DELETE /data/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
-module.exports.delete = (req, res, next) ->
+module.exports.softdelete = (req, res, next) ->
     dbHelper.remove req.doc, (err) ->
         if err
             next err
         else
             res.send 204, success: true
             next()
+
+module.exports.delete = (req, res, next) ->
+    db.remove req.doc.id, (err, doc) ->
+        if err
+            next err
+        else
+            res.send 200, success: true
 
 # PUT /data/merge/:id/
 # this doesn't take care of conflict (erase DB with the sent value)

@@ -5,15 +5,14 @@ log = require('printit')
 permissions = {}
 tokens = {}
 
-productionOrTest = process.env.NODE_ENV is "production" or
-    process.env.NODE_ENV is "test"
+productionOrTest = process.env.NODE_ENV in ['production', 'test']
 
 ## function checkToken (auth, tokens, callback)
 ## @auth {string} Field 'authorization' of request
 ## @tokens {tab} Tab which contains applications and their tokens
 ## @callback {function} Continuation to pass control back to when complete.
 ## Check if application is well authenticated
-checkToken = (auth) ->
+checkToken = module.exports.checkToken = (auth) ->
     if auth isnt "undefined" and auth?
         # Recover username and password in field authorization
         auth = auth.substr(5, auth.length - 1)
@@ -27,7 +26,6 @@ checkToken = (auth) ->
             return [null, false, username]
     else
         return [null, false, null]
-
 
 ## function checkDocType (docType, app, callback)
 ## @docType {String} document's docType that application want manage

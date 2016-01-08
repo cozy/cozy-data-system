@@ -1,4 +1,3 @@
-fs = require 'fs'
 db = require('../helpers/db_connect_helper').db_connect()
 nodemailer = require "nodemailer"
 CryptoTools = require('./crypto_tools')
@@ -124,6 +123,8 @@ exports.decrypt = (password) ->
             newPwd = password
             try
                 newPwd = cryptoTools.decrypt slaveKey, password
+            catch err
+                logger.error err
             return newPwd
         else
             sendMail()
