@@ -77,7 +77,14 @@ module.exports.checkPermissionsPostReplication = function(req, res, next) {
     return async.forEach(req.body.docs, function(doc, cb) {
       if (doc._deleted) {
         return db.get(doc._id, function(err, doc) {
-          return checkPermissions(req, doc.docType, cb);
+          if ((err != null) && err.error === 'not_found') {
+            return cb();
+          } else if (err) {
+            logger.error(err);
+            return cb(err);
+          } else {
+            return checkPermissions(req, doc.docType, cb);
+          }
         });
       } else {
         return checkPermissions(req, doc.docType, cb);
