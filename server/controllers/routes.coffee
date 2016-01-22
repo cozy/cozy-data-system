@@ -4,7 +4,6 @@ data = require './data'
 requests = require './requests'
 attachments = require './attachments'
 binaries = require './binaries'
-connectors = require './connectors'
 indexer = require './indexer'
 mails = require './mails'
 user = require './user'
@@ -177,17 +176,6 @@ module.exports =
             utils.checkPermissionsByDoc
             binaries.remove
             utils.unlockRequest
-        ]
-
-
-    # Scrapper connectors
-    'connectors/bank/:name/':
-        post: [
-            connectors.bank
-        ]
-    'connectors/bank/:name/history':
-        post: [
-            connectors.bankHistory
         ]
 
 
