@@ -96,7 +96,7 @@ requestOptions = (req) ->
 module.exports.proxy = (req, res, next) ->
     [err, options] = requestOptions req
     # Device isn't authorized if err
-    return res.send 403, err if err?
+    return res.status(403).send err if err?
 
     stream = through()
     couchReq  = request options
@@ -133,7 +133,7 @@ module.exports.proxy = (req, res, next) ->
                             err = checkPermissions req, doc.docType
                             if err
                                 # Device isn't authorized
-                                res.send 403, err
+                                res.status(403).send err
                                 couchReq.end()
                             else
                                 permissions = true
@@ -146,7 +146,7 @@ module.exports.proxy = (req, res, next) ->
 
         .on 'error', (err) ->
             console.log 'error'
-            return res.send 500, err
+            return res.status(500).send err
 
     stream.pipe couchReq
 
@@ -164,7 +164,7 @@ module.exports.proxy = (req, res, next) ->
                 err = checkPermissions req, doc.docType
                 if err
                     # Device isn't authorized
-                    res.send 403, err
+                    res.status(403).send err
                     stream.emit 'end'
                     couchReq.end()
                     req.destroy()

@@ -51,7 +51,7 @@ module.exports.add = function(req, res, next) {
           log.error("" + (JSON.stringify(err)));
           return form.emit('error', err);
         } else {
-          return res.send(201, {
+          return res.status(201).send({
             success: true
           });
         }
@@ -64,7 +64,7 @@ module.exports.add = function(req, res, next) {
   });
   return form.on('close', function() {
     if (nofile) {
-      res.send(400, {
+      res.status(400).send({
         error: 'No file sent'
       });
     }
@@ -114,7 +114,7 @@ module.exports.remove = function(req, res, next) {
         key: id
       }, function(err, result) {
         if (result.length !== 0) {
-          res.send(204, {
+          res.status(204).send({
             success: true
           });
           return next();
@@ -130,7 +130,7 @@ module.exports.remove = function(req, res, next) {
               console.log("[Attachment] err: " + JSON.stringify(err));
               return next(err);
             } else {
-              res.send(204, {
+              res.status(204).send({
                 success: true
               });
               return next();
@@ -218,7 +218,7 @@ module.exports.convert = function(req, res, next) {
             if (err) {
               return next(err);
             } else {
-              res.send(200, {
+              res.status(200).send({
                 success: true
               });
               return next();
@@ -228,7 +228,7 @@ module.exports.convert = function(req, res, next) {
       }
     });
   } else {
-    res.send(200, {
+    res.status(200).send({
       success: true
     });
     return next();

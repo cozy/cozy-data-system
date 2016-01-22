@@ -73,7 +73,7 @@ module.exports.send = (req, res, next) ->
                 error.status = 501
                 next error
             else
-                res.send 200, response
+                res.status(200).send response
 
 
 # POST /mail/to-user/
@@ -108,7 +108,7 @@ module.exports.sendToUser = (req, res, next) ->
                         error.status = 501
                         next error
                     else
-                        res.send 200, response
+                        res.status(200).send response
 
 
 # POST /mail/from-user/
@@ -166,5 +166,5 @@ module.exports.sendFromUser = (req, res, next) ->
                         error.status = 501
                         next error
                     else
-                        res.send 200, response
+                        res.status(200).send response
 

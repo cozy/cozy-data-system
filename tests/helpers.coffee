@@ -20,8 +20,6 @@ helpers.options =
     serverHost: process.env.HOST or 'localhost'
     serverPort: process.env.PORT or 8888
 
-    # default port must also be changed in server/lib/indexer.coffee
-    indexerPort: process.env.INDEXER_PORT or 9092
     # default port must also be changed in server/lib/feed.coffee
     axonPort: parseInt process.env.AXON_PORT or 9105
 

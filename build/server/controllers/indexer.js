@@ -12,7 +12,7 @@ db = require('../helpers/db_connect_helper').db_connect();
 module.exports.index = function(req, res, next) {
   log.info('app used deprecated POST /data/index/:id');
   return indexer.waitIndexing(req.params.id, function(err) {
-    return res.send(200, {
+    return res.status(200).send({
       success: true
     });
   });
@@ -25,7 +25,7 @@ module.exports.defineIndex = function(req, res, next) {
     if (err) {
       return next(err);
     }
-    return res.send(200, {
+    return res.status(200).send({
       success: true
     });
   });
@@ -36,7 +36,7 @@ module.exports.indexingStatus = function(req, res, next) {
     if (err) {
       return next(err);
     }
-    return res.send(200, status);
+    return res.status(200).send(status);
   });
 };
 
@@ -77,7 +77,7 @@ module.exports.search = function(req, res, next) {
 module.exports.remove = function(req, res, next) {
   log.info('app used deprecated DELETE /data/index/:id');
   return setTimeout((function() {
-    return res.send(200, {
+    return res.status(200).send({
       success: true
     });
   }), 100);
@@ -88,7 +88,7 @@ module.exports.removeAll = function(req, res, next) {
     if (err) {
       return next(err);
     }
-    return res.send(200, {
+    return res.status(200).send({
       success: true
     });
   });

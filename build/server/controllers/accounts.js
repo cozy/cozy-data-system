@@ -95,7 +95,7 @@ module.exports.initializeKeys = function(req, res, next) {
           return next(err);
         }
         if (isLog) {
-          return res.send(200, {
+          return res.status(200).send({
             success: true
           });
         } else {
@@ -105,7 +105,7 @@ module.exports.initializeKeys = function(req, res, next) {
             if (err != null) {
               console.log(err);
             }
-            return res.send(200, {
+            return res.status(200).send({
               success: true
             });
           });
@@ -116,7 +116,7 @@ module.exports.initializeKeys = function(req, res, next) {
         if (err) {
           return next(err);
         }
-        return res.send(200, {
+        return res.status(200).send({
           success: true
         });
       });
@@ -137,7 +137,7 @@ module.exports.updateKeys = function(req, res, next) {
         if (err) {
           return next(err);
         } else {
-          return res.send(200, {
+          return res.status(200).send({
             success: true
           });
         }
@@ -156,7 +156,7 @@ module.exports.resetKeys = function(req, res, next) {
       if (err) {
         return next(err);
       }
-      return res.send(204, {
+      return res.status(204).send({
         success: true
       });
     });
@@ -164,7 +164,7 @@ module.exports.resetKeys = function(req, res, next) {
 };
 
 module.exports.deleteKeys = function(req, res) {
-  return res.send(204, {
-    sucess: true
+  return res.status(204).send({
+    success: true
   });
 };

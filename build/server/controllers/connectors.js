@@ -27,7 +27,7 @@ module.exports.bank = function(req, res, next) {
       } else if (response.statusCode !== 200) {
         return res.send(response.statusCode, body);
       } else {
-        return res.send(200, body);
+        return res.status(200).send(body);
       }
     });
   } else {
@@ -49,7 +49,7 @@ module.exports.bankHistory = function(req, res, next) {
       } else if (response.statusCode !== 200) {
         return res.send(response.statusCode, body);
       } else {
-        return res.send(200, body);
+        return res.status(200).send(body);
       }
     });
   } else {

@@ -24,7 +24,7 @@ module.exports.bank = (req, res, next) ->
             else if response.statusCode isnt 200
                 res.send response.statusCode, body
             else
-                res.send 200, body
+                res.status(200).send body
     else
         err = new Error "Login and password fields missing in request's body."
         err.status = 400
@@ -41,7 +41,7 @@ module.exports.bankHistory = (req, res, next) ->
             else if response.statusCode isnt 200
                 res.send response.statusCode, body
             else
-                res.send 200, body
+                res.status(200).send body
     else
         err = new Error "Login and password fields missing in request's body."
         err.status = 400

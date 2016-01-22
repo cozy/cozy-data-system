@@ -23,7 +23,7 @@ module.exports.create = function(req, res, next) {
           if (err) {
             return next(errors.http(409, "The document exists"));
           } else {
-            return res.send(201, {
+            return res.status(201).send({
               _id: response.id
             });
           }
@@ -36,7 +36,7 @@ module.exports.create = function(req, res, next) {
         logger.error(err);
         return next(err);
       } else {
-        return res.send(201, {
+        return res.status(201).send({
           _id: response.id
         });
       }
@@ -54,7 +54,7 @@ module.exports.merge = function(req, res, next) {
       logger.error(err);
       return next(err);
     } else {
-      res.send(200, {
+      res.status(200).send({
         success: true
       });
       return next();

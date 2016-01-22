@@ -46,7 +46,7 @@ module.exports.index = function(req, res) {
   return git.long(function(commit) {
     return git.branch(function(branch) {
       return git.tag(function(tag) {
-        return res.send(200, "<strong>Cozy Data System</strong><br />\nrevision: " + commit + "  <br />\ntag: " + tag + " <br />\nbranch: " + branch + " <br />");
+        return res.status(200).send("<strong>Cozy Data System</strong><br />\nrevision: " + commit + "  <br />\ntag: " + tag + " <br />\nbranch: " + branch + " <br />");
       });
     });
   });
@@ -55,11 +55,11 @@ module.exports.index = function(req, res) {
 module.exports.exist = function(req, res, next) {
   return db.head(req.params.id, function(err, response, status) {
     if (status === 200) {
-      return res.send(200, {
+      return res.status(200).send({
         exist: true
       });
     } else if (status === 404) {
-      return res.send(200, {
+      return res.status(200).send({
         exist: false
       });
     } else {
@@ -70,7 +70,7 @@ module.exports.exist = function(req, res, next) {
 
 module.exports.find = function(req, res) {
   delete req.doc._rev;
-  return res.send(200, req.doc);
+  return res.status(200).send(req.doc);
 };
 
 module.exports.create = function(req, res, next) {
@@ -88,7 +88,7 @@ module.exports.create = function(req, res, next) {
             err.status = 409;
             return next(err);
           } else {
-            return res.send(201, {
+            return res.status(201).send({
               _id: doc.id
             });
           }
@@ -100,7 +100,7 @@ module.exports.create = function(req, res, next) {
       if (err) {
         return next(err);
       } else {
-        return res.send(201, {
+        return res.status(201).send({
           _id: doc.id
         });
       }
@@ -114,7 +114,7 @@ module.exports.update = function(req, res, next) {
     if (err) {
       return next(err);
     } else {
-      res.send(200, {
+      res.status(200).send({
         success: true
       });
       return next();
@@ -129,12 +129,12 @@ module.exports.upsert = function(req, res, next) {
       if (err) {
         return next(err);
       } else if (doc != null) {
-        res.send(200, {
+        res.status(200).send({
           success: true
         });
         return next();
       } else {
-        res.send(201, {
+        res.status(201).send({
           _id: savedDoc.id
         });
         return next();
@@ -148,7 +148,7 @@ module.exports.softdelete = function(req, res, next) {
     if (err) {
       return next(err);
     } else {
-      res.send(204, {
+      res.status(204).send({
         success: true
       });
       return next();
@@ -161,7 +161,7 @@ module.exports["delete"] = function(req, res, next) {
     if (err) {
       return next(err);
     } else {
-      return res.send(200, {
+      return res.status(200).send({
         success: true
       });
     }
@@ -174,7 +174,7 @@ module.exports.merge = function(req, res, next) {
     if (err) {
       return next(err);
     } else {
-      res.send(200, {
+      res.status(200).send({
         success: true
       });
       return next();
