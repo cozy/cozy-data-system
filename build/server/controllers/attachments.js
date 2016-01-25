@@ -46,7 +46,7 @@ module.exports.add = function(req, res, next) {
           return form.emit('error', err);
         } else {
           log.info("Attachment " + name + " saved to Couch.");
-          res.send(201, {
+          res.status(201).send({
             success: true
           });
           return next();
@@ -102,7 +102,7 @@ module.exports.remove = function(req, res, next) {
     if (err) {
       return next(err);
     } else {
-      res.send(204, {
+      res.status(204).send({
         success: true
       });
       return next();

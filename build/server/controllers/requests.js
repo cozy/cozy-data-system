@@ -30,7 +30,7 @@ module.exports.doctypes = function(req, res, next) {
       docs.forEach(function(key, row, id) {
         return out.push(key);
       });
-      return res.send(200, out);
+      return res.status(200).send(out);
     }
   });
 };
@@ -48,7 +48,7 @@ module.exports.tags = function(req, res, next) {
       docs.forEach(function(key, row, id) {
         return out.push(key);
       });
-      return res.send(200, out);
+      return res.status(200).send(out);
     }
   });
 };
@@ -98,7 +98,7 @@ module.exports.removeResults = function(req, res, next) {
           log.error("Deletion by request failed for " + viewName);
           log.error(err);
           if (options.startkey != null) {
-            return res.send(204, {
+            return res.status(204).send({
               success: true
             });
           } else {
@@ -111,7 +111,7 @@ module.exports.removeResults = function(req, res, next) {
             return setTimeout(delFunc, 500);
           });
         } else {
-          return res.send(204, {
+          return res.status(204).send({
             success: true
           });
         }
@@ -135,7 +135,7 @@ module.exports.definition = function(req, res, next) {
           console.log("[Definition] err: " + JSON.stringify(err));
           return next(err);
         } else {
-          res.send(200, {
+          res.status(200).send({
             success: true
           });
           return next();
@@ -154,7 +154,7 @@ module.exports.definition = function(req, res, next) {
             console.log("[Definition] err: " + JSON.stringify(err));
             return next(err);
           } else {
-            res.send(200, {
+            res.status(200).send({
               success: true
             });
             return next();
@@ -176,7 +176,7 @@ module.exports.remove = function(req, res, next) {
       views = docs.views;
       return request.get(req.appName, req.params, function(path) {
         if (path === ("" + req.params.req_name)) {
-          res.send(204, {
+          res.status(204).send({
             success: true
           });
           return next();
@@ -189,7 +189,7 @@ module.exports.remove = function(req, res, next) {
               console.log("[Definition] err: " + err.message);
               return next(err);
             } else {
-              res.send(204, {
+              res.status(204).send({
                 success: true
               });
               return next();

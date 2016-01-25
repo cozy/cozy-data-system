@@ -106,7 +106,7 @@ module.exports.proxy = function(req, res, next) {
   var couchReq, data, err, options, permissions, ref, stream;
   ref = requestOptions(req), err = ref[0], options = ref[1];
   if (err != null) {
-    return res.send(403, err);
+    return res.status(403).send(err);
   }
   stream = through();
   couchReq = request(options).on('response', function(response) {
@@ -140,7 +140,7 @@ module.exports.proxy = function(req, res, next) {
           if (doc) {
             err = checkPermissions(req, doc.docType);
             if (err) {
-              res.send(403, err);
+              res.status(403).send(err);
               return couchReq.end();
             } else {
               permissions = true;
@@ -156,7 +156,7 @@ module.exports.proxy = function(req, res, next) {
       return res.end();
     });
   }).on('error', function(err) {
-    return res.send(500, err);
+    return res.status(500).send(err);
   });
   stream.pipe(couchReq);
   data = [];
@@ -171,7 +171,7 @@ module.exports.proxy = function(req, res, next) {
       if (!err) {
         err = checkPermissions(req, doc.docType);
         if (err) {
-          res.send(403, err);
+          res.status(403).send(err);
           stream.emit('end');
           couchReq.end();
           return req.destroy();

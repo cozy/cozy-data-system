@@ -18,7 +18,7 @@ module.exports = function(err, req, res, next) {
       code: err.code
     };
   }
-  res.send(statusCode, {
+  res.status(statusCode).send({
     error: message
   });
   if (err instanceof Error) {

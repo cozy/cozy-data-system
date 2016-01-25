@@ -87,7 +87,7 @@ module.exports.send = function(req, res, next) {
         error.status = 501;
         return next(error);
       } else {
-        return res.send(200, response);
+        return res.status(200).send(response);
       }
     });
   }
@@ -126,7 +126,7 @@ module.exports.sendToUser = function(req, res, next) {
             error.status = 501;
             return next(error);
           } else {
-            return res.send(200, response);
+            return res.status(200).send(response);
           }
         });
       }
@@ -184,7 +184,7 @@ module.exports.sendFromUser = function(req, res, next) {
             error.status = 501;
             return next(error);
           } else {
-            return res.send(200, response);
+            return res.status(200).send(response);
           }
         });
       });

@@ -15,7 +15,7 @@ module.exports.create = function(req, res, next) {
     if (err) {
       return next(err);
     } else {
-      return res.send(201, access);
+      return res.status(201).send(access);
     }
   });
 };
@@ -27,7 +27,7 @@ module.exports.update = function(req, res, next) {
     if (err) {
       return next(err);
     } else {
-      return res.send(200, {
+      return res.status(200).send({
         success: true
       });
     }
@@ -39,7 +39,7 @@ module.exports.remove = function(req, res, next) {
     if (err) {
       return next(err);
     } else {
-      return res.send(204, {
+      return res.status(204).send({
         success: true
       });
     }
