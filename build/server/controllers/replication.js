@@ -121,7 +121,7 @@ module.exports.proxy = function(req, res, next) {
     }
     response.on('data', function(chunk) {
       var content, doc, error, ref1;
-      if (req.method === 'GET') {
+      if (req.method === 'GET' && !(req.query.heartbeat && chunk.toString() === "\n")) {
         if (permissions) {
           return res.write(chunk);
         } else {
@@ -131,7 +131,7 @@ module.exports.proxy = function(req, res, next) {
               doc = JSON.parse(Buffer.concat(data));
             } catch (error) {
               err = error;
-              log.error(err);
+              log.info("Buffer isn't a JSON valid.");
             }
           } else {
             content = Buffer.concat(data).toString();
@@ -156,7 +156,6 @@ module.exports.proxy = function(req, res, next) {
       return res.end();
     });
   }).on('error', function(err) {
-    console.log('error');
     return res.send(500, err);
   });
   stream.pipe(couchReq);

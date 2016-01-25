@@ -114,7 +114,11 @@ module.exports.proxy = (req, res, next) ->
             if req.route.path is '/replication/:id([^_]*)/:name*'
                 permissions = true
             response.on 'data', (chunk) ->
-                if req.method is 'GET'
+
+                # When replication are heartbeat it's send \n every 10 seconds
+                # so we don't want to have a processing
+                if req.method is 'GET' and \
+                        not (req.query.heartbeat and chunk.toString() is "\n")
                     if permissions
                         res.write chunk
                     else
@@ -124,7 +128,7 @@ module.exports.proxy = (req, res, next) ->
                             try
                                 doc = JSON.parse Buffer.concat(data)
                             catch err
-                                log.error err
+                                log.info "Buffer isn't a JSON valid."
                         else
                             content = Buffer.concat(data).toString()
                             [err, doc] = retrieveJsonDocument content
@@ -145,7 +149,6 @@ module.exports.proxy = (req, res, next) ->
                 res.end()
 
         .on 'error', (err) ->
-            console.log 'error'
             return res.send 500, err
 
     stream.pipe couchReq
