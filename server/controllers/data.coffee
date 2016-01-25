@@ -37,7 +37,7 @@ module.exports.index = (req, res) ->
     git.long (commit) ->
         git.branch (branch) ->
             git.tag (tag) ->
-                res.send 200, """
+                res.status(200).send """
                 <strong>Cozy Data System</strong><br />
                 revision: #{commit}  <br />
                 tag: #{tag} <br />
@@ -48,16 +48,16 @@ module.exports.index = (req, res) ->
 module.exports.exist = (req, res, next) ->
     db.head req.params.id, (err, response, status) ->
         if status is 200
-            res.send 200, exist: true
+            res.status(200).send exist: true
         else if status is 404
-            res.send 200, exist: false
+            res.status(200).send exist: false
         else
             next err
 
 # GET /data/:id/
 module.exports.find = (req, res) ->
     delete req.doc._rev # CouchDB specific, user don't need it
-    res.send 200, req.doc
+    res.status(200).send req.doc
 
 # POST /data/:id/
 # POST /data/
@@ -77,13 +77,13 @@ module.exports.create = (req, res, next) ->
                         err.status = 409
                         next err
                     else
-                        res.send 201, _id: doc.id
+                        res.status(201).send _id: doc.id
     else
         db.save req.body, (err, doc) ->
             if err
                 next err
             else
-                res.send 201, _id: doc.id
+                res.status(201).send _id: doc.id
 
 # PUT /data/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
@@ -93,7 +93,7 @@ module.exports.update = (req, res, next) ->
     db.save req.params.id, req.body, (err, response) ->
         if err then next err
         else
-            res.send 200, success: true
+            res.status(200).send success: true
             next()
 
 # PUT /data/upsert/:id/
@@ -106,10 +106,10 @@ module.exports.upsert = (req, res, next) ->
             if err
                 next err
             else if doc?
-                res.send 200, success: true
+                res.status(200).send success: true
                 next()
             else
-                res.send 201, _id: savedDoc.id
+                res.status(201).send _id: savedDoc.id
                 next()
 
 # DELETE /data/:id/
@@ -119,7 +119,7 @@ module.exports.softdelete = (req, res, next) ->
         if err
             next err
         else
-            res.send 204, success: true
+            res.status(204).send success: true
             next()
 
 module.exports.delete = (req, res, next) ->
@@ -127,7 +127,7 @@ module.exports.delete = (req, res, next) ->
         if err
             next err
         else
-            res.send 200, success: true
+            res.status(200).send success: true
 
 # PUT /data/merge/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
@@ -137,5 +137,5 @@ module.exports.merge = (req, res, next) ->
         if err
             next err
         else
-            res.send 200, success: true
+            res.status(200).send success: true
             next()

@@ -63,7 +63,7 @@ module.exports.add = (req, res, next) ->
                     log.error "#{JSON.stringify err}"
                     form.emit 'error', err
                 else
-                    res.send 201, success: true
+                    res.status(201).send success: true
 
 
     form.on 'progress', (bytesReceived, bytesExpected) ->
@@ -72,7 +72,7 @@ module.exports.add = (req, res, next) ->
         next err
 
     form.on 'close', ->
-        res.send 400, error: 'No file sent' if nofile
+        res.status(400).send error: 'No file sent' if nofile
         # If no file was found, returns a client error.
         next()
 
@@ -132,7 +132,7 @@ module.exports.remove = (req, res, next) ->
             # Check if binary is used by another document
             db.view 'binary/byDoc', {key: id}, (err, result) ->
                 if result.length isnt 0
-                    res.send 204, success: true
+                    res.status(204).send success: true
                     return next()
 
                 # Then delete binary document.
@@ -148,7 +148,7 @@ module.exports.remove = (req, res, next) ->
                                                         JSON.stringify err
                             next err
                         else
-                            res.send 204, success: true
+                            res.status(204).send success: true
                             next()
 
     # No binary given, error is returned.
@@ -216,8 +216,8 @@ module.exports.convert = (req, res, next) ->
                         if err
                             next err
                         else
-                            res.send 200, success: true
+                            res.status(200).send success: true
                             next()
     else
-        res.send 200, success: true
+        res.status(200).send success: true
         next()

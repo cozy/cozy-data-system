@@ -12,7 +12,7 @@ module.exports = (err, req, res, next) ->
         message =
             message: message
             code: err.code
-    res.send statusCode, error: message
+    res.status(statusCode).send error: message
 
     if err instanceof Error
         logger.error err.message

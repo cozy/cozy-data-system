@@ -73,19 +73,19 @@ module.exports.initializeKeys = (req, res, next) ->
             encryption.logIn req.body.password, user, (err)->
                 return next err if err
                 if isLog
-                    res.send 200, success: true
+                    res.status(200).send success: true
                 else
                     # Temporary : restart application which use encrypted data
                     async.forEach apps, (app, cb) ->
                         restartApp app, cb
                     , (err) ->
                         console.log err if err?
-                        res.send 200, success: true
+                        res.status(200).send success: true
         ## First connection
         else
             encryption.init req.body.password, user, (err)->
                 return next err if err
-                res.send 200, success: true
+                res.status(200).send success: true
 
 #PUT /accounts/password/
 module.exports.updateKeys = (req, res, next) ->
@@ -101,7 +101,7 @@ module.exports.updateKeys = (req, res, next) ->
                 if err
                     next err
                 else
-                    res.send 200, success: true
+                    res.status(200).send success: true
 
 
 #DELETE /accounts/reset/
@@ -114,11 +114,11 @@ module.exports.resetKeys = (req, res, next) ->
         encryption.reset user, (err) ->
             return next err if err
 
-            res.send 204, success: true
+            res.status(204).send success: true
 
 
 #DELETE /accounts/
 ## TODO : Remove this function (wait proxy updating)
 module.exports.deleteKeys = (req, res) ->
-    res.send 204, sucess: true
+    res.status(204).send success: true
 

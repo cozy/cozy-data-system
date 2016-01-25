@@ -13,7 +13,7 @@ module.exports.create = (req, res, next) ->
         if err
             next err
         else
-            res.send 201, access
+            res.status(201).send access
 
 # PUT /access/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
@@ -23,7 +23,7 @@ module.exports.update = (req, res, next) ->
         if err
             next err
         else
-            res.send 200, success: true
+            res.status(200).send success: true
 
 # DELETE /access/:id/
 # this doesn't take care of conflict (erase DB with the sent value)
@@ -32,4 +32,4 @@ module.exports.remove = (req, res, next) ->
         if err
             next err
         else
-            res.send 204, success: true
+            res.status(204).send success: true
