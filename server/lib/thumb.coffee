@@ -63,11 +63,11 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
 
         if name is 'thumb'
             gmRunner
+            .background('None')     # Preserve alpha
             .resize(300, 300, '^')  # Fill 300x300
             .gravity('Center')      # Combined with extent -v
             .extent(300, 300)       # Crop to 300x300 centered
-            .background('None')     # Preserve alpha
-            .noProfile()            # Strip EXIF
+            .strip()                # Strip EXIF
             .stream (err, stdout, stderr) ->
                 if err
                     # Releases stream if an error occurs
@@ -78,14 +78,14 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
                     binaryManagement.addBinary file, data, stdout, (err)->
                         return callback err if err?
 
-                stdout.on "end", callback
+                    stdout.on 'end', callback
 
         else if name is 'screen'
             # Resize file
             gmRunner
-            .resize(1200, 800)   # Fit in 1200x800
             .background('None')  # Preserve alpha
-            .noProfile()         # Strip EXIF
+            .resize(1200, 800)   # Fit in 1200x800
+            .strip()             # Strip EXIF
             .stream (err, stdout, stderr) ->
                 if err
                     # Releases stream if an error occurs
@@ -121,7 +121,7 @@ createThumb = (file, force, callback) ->
             return callback 'Error in thumb creation.'
         stream.pipe writeStream
         stream.on 'error', callback
-        stream.on 'end', ->
+        writeStream.on 'finish', ->
             # Resize and create if necessary thumb and screen for file
             resize rawFile, file, 'thumb', mimetype, force, (err) ->
                 log.error(err) if err?
