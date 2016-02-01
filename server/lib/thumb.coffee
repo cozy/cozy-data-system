@@ -62,34 +62,30 @@ resize = (srcPath, file, name, mimetype, force, callback) ->
         gmRunner = gm(srcPath)
 
         if name is 'thumb'
-            buildThumb = (width, height) ->
-                gmRunner
-                .resize(width, height)
-                .crop(300, 300, 0, 0)
-                .stream (err, stdout, stderr) ->
-                    if err
-                        # Releases stream if an error occurs
-                        releaseStream stdout
-                        callback err
-                    else
-                        # Attach resized file in document
-                        binaryManagement.addBinary file, data, stdout, (err)->
-                            return callback err if err?
-
-                    stdout.on "end", callback
-
-            gmRunner.size (err, data) ->
+            gmRunner
+            .background('None')     # Preserve alpha
+            .resize(300, 300, '^')  # Fill 300x300
+            .gravity('Center')      # Combined with extent -v
+            .extent(300, 300)       # Crop to 300x300 centered
+            .strip()                # Strip EXIF
+            .stream (err, stdout, stderr) ->
                 if err
+                    # Releases stream if an error occurs
+                    releaseStream stdout
                     callback err
-                else if data.width > data.height
-                    buildThumb null, 300
                 else
-                    buildThumb 300, null
+                    # Attach resized file in document
+                    binaryManagement.addBinary file, data, stdout, (err)->
+                        return callback err if err?
+
+                    stdout.on 'end', callback
 
         else if name is 'screen'
             # Resize file
             gmRunner
-            .resize(1200, 800)
+            .background('None')  # Preserve alpha
+            .resize(1200, 800)   # Fit in 1200x800
+            .strip()             # Strip EXIF
             .stream (err, stdout, stderr) ->
                 if err
                     # Releases stream if an error occurs
@@ -125,7 +121,7 @@ createThumb = (file, force, callback) ->
             return callback 'Error in thumb creation.'
         stream.pipe writeStream
         stream.on 'error', callback
-        stream.on 'end', ->
+        writeStream.on 'finish', ->
             # Resize and create if necessary thumb and screen for file
             resize rawFile, file, 'thumb', mimetype, force, (err) ->
                 log.error(err) if err?
