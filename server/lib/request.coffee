@@ -270,7 +270,7 @@ initializeDSView = (callback) ->
 ## Initialize request
 module.exports.init = (callback) ->
     removeEmptyView = (doc, callback) ->
-        if Object.keys(doc.views).length is 0 or not doc?.views?
+        if not doc?.views? or Object.keys(doc.views).length is 0
             db.remove doc._id, doc._rev, (err, response) ->
                 if err
                     log.error "[Definition] err: " + err.message
@@ -316,13 +316,18 @@ module.exports.init = (callback) ->
                 recoverDesignDocs (err, docs) ->
                     return callback err if err?
                     async.forEach docs, (doc, cb) ->
-                        async.forEach Object.keys(doc.views), (view, cb) ->
-                            body = doc.views[view]
-                            storeAppView apps, doc, view, body, cb
-                        , (err) ->
-                            removeEmptyView doc, (err) ->
-                                log.error err if err?
-                                cb()
+                        if not doc?.views?
+                            log.warn "Document has no view"
+                            log.warn doc
+                            cb()
+                        else
+                            async.forEach Object.keys(doc.views), (view, cb) ->
+                                body = doc.views[view]
+                                storeAppView apps, doc, view, body, cb
+                            , (err) ->
+                                removeEmptyView doc, (err) ->
+                                    log.error err if err?
+                                    cb()
                     , (err) ->
                         log.error err if err?
                         callback()
