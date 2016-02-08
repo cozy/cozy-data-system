@@ -45,7 +45,7 @@ releaseStream = function(stream) {
 };
 
 resize = function(srcPath, file, name, mimetype, force, callback) {
-  var buildThumb, data, e, err, error, error1, gmRunner;
+  var data, e, err, error, error1, gmRunner;
   if ((file.binary[name] != null) && !force) {
     return callback();
   }
@@ -70,32 +70,21 @@ resize = function(srcPath, file, name, mimetype, force, callback) {
     }
     gmRunner = gm(srcPath);
     if (name === 'thumb') {
-      buildThumb = function(width, height) {
-        return gmRunner.resize(width, height).crop(300, 300, 0, 0).stream(function(err, stdout, stderr) {
-          if (err) {
-            releaseStream(stdout);
-            callback(err);
-          } else {
-            binaryManagement.addBinary(file, data, stdout, function(err) {
-              if (err != null) {
-                return callback(err);
-              }
-            });
-          }
-          return stdout.on("end", callback);
-        });
-      };
-      return gmRunner.size(function(err, data) {
+      return gmRunner.background('None').resize(300, 300, '^').gravity('Center').extent(300, 300).strip().stream(function(err, stdout, stderr) {
         if (err) {
+          releaseStream(stdout);
           return callback(err);
-        } else if (data.width > data.height) {
-          return buildThumb(null, 300);
         } else {
-          return buildThumb(300, null);
+          binaryManagement.addBinary(file, data, stdout, function(err) {
+            if (err != null) {
+              return callback(err);
+            }
+          });
+          return stdout.on('end', callback);
         }
       });
     } else if (name === 'screen') {
-      return gmRunner.resize(1200, 800).stream(function(err, stdout, stderr) {
+      return gmRunner.background('None').resize(1200, 800).strip().stream(function(err, stdout, stderr) {
         if (err) {
           releaseStream(stdout);
           return callback(err);
@@ -138,7 +127,7 @@ createThumb = function(file, force, callback) {
     }
     stream.pipe(writeStream);
     stream.on('error', callback);
-    return stream.on('end', function() {
+    return writeStream.on('finish', function() {
       return resize(rawFile, file, 'thumb', mimetype, force, function(err) {
         if (err != null) {
           log.error(err);
