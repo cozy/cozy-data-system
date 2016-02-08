@@ -1,4 +1,4 @@
-## [Cozy](http://cozy.io) Data System
+## [Cozy](https://cozy.io) Data System
 
 Little API that act as a middleware between Cozy Platform applications and data
 sent to the database, to the indexer and to the file system.
@@ -44,7 +44,7 @@ Once datasystem is installed, run it with:
 Or you can start it in dev mode with:
 
     INDEXES_PATH="../search-indexes" coffee server.coffee
-    
+
 
 ## Tests
 
@@ -85,17 +85,17 @@ Cozy Data System is developed by Cozy Cloud and distributed under the AGPL v3 li
 
 ![Cozy Logo](https://raw.github.com/cozy/cozy-setup/gh-pages/assets/images/happycloud.png)
 
-[Cozy](http://cozy.io) is a platform that brings all your web services in the
+[Cozy](https://cozy.io) is a platform that brings all your web services in the
 same private space.  With it, your web apps and your devices can share data
 easily, providing you
 with a new experience. You can install Cozy on your own hardware where no one
-profiles you. 
+profiles you.
 
-## Community 
+## Community
 
 You can reach the Cozy Community by:
 
 * Chatting with us on IRC #cozycloud on irc.freenode.net
 * Posting on our [Forum](https://forum.cozy.io/)
 * Posting issues on the [Github repos](https://github.com/cozy/)
-* Mentioning us on [Twitter](http://twitter.com/mycozycloud)
+* Mentioning us on [Twitter](https://twitter.com/mycozycloud)
