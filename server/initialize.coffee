@@ -6,7 +6,7 @@ module.exports = (app, server, callback) ->
     feed.initialize server
 
     # @TODO may be we ought to parallelize some part of this
-    indexer = require './lib/indexer'
+    #indexer = require './lib/indexer'
     init = require './lib/init'
     init.removeDocWithoutDocType (err) ->
         log.error err if err?
@@ -17,6 +17,6 @@ module.exports = (app, server, callback) ->
                 # Patch: 24/03/15
                 init.addAccesses (err) ->
                     log.error err if err?
-                    indexer.initialize (err) ->
-                        log.error err if err?
-                        callback app, server if callback?
+                    #indexer.initialize (err) ->
+                    #    log.error err if err?
+                    callback app, server if callback?

@@ -8,7 +8,7 @@ persistentDirectory = process.env.APPLICATION_PERSISTENT_DIRECTORY
 if persistentDirectory
     process.env.INDEXES_PATH ?= path.join persistentDirectory, 'indexes'
 
-indexer = require 'cozy-indexer'
+    #indexer = require 'cozy-indexer'
 db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
 locker = require '../lib/locker'

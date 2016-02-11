@@ -4,7 +4,7 @@ async = require 'async'
 Client = require('request-json').JsonClient
 client = null
 thumb = require('./thumb')
-indexer = require './indexer'
+#indexer = require './indexer'
 
 log = require('printit')
     prefix: 'feed'
@@ -90,7 +90,7 @@ module.exports = class Feed
                     doc = doc[0].ok
                     # Publish deletion
                     @_publish "#{doc.docType.toLowerCase()}.delete", change.id
-                    indexer.onDocumentDelete doc, change.seq
+                    #indexer.onDocumentDelete doc, change.seq
 
                 # If document has a binary, remove the binary
                 if doc.binary?
@@ -129,7 +129,7 @@ module.exports = class Feed
                 doctype = doc?.docType?.toLowerCase()
 
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
-                indexer.onDocumentUpdate doc, change.seq
+                #indexer.onDocumentUpdate doc, change.seq
 
                 if doctype is 'file'
                     @db.get change.id, (err, file) ->

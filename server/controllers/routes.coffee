@@ -4,7 +4,7 @@ data = require './data'
 requests = require './requests'
 attachments = require './attachments'
 binaries = require './binaries'
-indexer = require './indexer'
+#indexer = require './indexer'
 mails = require './mails'
 user = require './user'
 account = require './accounts'
@@ -30,11 +30,11 @@ module.exports =
             data.encryptPassword
             data.create
         ]
-    'data/search/':
-        post: [
-            utils.checkPermissionsFactory 'all'
-            indexer.search
-        ]
+    #'data/search/':
+        #post: [
+            #utils.checkPermissionsFactory 'all'
+            #indexer.search
+            #]
     'data/:id/':
         get: [
             utils.getDoc
@@ -250,33 +250,33 @@ module.exports =
         ]
 
 
-    # Indexer management
-    'data/index/clear-all/':
-        delete: [
-            utils.checkPermissionsFactory 'all'
-            indexer.removeAll
-        ]
-    'data/index/status':
-        get: [
-            indexer.indexingStatus
-        ]
-    'data/index/define/:type':
-        post: [
-            utils.checkPermissionsByType
-            indexer.defineIndex
-        ]
-    'data/index/:id':
-        post: [
-            indexer.index
-        ]
-        delete: [
-            indexer.remove
-        ]
-    'data/search/:type':
-        post: [
-            utils.checkPermissionsByType
-            indexer.search
-        ]
+    ## Indexer management
+    #'data/index/clear-all/':
+        #delete: [
+            #utils.checkPermissionsFactory 'all'
+            #indexer.removeAll
+        #]
+    #'data/index/status':
+        #get: [
+            #indexer.indexingStatus
+        #]
+    #'data/index/define/:type':
+        #post: [
+            #utils.checkPermissionsByType
+            #indexer.defineIndex
+        #]
+    #'data/index/:id':
+        #post: [
+            #indexer.index
+        #]
+        #delete: [
+            #indexer.remove
+        #]
+    #'data/search/:type':
+        #post: [
+            #utils.checkPermissionsByType
+            #indexer.search
+        #]
 
 
     # Mail management

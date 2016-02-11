@@ -1,4 +1,4 @@
-indexer = require '../lib/indexer'
+#indexer = require '../lib/indexer'
 log = require('printit')
     prefix: 'indexcontroller'
 
