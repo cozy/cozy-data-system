@@ -39,7 +39,7 @@
     "mocha": "1.17.1",
     "should": "3.1.2"
   },
-  "main": "server.coffee",
+  "main": "build/server.js",
   "scripts": {
     "test": "cake --use-js tests",
     "start": "node build/server.js",
