@@ -53,12 +53,16 @@ exports.initialize = (callback) ->
             db.view "indexdefinition/all", query, (err, rows) ->
                 return callback err if err
                 for row in rows
-                    docType = row.doc.targetDocType
-                    definitionDocument = row.doc
-                    for k, v of commonIndexFields
-                        definitionDocument.ftsIndexedFields[k] = v
-                    indexdefinitions[docType] = definitionDocument
-                    indexdefinitionsID[row.id] = docType
+                    if row?.doc?
+                        docType = row.doc.targetDocType
+                        definitionDocument = row.doc
+                        for k, v of commonIndexFields
+                            definitionDocument.ftsIndexedFields[k] = v
+                        indexdefinitions[docType] = definitionDocument
+                        indexdefinitionsID[row.id] = docType
+                    else
+                        log.error "Index definition has no row"
+                        log.raw row
 
                 registerDefaultIndexes callback
 
