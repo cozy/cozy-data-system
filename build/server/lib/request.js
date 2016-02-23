@@ -188,7 +188,7 @@ initializeDSView = function(callback) {
 module.exports.init = function(callback) {
   var removeEmptyView, storeAppView;
   removeEmptyView = function(doc, callback) {
-    if (Object.keys(doc.views).length === 0 || ((doc != null ? doc.views : void 0) == null)) {
+    if (((doc != null ? doc.views : void 0) == null) || Object.keys(doc.views).length === 0) {
       return db.remove(doc._id, doc._rev, function(err, response) {
         if (err) {
           log.error("[Definition] err: " + err.message);
@@ -242,18 +242,24 @@ module.exports.init = function(callback) {
             return callback(err);
           }
           return async.forEach(docs, function(doc, cb) {
-            return async.forEach(Object.keys(doc.views), function(view, cb) {
-              var body;
-              body = doc.views[view];
-              return storeAppView(apps, doc, view, body, cb);
-            }, function(err) {
-              return removeEmptyView(doc, function(err) {
-                if (err != null) {
-                  log.error(err);
-                }
-                return cb();
+            if ((doc != null ? doc.views : void 0) == null) {
+              log.warn("Document has no view");
+              log.warn(doc);
+              return cb();
+            } else {
+              return async.forEach(Object.keys(doc.views), function(view, cb) {
+                var body;
+                body = doc.views[view];
+                return storeAppView(apps, doc, view, body, cb);
+              }, function(err) {
+                return removeEmptyView(doc, function(err) {
+                  if (err != null) {
+                    log.error(err);
+                  }
+                  return cb();
+                });
               });
-            });
+            }
           }, function(err) {
             if (err != null) {
               log.error(err);
