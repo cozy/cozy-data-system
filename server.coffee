@@ -11,7 +11,7 @@ startPouchDB = (callback) ->
     app.listen 5984, callback
 
 
-application = module.exports = (callback) ->
+application = module.exports = (opts, callback) ->
 
     americano = require 'americano'
     initialize = require './server/initialize'
@@ -34,7 +34,7 @@ application = module.exports = (callback) ->
                     name: 'data-system'
                     port: process.env.PORT or 9101
                     host: process.env.HOST or "127.0.0.1"
-                    root: __dirname
+                    root: opts.root or __dirname
 
                 # Start data-system server
                 americano.start options, (err, app, server) ->

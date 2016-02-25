@@ -1,6 +1,6 @@
 {
-  "name": "cozy-data-system",
-  "description": "Data-layer between cozy applications and persistence systems",
+  "name": "cozy-data-system-dev",
+  "description": "Developement mode for persistence layer of the Cozy stack",
   "version": "2.1.9",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
   "license": "AGPL-3.0",
@@ -10,6 +10,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/cozy/cozy-data-system.git"
+  },
+  "bin": {
+    "cozy-data-system-dev": "bin/cozy-data-system-dev"
   },
   "dependencies": {
     "americano": "0.4.2",
@@ -25,6 +28,7 @@
     "multiparty": "3.3.0",
     "nodemailer": "1.3.4",
     "nodemailer-smtp-transport": "1.0.3",
+    "path-extra": "^3.0.0",
     "pouchdb-server": "^1.0.1",
     "printit": "0.1.15",
     "request": "2.67.0",
@@ -46,6 +50,7 @@
     "test": "cake --use-js tests",
     "start": "node build/server.js",
     "build": "cake build",
+    "prepublish": "cake build",
     "lint": "npm run lint1 && npm run lint2",
     "lint1": "coffeelint -f coffeelint.json ./server/**/*.coffee ./server/*.coffee",
     "lint2": "coffee-jshint -o node ./server/**/*.coffee ./server/*.coffee"

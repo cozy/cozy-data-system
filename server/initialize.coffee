@@ -19,4 +19,5 @@ module.exports = (app, server, callback) ->
                     log.error err if err?
                     indexer.initialize (err) ->
                         log.error err if err?
-                        callback app, server if callback?
+                        callback null, app, server if callback?
+

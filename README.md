@@ -1,85 +1,30 @@
-## [Cozy](https://cozy.io) Data System
+## [Cozy](https://cozy.io) Data System (dev mode)
 
-Little API that act as a middleware between Cozy Platform applications and data
-sent to the database, to the indexer and to the file system.
-It manages application permissions and provide helpers to make Cozy app
-development easier.
+
+Initially, the data system is an API that acts as a middleware between Cozy
+Platform applications and data sent to the database, to the indexer and to the
+file system.  It manages application permissions and provide helpers to make
+Cozy app development easier.
+
+This version is aimed to make the Cozy app development easier by allowing to
+deploy the data-system in a local environment with a single line of command.
 
 
 ## Install
 
-To set it up inside your cozy instance:
+Cozy Data System (dev mode) requires Node 4 at least to be set up.
 
-    # Get cozy monitor
-    npm install cozy-monitor -g
-    cozy-monitor install data-system
-
-## Contribution
-
-You can contribute to the Cozy Data System in many ways:
-
-* Pick up an [issue](https://github.com/cozy/cozy-data-system/issues?state=open) and solve it.
-* Add bulk features.
-* Improve mass deletion.
-* Write new tests.
 
 ## Hack
 
-Install
-[CouchDB](https://github.com/cozy/cozy-data-system/wiki/Couchdb-help)
-(>= 1.2.0),
-[NodeJS](https://github.com/cozy/cozy-data-system/wiki/Nodejs-help)
-(>= 0.10.0) then:
+To modifiy the Data System, you should refer to the master branch README for 
+getting information.
 
-    git clone git://github.com/cozy/cozy-data-system.git
-    cd cozy-data-system
-
-    # Load dependencies
-    npm install
-
-Once datasystem is installed, run it with:
-
-    npm start # performs a node build/server.js
-
-Or you can start it in dev mode with:
-
-    INDEXES_PATH="../search-indexes" coffee server.coffee
-
-
-## Tests
-
-[![Build
-Status](https://travis-ci.org/cozy/cozy-data-system.png?branch=master)](https://travis-ci.org/cozy/cozy-data-system)
-
-Run tests with following commmand
-
-    cake tests
-
-
-## Before submitting a pull request
-
-* Make sure the tests pass
-* Make sure you've built your modification:
-
-```bash
-cake tests
-cake check-build
-cake build
-```
-
-You can also use the provided hook:
-
-```bash
-cp pre-push .git/hooks/
-```
-
-## About code coverage
-
-The `cake coverage` command requires a bit of explanation. To achieve a proper code coverage, all CouchDB requests must be written in full javascript, otherwise the tests cannot work (since the coffee source is compiled with a special version).
 
 ## License
 
-Cozy Data System is developed by Cozy Cloud and distributed under the AGPL v3 license.
+Cozy Data System is developed by Cozy Cloud and distributed under the AGPL v3
+license.
 
 ## What is Cozy?
 
