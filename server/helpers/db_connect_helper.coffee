@@ -1,4 +1,4 @@
-cradle = require 'cradle'
+cradle = require 'cradle-pouchdb-server'
 S = require 'string'
 fs = require 'fs'
 
