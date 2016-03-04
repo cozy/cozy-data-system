@@ -328,8 +328,3 @@ module.exports =
             account.checkPermissions
             account.resetKeys
         ]
-    'accounts/':
-        delete: [
-            account.checkPermissions
-            account.deleteKeys
-        ]
