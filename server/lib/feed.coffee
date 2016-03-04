@@ -129,6 +129,7 @@ module.exports = class Feed
                 doctype = doc?.docType?.toLowerCase()
 
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
+                console.log 'update document indexation'
                 indexer.onDocumentUpdate doc, change.seq
 
                 if doctype is 'file'

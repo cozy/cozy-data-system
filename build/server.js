@@ -17,6 +17,9 @@ application = module.exports = function(callback) {
     };
     return americano.start(options, function(err, app, server) {
       app.use(errorMiddleware);
+      setInterval(function() {
+        return console.log(process.memoryUsage());
+      }, 2000);
       return initialize(app, server, callback);
     });
   });

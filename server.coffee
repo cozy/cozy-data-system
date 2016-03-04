@@ -20,6 +20,10 @@ application = module.exports = (callback) ->
         # Start data-system server
         americano.start options, (err, app, server) ->
             app.use errorMiddleware
+
+            setInterval ->
+                console.log process.memoryUsage()
+            , 2000
             # Clean lost binaries
             initialize app, server, callback
 

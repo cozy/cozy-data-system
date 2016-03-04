@@ -185,6 +185,7 @@ module.exports = Feed = (function() {
           if (doctype) {
             _this._publish(doctype + "." + operation, doc._id);
           }
+          console.log('update document indexation');
           indexer.onDocumentUpdate(doc, change.seq);
           if (doctype === 'file') {
             return _this.db.get(change.id, function(err, file) {
