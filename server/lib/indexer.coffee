@@ -348,6 +348,9 @@ getStatus = (docType, callback) ->
 
         callback null, status
 
+
+exports.status = getStatus
+
 saveStatus = (docType, status, callback) ->
     status = JSON.stringify status
     indexer.store.set "indexingstatus/#{docType}", status, callback
