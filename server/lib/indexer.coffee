@@ -80,7 +80,8 @@ exports.initialize = (callback) ->
                 if err
                     if err.type is 'NotFoundError'
                         log.warn """
-Last index sequence was not found. If no document is indexed yet, it's ok. In other cases, there is probably an error with your indexes.
+Last index sequence was not found. If no document is indexed yet, it's ok.
+In other cases, there is probably an error with the data-system indexer.
 """
                         callback()
                     else
