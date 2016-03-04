@@ -6,6 +6,7 @@ helpers = require './helpers'
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
 client = helpers.getClient()
+indexer = require('../server/lib/indexer')
 
 # helpers
 
@@ -46,7 +47,8 @@ describe "Indexation", ->
     before helpers.clearDB db
     before helpers.startApp
 
-    before require('../server/lib/indexer').cleanup
+    before indexer.init
+    before indexer.cleanup
 
     after helpers.stopApp
 
