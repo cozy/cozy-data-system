@@ -7,6 +7,7 @@ indexer = require '../server/lib/indexer'
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
 client = helpers.getClient()
+indexer = require('../server/lib/indexer')
 
 # helpers
 
