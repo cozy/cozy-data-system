@@ -51,6 +51,10 @@ exports.initialize = (callback) ->
 
     async.waterfall [
         (callback) ->
+            indexer.init (err, si) ->
+                callback err
+
+        (callback) ->
             indexer.store.open callback
 
         (callback) -> # FETCH INDEX DEFINITIONS
@@ -350,6 +354,7 @@ getStatus = (docType, callback) ->
 
 
 exports.status = getStatus
+
 
 saveStatus = (docType, status, callback) ->
     status = JSON.stringify status
