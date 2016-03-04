@@ -1,6 +1,7 @@
 should = require('chai').Should()
 async = require 'async'
 helpers = require './helpers'
+indexer = require '../server/lib/indexer'
 
 # connection to DB for "hand work"
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
@@ -46,7 +47,8 @@ describe "Indexation", ->
     before helpers.clearDB db
     before helpers.startApp
 
-    before require('../server/lib/indexer').cleanup
+    before indexer.init
+    before indexer.cleanup
 
     after helpers.stopApp
 
