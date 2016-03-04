@@ -77,14 +77,19 @@ exports.initialize = function(callback) {
         }
         for (i = 0, len = rows.length; i < len; i++) {
           row = rows[i];
-          docType = row.doc.targetDocType;
-          definitionDocument = row.doc;
-          for (k in commonIndexFields) {
-            v = commonIndexFields[k];
-            definitionDocument.ftsIndexedFields[k] = v;
+          if ((row != null ? row.doc : void 0) != null) {
+            docType = row.doc.targetDocType;
+            definitionDocument = row.doc;
+            for (k in commonIndexFields) {
+              v = commonIndexFields[k];
+              definitionDocument.ftsIndexedFields[k] = v;
+            }
+            indexdefinitions[docType] = definitionDocument;
+            indexdefinitionsID[row.id] = docType;
+          } else {
+            log.error("Index definition has no row");
+            log.raw(row);
           }
-          indexdefinitions[docType] = definitionDocument;
-          indexdefinitionsID[row.id] = docType;
         }
         return registerDefaultIndexes(callback);
       });
