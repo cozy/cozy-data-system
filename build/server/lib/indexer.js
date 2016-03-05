@@ -148,7 +148,7 @@ dequeue = function() {
         log.error("checkpoint error", err);
       }
       batchInProgress = false;
-      return setImmediate(dequeue);
+      return setTimeout(dequeue, 1000);
     });
   });
 };
@@ -539,7 +539,7 @@ resumeReindexing = function(docType, status, callback) {
           return callback(err);
         }
         next = resumeReindexing.bind(null, docType, status, callback);
-        return setTimeout(next, 500);
+        return setTimeout(next, 1000);
       });
     });
   });
