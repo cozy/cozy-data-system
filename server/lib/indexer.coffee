@@ -120,7 +120,7 @@ dequeue = ->
         checkpointSeqNumber maxseqno, (err) ->
             log.error "checkpoint error", err if err
             batchInProgress = false
-            setImmediate dequeue
+            setTimeout dequeue, 1000
 
 ###*
 # Destroy the index completely (used for tests)
@@ -422,7 +422,7 @@ resumeReindexing = (docType, status, callback) ->
             saveStatus docType, status, (err) ->
                 return callback err if err
                 next = resumeReindexing.bind null, docType, status, callback
-                setTimeout next, 500 # let leveldb breath
+                setTimeout next, 1000 # let leveldb breath
 
 
 finishReindexing = (docType, status, callback) ->
