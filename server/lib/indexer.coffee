@@ -49,13 +49,9 @@ cleanup   = locker.wrap 'indexfile', indexer.cleanup
 ###
 exports.initialize = (callback) ->
 
-    async.waterfall [
+    async.series [
         (callback) ->
-            indexer.init (err, si) ->
-                callback err
-
-        (callback) ->
-            indexer.store.open callback
+            indexer.init callback
 
         (callback) -> # FETCH INDEX DEFINITIONS
             query = include_docs: true

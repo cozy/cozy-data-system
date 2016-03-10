@@ -48,8 +48,8 @@ describe "Indexation", ->
     before helpers.clearDB db
     before helpers.startApp
 
-    before indexer.init
-    before indexer.cleanup
+    before (cb) -> indexer.initialize cb
+    before (cb) -> indexer.cleanup cb
 
     after helpers.stopApp
 
@@ -181,10 +181,10 @@ describe "Indexation", ->
 
     describe "Reindexing", ->
 
-        it "When I erase the index", (done) ->
+        it "When I stop the DS", helpers.stopApp
+        it "and erase the index", (done) ->
             require('../server/lib/indexer').cleanup done
 
-        it "And stop the DS", helpers.stopApp
         it "And start the DS", helpers.startApp
 
         it "wait a bit", helpers.wait 2000
