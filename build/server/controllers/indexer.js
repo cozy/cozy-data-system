@@ -32,7 +32,9 @@ module.exports.defineIndex = function(req, res, next) {
 };
 
 module.exports.indexingStatus = function(req, res, next) {
-  return indexer.status(function(err, status) {
+  var docType;
+  docType = req.params.type.toLowerCase();
+  return indexer.status(docType, function(err, status) {
     if (err) {
       return next(err);
     }
