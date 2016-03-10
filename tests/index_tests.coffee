@@ -114,6 +114,7 @@ describe "Indexation", ->
 
     describe "indexing and searching", ->
         it "Given I index four notes", (done) =>
+            @timeout 10000
             async.series [
                 createNoteFunction "Note 01", "little stories begin"
                 createNoteFunction "Note 02", "great dragons are coming"
