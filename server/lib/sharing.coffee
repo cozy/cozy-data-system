@@ -35,6 +35,8 @@ checkDomain = (params, callback) ->
 # Params must at least contain:
 #   url     -> the url of the target
 #   hostUrl -> [optionnal] the url of the cozy. Will be get if not set
+
+# A successful request is expected to return a 200 HTTP status 
 module.exports.notifyTarget = (path, params, callback) ->
     # Get the domain if not already set
     checkDomain params, (err, params) ->
@@ -49,6 +51,10 @@ module.exports.notifyTarget = (path, params, callback) ->
                 callback err
             else if body?.error?
                 err = body
+                err.status = result.statusCode
+                callback err
+            else if result?.statusCode isnt 200
+                err = new Error "The request has failed"
                 err.status = result.statusCode
                 callback err
             else
