@@ -102,7 +102,7 @@ module.exports.get = (req, res, next) ->
 
                 #@TODO forward other cache-control header
                 if req.headers['range']?
-                    stream.setHeader 'range', req.headers['range']
+                    res.setHeader 'range', req.headers['range']
 
                 # Use streaming to avoid high memory consumption.
                 stream.pipe res
