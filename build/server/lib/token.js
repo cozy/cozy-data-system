@@ -152,12 +152,16 @@ addAccess = module.exports.addAccess = function(doc, callback) {
   return db.save(access, function(err, doc) {
     if (err != null) {
       log.error(err);
-    }
-    return updatePermissions(access, function() {
       if (callback != null) {
-        return callback(null, access);
+        return callback(err);
       }
-    });
+    } else {
+      return updatePermissions(access, function() {
+        if (callback != null) {
+          return callback(null, access);
+        }
+      });
+    }
   });
 };
 
