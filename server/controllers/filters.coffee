@@ -4,6 +4,8 @@ errors = require '../middlewares/errors'
 module.exports.checkDevice = (req, res, next) ->
     auth = req.header('authorization')
     [err, isAuthenticated, name] = checkToken auth
+    # Device authorization is not necessary because filter name ensure
+    # permissions for this device.
     if err or not isAuthenticated or not name
         next errors.notAuthorized()
     else
