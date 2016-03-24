@@ -19,11 +19,14 @@ checkToken = module.exports.checkToken = (auth) ->
         auth = new Buffer(auth, 'base64').toString('ascii')
         username = auth.split(':')[0]
         password = auth.split(':')[1]
-        # Check if application is well authenticated
-        if password isnt undefined and tokens[username] is password
-            return [null, true, username]
+        if productionOrTest
+            # Check if application is well authenticated
+            if password isnt undefined and tokens[username] is password
+                return [null, true, username]
+            else
+                return [null, false, username]
         else
-            return [null, false, username]
+            return [null, true, username]
     else
         return [null, false, null]
 
