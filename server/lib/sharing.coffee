@@ -36,7 +36,7 @@ checkDomain = (params, callback) ->
 #   url     -> the url of the target
 #   hostUrl -> [optionnal] the url of the cozy. Will be get if not set
 
-# A successful request is expected to return a 200 HTTP status 
+# A successful request is expected to return a 200 HTTP status
 module.exports.notifyTarget = (path, params, callback) ->
     # Get the domain if not already set
     checkDomain params, (err, params) ->
@@ -75,11 +75,11 @@ module.exports.replicateDocs = (params, callback) ->
     else
         # Add the credentials in the url
         auth = params.id + ":" + params.target.token
-        url = params.target.url.replace "://", "://" + auth + "@" 
+        url = params.target.url.replace "://", "://" + auth + "@"
 
         replication =
             source: "cozy"
-            target: url + "/services/sharing/replication/" 
+            target: url + "/services/sharing/replication/"
             continuous: params.continuous or false
             doc_ids: params.docIDs
 

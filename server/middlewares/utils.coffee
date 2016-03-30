@@ -80,7 +80,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                     else if not (doc._id? and doc.docType?)
                         err = new Error "Forbidden operation"
                         err.status = 403
-                        next err
+                        cb err
                     else
                         docInfo = {id: doc._id, docType: doc.docType}
                         checkPermissions req, docInfo, cb
@@ -90,7 +90,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                 if not (doc._id? and doc.docType?)
                     err = new Error "Forbidden operation"
                     err.status = 403
-                    next err
+                    cb err
                 else
                     docInfo = {id: doc._id, docType: doc.docType}
                     checkPermissions req, docInfo, cb

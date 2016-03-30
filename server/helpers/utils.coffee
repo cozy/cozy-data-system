@@ -35,26 +35,26 @@ module.exports.checkPermissions = (req, permission, next) ->
 #   * docType  -> check the document type is authorized
 #   * doc      -> [not implemented] Evaluate the doc against a sharing rule
 module.exports.checkReplicationPermissions = (req, permission, next) ->
-    authHeader = req.header('authorization')
+    auth = req.header('authorization')
 
-    checkDocType authHeader, permission?.docType, (err, login, isAuthorized) ->
+    checkDocType auth, permission?.docType, (err, login, isAuthorized) ->
         # Not authenticated
         if not login
-            checkSharingRule authHeader, permission, (err, sharingName, isAuthorized) ->
+            checkSharingRule auth, permission, (err, sharing, isAuthorized) ->
                 # Request not authenticated
-                if not sharingName
+                if not sharing
                     err = new Error "Requester is not authenticated"
                     err.status = 401
                     next err
                 # Request authenticated as a sharing but not authorized
                 else if not isAuthorized
-                    err = new Error "#{sharingName} is not authorized"
+                    err = new Error "#{sharing} is not authorized"
                     err.status = 403
                     next err
                 # Legitimate sharing request
                 else
-                    feed.publish 'usage.sharing', sharingName
-                    req.sharingName = sharingName
+                    feed.publish 'usage.sharing', sharing
+                    req.sharing = sharing
                     next()
         # Authentication successul but not authorized
         else if not isAuthorized
@@ -74,12 +74,12 @@ module.exports.checkReplicationPermissions = (req, permission, next) ->
 #   * docType  -> check the document type is authorized
 #   * doc      -> [not implemented] Evaluate the doc against a sharing rule
 module.exports.checkReplicationPermissionsSync = (req, permission) ->
-    authHeader = req.header('authorization')
+    auth = req.header('authorization')
 
-    [err, login, isAuthorized] = checkDocTypeSync authHeader, permission?.docType
+    [err, login, isAuthorized] = checkDocTypeSync auth, permission?.docType
     # Not authenticated
     if not login
-        [err, sharing, isAuthorized] = checkSharingRuleSync authHeader, permission
+        [err, sharing, isAuthorized] = checkSharingRuleSync auth, permission
         # Request not authenticated
         if not sharing
             err = new Error "Requester is not authenticated"
@@ -89,7 +89,7 @@ module.exports.checkReplicationPermissionsSync = (req, permission) ->
         else if not isAuthorized
             err = new Error "#{sharing} is not authorized"
             err.status = 403
-            next err
+            return err
         # Legitimate sharing request
         else
             feed.publish 'usage.sharing', sharing
