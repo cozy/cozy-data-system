@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "americano": "0.4.2",
+    "async": "1.5.2",
     "axon": "0.6.1",
     "cozy-indexer": "0.0.3",
     "cradle": "0.7.1",
@@ -27,8 +28,7 @@
     "request": "2.67.0",
     "request-json": "0.5.5",
     "string": "1.8.0",
-    "through": "2.3.7",
-    "async": "1.5.2"
+    "through": "2.3.7"
   },
   "devDependencies": {
     "chai": "1.9.0",
@@ -36,12 +36,12 @@
     "coffee-jshint": "0.2.3",
     "coffee-script": "1.10.0",
     "coffeelint": "1.13.0",
+    "lodash": "4.6.1",
     "mocha": "1.17.1",
     "should": "3.1.2",
-    "lodash": "4.6.1",
     "sinon": "1.17.3"
   },
-  "main": "server.coffee",
+  "main": "build/server.js",
   "scripts": {
     "test": "cake --use-js tests",
     "start": "node build/server.js",
