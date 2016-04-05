@@ -18,7 +18,7 @@
     "americano": "0.4.2",
     "async": "0.2.10",
     "axon": "0.6.1",
-    "cozy-indexer": "0.0.7",
+    "cozy-indexer": "0.0.9",
     "cradle": "0.7.1",
     "cradle-pouchdb-server": "0.7.1",
     "express": "4.13.4",
