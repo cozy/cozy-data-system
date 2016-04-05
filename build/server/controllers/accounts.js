@@ -162,9 +162,3 @@ module.exports.resetKeys = function(req, res, next) {
     });
   });
 };
-
-module.exports.deleteKeys = function(req, res) {
-  return res.status(204).send({
-    success: true
-  });
-};

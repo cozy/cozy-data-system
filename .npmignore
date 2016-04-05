@@ -1,4 +1,10 @@
-./server
-./client
 tests
+server
+!build/server
+log
+Cakefile
+pre-push
 server.coffee
+.editorconfig
+.travis.yml
+coffeelint.json

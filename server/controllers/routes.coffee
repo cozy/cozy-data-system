@@ -256,7 +256,7 @@ module.exports =
             utils.checkPermissionsFactory 'all'
             indexer.removeAll
         ]
-    'data/index/status':
+    'data/index/status/:type':
         get: [
             indexer.indexingStatus
         ]
@@ -327,9 +327,4 @@ module.exports =
         delete: [
             account.checkPermissions
             account.resetKeys
-        ]
-    'accounts/':
-        delete: [
-            account.checkPermissions
-            account.deleteKeys
         ]
