@@ -12,6 +12,9 @@ startPouchDB = (callback) ->
 
 
 application = module.exports = (opts, callback) ->
+    opts ?= {}
+    root = opts.root or __dirname
+    process.env.INDEXES_PATH = root
 
     americano = require 'americano'
     initialize = require './server/initialize'
@@ -30,11 +33,12 @@ application = module.exports = (opts, callback) ->
             # * Initialize application accesses
             db = require './server/lib/db'
             db ->
+
                 options =
                     name: 'data-system'
                     port: process.env.PORT or 9101
                     host: process.env.HOST or "127.0.0.1"
-                    root: opts.root or __dirname
+                    root: root
 
                 # Start data-system server
                 americano.start options, (err, app, server) ->
