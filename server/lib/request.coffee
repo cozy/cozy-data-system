@@ -270,7 +270,9 @@ initializeDSView = (callback) ->
 ## Initialize request
 module.exports.init = (callback) ->
     removeEmptyView = (doc, callback) ->
-        if not doc?.views? or Object.keys(doc.views).length is 0
+        if (not doc?.views? or Object.keys(doc.views).length is 0) and \
+                (not doc?.filter? or Object.keys(doc.filter).length is 0)
+            log.warn "This doc #{JSON.stringify doc} is empty so remove it."
             db.remove doc._id, doc._rev, (err, response) ->
                 if err
                     log.error "[Definition] err: " + err.message
