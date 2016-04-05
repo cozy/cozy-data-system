@@ -21,6 +21,7 @@
     "cozy-indexer": "0.0.7",
     "cradle": "0.7.1",
     "cradle-pouchdb-server": "^0.7.1",
+    "express": "4.13.4",
     "git-rev": "0.2.1",
     "gm": "1.21.1",
     "http-proxy": "1.12.0",
