@@ -11,10 +11,9 @@ startPouchDB = (callback) ->
     app.listen 5984, callback
 
 
-application = module.exports = (opts, callback) ->
-    opts ?= {}
+application = module.exports = (opts={}, callback) ->
     root = opts.root or __dirname
-    process.env.INDEXES_PATH = root
+    process.env.INDEXES_PATH = opts.defaultDir
 
     americano = require 'americano'
     initialize = require './server/initialize'

@@ -16,7 +16,12 @@ startPouchDB = function(callback) {
 };
 
 application = module.exports = function(opts, callback) {
-  var americano, errorMiddleware, initialize;
+  var americano, errorMiddleware, initialize, root;
+  if (opts == null) {
+    opts = {};
+  }
+  root = opts.root || __dirname;
+  process.env.INDEXES_PATH = opts.defaultDir;
   americano = require('americano');
   initialize = require('./server/initialize');
   errorMiddleware = require('./server/middlewares/errors');
@@ -33,7 +38,7 @@ application = module.exports = function(opts, callback) {
           name: 'data-system',
           port: process.env.PORT || 9101,
           host: process.env.HOST || "127.0.0.1",
-          root: opts.root || __dirname
+          root: root
         };
         return americano.start(options, function(err, app, server) {
           app.use(errorMiddleware);

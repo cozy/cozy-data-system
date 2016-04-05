@@ -14,5 +14,5 @@ if(process.env.POUCHDB_NAME === undefined) {
 var root = path.join(__dirname, '..', 'build');
 var start = require(path.join(root, 'server'));
 
-start({root: root}, function() {});
+start({root: root, defaultDir: defaultDir}, function() {});
 
