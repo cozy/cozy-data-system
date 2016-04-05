@@ -22,10 +22,14 @@ checkToken = module.exports.checkToken = function(auth) {
     auth = new Buffer(auth, 'base64').toString('ascii');
     username = auth.split(':')[0];
     password = auth.split(':')[1];
-    if (password !== void 0 && tokens[username] === password) {
-      return [null, true, username];
+    if (productionOrTest) {
+      if (password !== void 0 && tokens[username] === password) {
+        return [null, true, username];
+      } else {
+        return [null, false, username];
+      }
     } else {
-      return [null, false, username];
+      return [null, true, username];
     }
   } else {
     return [null, false, null];

@@ -32,7 +32,7 @@ module.exports = function(app, server, callback) {
               log.error(err);
             }
             if (callback != null) {
-              return callback(app, server);
+              return callback(null, app, server);
             }
           });
         });
