@@ -1,7 +1,7 @@
 {
   "name": "cozy-data-system-dev",
   "description": "Developement mode for persistence layer of the Cozy stack",
-  "version": "2.5.5",
+  "version": "2.5.6",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
   "license": "AGPL-3.0",
   "engines": [
