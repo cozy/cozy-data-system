@@ -4,26 +4,37 @@ data = require './data'
 requests = require './requests'
 attachments = require './attachments'
 binaries = require './binaries'
-connectors = require './connectors'
 indexer = require './indexer'
 mails = require './mails'
 user = require './user'
 account = require './accounts'
 access = require './access'
 replication = require './replication'
+sharing = require './sharing'
+filters = require './filters'
 
 utils = require '../middlewares/utils'
 
 module.exports =
 
     # Information page
-    '':  get: data.index
+    '':
+        get: [
+            data.index
+        ]
+
 
     # Data management
-    'data/': post: [
+    'data/':
+        post: [
             utils.checkPermissionsByBody
             data.encryptPassword
             data.create
+        ]
+    'data/search/':
+        post: [
+            utils.checkPermissionsFactory 'all'
+            indexer.search
         ]
     'data/:id/':
         get: [
@@ -49,30 +60,39 @@ module.exports =
             utils.lockRequest
             utils.getDoc
             utils.checkPermissionsByDoc
-            data.delete
+            data.softdelete
             utils.unlockRequest
         ]
-    'data/exist/:id/': get: data.exist
-    'data/upsert/:id/': put: [
-        utils.lockRequest
-        utils.checkPermissionsByBody
-        data.encryptPassword
-        data.upsert
-        utils.unlockRequest
-    ]
-    'data/merge/:id/': put: [
-        utils.lockRequest
-        utils.checkPermissionsByBody
-        utils.getDoc
-        utils.checkPermissionsByDoc
-        data.encryptPassword
-        data.merge
-        utils.unlockRequest
-    ]
+    'data/exist/:id/':
+        get: [
+            data.exist
+        ]
+    'data/upsert/:id/':
+        put: [
+            utils.lockRequest
+            utils.checkPermissionsByBody
+            data.encryptPassword
+            data.upsert
+            utils.unlockRequest
+        ]
+    'data/merge/:id/':
+        put: [
+            utils.lockRequest
+            utils.checkPermissionsByBody
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            data.encryptPassword
+            data.merge
+            utils.unlockRequest
+        ]
+
 
     # Requests management
     'request/:type/:req_name/':
-        post: [utils.checkPermissionsByType, requests.results]
+        post: [
+            utils.checkPermissionsByType
+            requests.results
+        ]
         put: [
             utils.checkPermissionsByType
             utils.lockRequest
@@ -85,28 +105,43 @@ module.exports =
             requests.remove
             utils.unlockRequest
         ]
-    'request/:type/:req_name/destroy/': put: [
-        utils.checkPermissionsByType
-        requests.removeResults
-    ]
+    'request/:type/:req_name/destroy/':
+        put: [
+            utils.checkPermissionsByType
+            requests.removeResults
+        ]
+
 
     # Tags API
-    'tags': get: requests.tags
+    'tags':
+        get: [
+            requests.tags
+        ]
+
 
     # Doctypes API
-    'doctypes': get: requests.doctypes
+    'doctypes':
+        get: [
+            requests.doctypes
+        ]
+
 
     # File management
     # attachment API is deprecated
-    'data/:id/attachments/': post: [
-        utils.lockRequest
-        utils.getDoc
-        utils.checkPermissionsByDoc
-        attachments.add
-        utils.unlockRequest
-    ]
+    'data/:id/attachments/':
+        post: [
+            utils.lockRequest
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            attachments.add
+            utils.unlockRequest
+        ]
     'data/:id/attachments/:name':
-        get: [utils.getDoc, utils.checkPermissionsByDoc, attachments.get]
+        get: [
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            attachments.get
+        ]
         delete: [
             utils.lockRequest
             utils.getDoc
@@ -114,24 +149,28 @@ module.exports =
             attachments.remove
             utils.unlockRequest
         ]
-
-    'data/:id/binaries/convert': get: [
-        utils.lockRequest
-        utils.getDoc
-        utils.checkPermissionsByDoc
-        binaries.convert
-        utils.unlockRequest
-    ]
-
-    'data/:id/binaries/': post: [
-        utils.lockRequest
-        utils.getDoc
-        utils.checkPermissionsByDoc
-        binaries.add
-        utils.unlockRequest
-    ]
+    'data/:id/binaries/convert':
+        get: [
+            utils.lockRequest
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            binaries.convert
+            utils.unlockRequest
+        ]
+    'data/:id/binaries/':
+        post: [
+            utils.lockRequest
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            binaries.add
+            utils.unlockRequest
+        ]
     'data/:id/binaries/:name':
-        get: [utils.getDoc, utils.checkPermissionsByDoc, binaries.get]
+        get: [
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            binaries.get
+        ]
         delete: [
             utils.lockRequest
             utils.getDoc
@@ -140,85 +179,182 @@ module.exports =
             utils.unlockRequest
         ]
 
-    # Scrapper connectors
-    'connectors/bank/:name/': post: connectors.bank
-    'connectors/bank/:name/history': post: connectors.bankHistory
 
     # Access management
-    'access/': post: [utils.checkPermissionsFactory('access'), access.create]
+    'access/':
+        post: [
+            utils.checkPermissionsFactory 'access'
+            access.create
+        ]
     'access/:id/':
-        'put': [utils.checkPermissionsFactory('access'), access.update]
-        'delete': [
-            utils.checkPermissionsFactory('access')
+        put: [
+            utils.checkPermissionsFactory 'access'
+            access.update
+        ]
+        delete: [
+            utils.checkPermissionsFactory 'access'
             utils.lockRequest
             utils.getDoc
             access.remove
             utils.unlockRequest
         ]
 
+
+    # Filter Management
+    'filters/:id':
+        get: [
+            filters.checkDevice
+            utils.getDoc
+            data.find
+        ]
+        post: [
+            filters.checkDevice
+            filters.fixBody
+            data.create
+        ]
+        put: [
+            filters.checkDevice
+            filters.fixBody
+            utils.lockRequest
+            data.upsert
+            utils.unlockRequest
+        ]
+        delete: [
+            filters.checkDevice
+            utils.lockRequest
+            utils.getDoc
+            data.delete
+            utils.unlockRequest
+        ]
+
+
+    # Get attachment in a replication
+    # Remove route as replication/_local/:id
+    'replication/:id([^_]*)/:name*':
+        get: [
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            replication.proxy
+        ]
     'replication/*':
-        'post': [
+        post: [
             utils.checkPermissionsPostReplication
             replication.proxy
         ]
-        'get': [
+        get: [
             replication.proxy
             # Permissions manage in request
         ]
-        'put':[
+        put:[
             utils.checkPermissionsPutReplication
             replication.proxy
         ]
 
+
     # Indexer management
     'data/index/clear-all/':
-        'delete': [
-            utils.checkPermissionsFactory('all')
+        delete: [
+            utils.checkPermissionsFactory 'all'
             indexer.removeAll
         ]
-
+    'data/index/status':
+        get: [
+            indexer.indexingStatus
+        ]
+    'data/index/define/:type':
+        post: [
+            utils.checkPermissionsByType
+            indexer.defineIndex
+        ]
     'data/index/:id':
         post: [
-            utils.lockRequest
-            utils.getDoc
-            utils.checkPermissionsByDoc
             indexer.index
-            utils.unlockRequest
         ]
-        'delete': [
-            utils.lockRequest
-            utils.getDoc
-            utils.checkPermissionsByDoc
+        delete: [
             indexer.remove
-            utils.unlockRequest
         ]
-    'data/search/:type': post: [utils.checkPermissionsByType, indexer.search]
-    'data/search/': post: [utils.checkPermissionsFactory('all'), indexer.search]
+    'data/search/:type':
+        post: [
+            utils.checkPermissionsByType
+            indexer.search
+        ]
+
 
     # Mail management
-    'mail/': post: [utils.checkPermissionsFactory('send mail'), mails.send]
-    'mail/to-user': post: [
-        utils.checkPermissionsFactory('send mail to user')
-        mails.sendToUser
-    ]
-    'mail/from-user': post: [
-        utils.checkPermissionsFactory('send mail from user')
-        mails.sendFromUser
-    ]
+    'mail/':
+        post: [
+            utils.checkPermissionsFactory 'send mail'
+            mails.send
+        ]
+    'mail/to-user':
+        post: [
+            utils.checkPermissionsFactory 'send mail to user'
+            mails.sendToUser
+        ]
+    'mail/from-user':
+        post: [
+            utils.checkPermissionsFactory 'send mail from user'
+            mails.sendFromUser
+        ]
 
-    #User management
-    'user/': post: [utils.checkPermissionsFactory('User'), user.create]
-    'user/merge/:id': put: [
-        utils.lockRequest
-        utils.checkPermissionsFactory('User')
-        utils.getDoc
-        user.merge
-        utils.unlockRequest
-    ]
 
-    #Account management
+    # User management
+    'user/':
+        post: [
+            utils.checkPermissionsFactory 'User'
+            user.create
+        ]
+    'user/merge/:id':
+        put: [
+            utils.lockRequest
+            utils.checkPermissionsFactory('User')
+            utils.getDoc
+            user.merge
+            utils.unlockRequest
+        ]
+
+
+    # Account management
     'accounts/password/':
-        post: [account.checkPermissions, account.initializeKeys]
-        put: [account.checkPermissions, account.updateKeys]
-    'accounts/reset/': delete: [account.checkPermissions, account.resetKeys]
-    'accounts/': delete: [account.checkPermissions, account.deleteKeys]
+        post: [
+            account.checkPermissions
+            account.initializeKeys
+        ]
+        put: [
+            account.checkPermissions
+            account.updateKeys
+        ]
+    'accounts/reset/':
+        delete: [
+            account.checkPermissions
+            account.resetKeys
+        ]
+
+
+    # Sharing management
+    'services/sharing/':
+        post: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.create
+            sharing.sendSharingRequests
+        ]
+    'services/sharing/:id':
+        delete: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.delete
+            sharing.stopReplications
+            sharing.sendDeleteNotifications
+        ]
+    'services/sharing/sendAnswer':
+        post: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.handleRecipientAnswer
+            sharing.sendAnswer
+        ]
+    'services/sharing/answer':
+        post: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.validateTarget
+            sharing.replicate
+        ]
+
