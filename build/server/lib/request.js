@@ -157,11 +157,6 @@ initializeDSView = function(callback) {
         reduce: "function(key, values) {\n    return true;\n}"
       }
     },
-    sharing: {
-      all: {
-        map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"sharing\") {\n        return emit(doc._id, doc);\n    }\n}"
-      }
-    },
     indexdefinition: {
       all: {
         map: "function(doc) {\n    if(doc.docType &&\n       doc.docType.toLowerCase() === \"indexdefinition\") {\n        emit(doc._id, null)\n    }\n}"

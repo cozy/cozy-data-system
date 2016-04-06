@@ -4,10 +4,6 @@ querystring = require 'querystring'
 S = require 'string'
 errors = require '../middlewares/errors'
 
-log =  require('printit')
-    date: true
-    prefix: 'downloader'
-
 # Get Couch credentials from config file.
 initLoginCouch = (callback) ->
     data = fs.readFile '/etc/cozy/couchdb.login', (err, data) ->
@@ -48,45 +44,43 @@ module.exports =
             callback = ->
 
         initLoginCouch (err, couchCredentials) ->
-            if err and process.NODE_ENV is 'production'
-                callback err
-            else if aborted
-                callback new Error 'aborted'
-            else
+            return callback err if err and process.NODE_ENV is 'production'
+            return callback new Error 'aborted' if aborted
 
-                # Build options.
-                options =
-                    host: process.env.COUCH_HOST or 'localhost'
-                    port: process.env.COUCH_PORT or 5984
-                    path: path
+            # Build options.
+            options =
+                host: process.env.COUCH_HOST or 'localhost'
+                port: process.env.COUCH_PORT or 5984
+                path: path
 
-                # Add couch credentials only in production environment.
-                if not err and process.env.NODE_ENV is 'production'
-                    id = couchCredentials[0]
-                    pwd = couchCredentials[1]
+            # Add couch credentials only in production environment.
+            if not err and process.env.NODE_ENV is 'production'
+                id = couchCredentials[0]
+                pwd = couchCredentials[1]
 
-                    credentialsBuffer = new Buffer("#{id}:#{pwd}")
-                    basic = "Basic #{credentialsBuffer.toString('base64')}"
-                    options.headers =
-                        Authorization: basic
+                credentialsBuffer = new Buffer("#{id}:#{pwd}")
+                basic = "Basic #{credentialsBuffer.toString('base64')}"
+                options.headers =
+                    Authorization: basic
 
-                # Perform request
-                request = http.get options, (res) ->
-                    if res.statusCode is 404
-                        callback errors.http 404, 'Not Found'
-                        # discard the couchdb request
-                        releaseStream res
-                    else if res.statusCode isnt 200
-                        err = callback new Error """
-                            error occured while downloading attachment #{err.message} """
-                        err.status = res.statusCode
-                        callback err
-                        # discard the couchdb request
-                        releaseStream res
-                    else
-                        callback null, res
+            # Perform request
+            request = http.get options, (res) ->
+                if res.statusCode is 404
+                    callback errors.http 404, 'Not Found'
+                    # discard the couchdb request
+                    releaseStream res
+                else if res.statusCode isnt 200
+                    msg = err.message
+                    err = callback new Error """
+                        error occured while downloading attachment #{msg} """
+                    err.status = res.statusCode
+                    callback err
+                    # discard the couchdb request
+                    releaseStream res
+                else
+                    callback null, res
 
-                request.on 'error', callback
+            request.on 'error', callback
 
         return abortable =
             abort: ->

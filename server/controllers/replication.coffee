@@ -115,6 +115,7 @@ module.exports.proxy = (req, res, next) ->
             if req.route.path is '/replication/:id([^_]*)/:name*'
                 permissions = true
             response.on 'data', (chunk) ->
+
                 # When replication are heartbeat it's send \n every 10 seconds
                 # so we don't want to have a processing
                 if req.method is 'GET' and \

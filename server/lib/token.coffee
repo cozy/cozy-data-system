@@ -24,11 +24,14 @@ checkToken = module.exports.checkToken = (auth, tokensTab) ->
         auth = new Buffer(auth, 'base64').toString('ascii')
         username = auth.split(':')[0]
         password = auth.split(':')[1]
-        # Check if application is well authenticated
-        if password isnt undefined and tokensTab[username] is password
-            return [null, true, username]
+        if productionOrTest
+            # Check if application is well authenticated
+            if password isnt undefined and tokensTab[username] is password
+                return [null, true, username]
+            else
+                return [null, false, username]
         else
-            return [null, false, username]
+            return [null, true, username]
     else
         return [null, false, null]
 
@@ -240,13 +243,12 @@ addAccess = module.exports.addAccess = (doc, callback) ->
 
     db.save access, (err, doc) ->
         if err?
-            #log.error err
+            log.error err
             callback err if callback?
-        # Update permissions in RAM
         else
+            # Update permissions in RAM
             updatePermissions access, ->
                 callback null, access if callback?
-
 
 ## function updateAccess (doc, callback)
 ## @id {String} access id for application

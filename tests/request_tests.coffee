@@ -445,6 +445,6 @@ describe "Request handling tests", ->
 
                 should.exist body
                 body.length.should.eql 2
-                body[0].should.eql 'Access'
+                body[0].should.eql 'access'
                 body[1].should.eql 'author'
                 done()

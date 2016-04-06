@@ -19,4 +19,5 @@ npm-debug.log
 xunit.xml
 
 tests/fixtures/test-get.png
+tests/fixtures/test-get2.png
 .DS_STORE

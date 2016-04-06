@@ -1,17 +1,49 @@
 db = require('../helpers/db_connect_helper').db_connect()
 encryption = require '../lib/encryption'
 
+async = require 'async'
 Client = require("request-json").JsonClient
-CryptoTools = require '../lib/crypto_tools'
 User = require '../lib/user'
 
-randomString = require('../lib/random').randomString
 checkProxyHome = require('../lib/token').checkProxyHome
 errors = require '../middlewares/errors'
 
-cryptoTools = new CryptoTools()
 user = new User()
-correctWitness = "Encryption is correct"
+apps = []
+
+
+# Restart Application <app>
+restartApp = (app, cb) ->
+    homeClient = new Client 'http://localhost:9103'
+    # Stop application via cozy-home
+    homeClient.post "api/applications/#{app}/stop", {}, (err, res) ->
+        console.log err if err?
+        db.view 'application/byslug', {key: app}, (err, appli) ->
+            # Recover manifest
+            if appli[0]?
+                appli = appli[0].value
+                descriptor =
+                    user: appli.slug
+                    name: appli.slug
+                    domain: "127.0.0.1"
+                    repository:
+                        type: "git",
+                        url: appli.git
+                    scripts:
+                        start: "server.coffee"
+                    password: appli.password
+                # Start application via cozy-home
+                url = "api/applications/#{app}/start"
+                homeClient.post url, {start: descriptor}, (err, res) ->
+                    console.log err if err?
+                    cb()
+            else
+                cb()
+
+# Add application in array <tabs> : use to restart application
+module.exports.addApp = (app) ->
+    unless app in apps
+        apps.push app
 
 ## Before and after methods
 
@@ -37,14 +69,23 @@ module.exports.initializeKeys = (req, res, next) ->
 
         ## User has already been connected
         if user.salt? and user.slaveKey?
+            isLog = encryption.isLog()
             encryption.logIn req.body.password, user, (err)->
                 return next err if err
-                res.send 200, success: true
+                if isLog
+                    res.status(200).send success: true
+                else
+                    # Temporary : restart application which use encrypted data
+                    async.forEach apps, (app, cb) ->
+                        restartApp app, cb
+                    , (err) ->
+                        console.log err if err?
+                        res.status(200).send success: true
         ## First connection
         else
             encryption.init req.body.password, user, (err)->
                 return next err if err
-                res.send 200, success: true
+                res.status(200).send success: true
 
 #PUT /accounts/password/
 module.exports.updateKeys = (req, res, next) ->
@@ -60,7 +101,7 @@ module.exports.updateKeys = (req, res, next) ->
                 if err
                     next err
                 else
-                    res.send 200, success: true
+                    res.status(200).send success: true
 
 
 #DELETE /accounts/reset/
@@ -73,11 +114,4 @@ module.exports.resetKeys = (req, res, next) ->
         encryption.reset user, (err) ->
             return next err if err
 
-            res.send 204, success: true
-
-
-#DELETE /accounts/
-## TODO : Remove this function (wait proxy updating)
-module.exports.deleteKeys = (req, res) ->
-    res.send 204, sucess: true
-
+            res.status(204).send success: true

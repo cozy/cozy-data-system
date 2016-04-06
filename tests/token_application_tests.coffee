@@ -1,12 +1,6 @@
 should = require('chai').Should()
 helpers = require './helpers'
 
-Crypto = require "#{helpers.prefix}server/lib/crypto_tools"
-User = require "#{helpers.prefix}server/lib/user"
-randomString = require("#{helpers.prefix}server/lib/random").randomString
-
-crypto = new Crypto()
-user = new User()
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 client = helpers.getClient()
 

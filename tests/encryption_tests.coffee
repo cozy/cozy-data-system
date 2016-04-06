@@ -3,8 +3,6 @@ helpers = require './helpers'
 
 Crypto = require "#{helpers.prefix}server/lib/crypto_tools"
 User = require "#{helpers.prefix}server/lib/user"
-randomString = require("#{helpers.prefix}server/lib/random").randomString
-getMasterKey = require("#{helpers.prefix}server/lib/encryption").get
 
 # connection to DB for "hand work"
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
@@ -149,4 +147,12 @@ describe "Encryption handling tests", ->
             it "And password should be encrypted", (done) ->
                 db.get "#{@id}", (err, body) =>
                     body.password.should.not.equal "password"
+                    done()
+
+       describe "Request document with password", ->
+            before cleanRequest
+
+            it "When I add a document with password", (done) ->
+                client.post '/request/user/all/', {}, (err, res, body) =>
+                    body[0].value.password.should.equal "password"
                     done()

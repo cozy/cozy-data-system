@@ -1,5 +1,4 @@
 db = require('../helpers/db_connect_helper').db_connect()
-keys = require '../lib/encryption'
 logger = require('printit')(prefix: 'controllers/user')
 errors = require '../middlewares/errors'
 
@@ -15,14 +14,14 @@ module.exports.create = (req, res, next) ->
                     if err
                         next errors.http 409, "The document exists"
                     else
-                        res.send 201, _id: response.id
+                        res.status(201).send _id: response.id
     else
         db.save req.body, (err, response) ->
             if err
                 logger.error err
                 next err
             else
-                res.send 201, _id: response.id
+                res.status(201).send _id: response.id
 
 # PUT /user/merge/:id
 module.exports.merge = (req, res, next) ->
@@ -33,5 +32,5 @@ module.exports.merge = (req, res, next) ->
             logger.error err
             next err
         else
-            res.send 200, success: true
+            res.status(200).send success: true
             next()

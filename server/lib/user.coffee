@@ -38,7 +38,7 @@ module.exports = class User
             if err
                 callback err
             else
-                db.view 'user/all', (err, res) =>
+                db.view 'user/all', (err, res) ->
                     if err
                         callback err
                     else

@@ -5,8 +5,6 @@ prefix = helpers.prefix
 Crypto = require "#{prefix}server/lib/crypto_tools"
 User = require "#{prefix}server/lib/user"
 randomString = require("#{prefix}server/lib/random").randomString
-encryption = require "#{prefix}server/lib/encryption"
-getMasterKey = encryption.get
 db = require("#{prefix}server/helpers/db_connect_helper").db_connect()
 client = helpers.getClient()
 crypto = new Crypto()
@@ -88,17 +86,12 @@ describe "Account handling tests", ->
                 should.not.equal @salt, undefined
                 @salt.length.should.equal 24
 
-            it "And master key should be initialized", ->
-                @masterKey = crypto.genHashWithSalt @cozyPwd, @salt
-                key = getMasterKey()
-                should.not.equal key, null
-                key.should.equal @masterKey
-
             it "And object 'User' should have a slave key", ->
                 @body.should.have.property 'slaveKey'
                 @encryptedSlaveKey = @body.slaveKey
 
             it "And the length of the slave key should be equal to 32", ->
+                @masterKey = crypto.genHashWithSalt @cozyPwd, @salt
                 @slaveKey = crypto.decrypt @masterKey, @encryptedSlaveKey
                 @slaveKey.length.should.be.equal 32
 
@@ -125,17 +118,12 @@ describe "Account handling tests", ->
                 should.not.equal @salt, undefined
                 @salt.length.should.equal 24
 
-            it "And master key should be initialized", ->
-                @masterKey = crypto.genHashWithSalt @cozyPwd, @salt
-                key = getMasterKey()
-                should.not.equal key, null
-                key.should.equal @masterKey
-
             it "And object 'User' should have a slave key", ->
                 @body.should.have.property 'slaveKey'
                 @encryptedSlaveKey = @body.slaveKey
 
             it "And the length of the slave key should be equal to 32", ->
+                @masterKey = crypto.genHashWithSalt @cozyPwd, @salt
                 @slaveKey = crypto.decrypt @masterKey, @encryptedSlaveKey
                 @slaveKey.length.should.be.equal 32
 
@@ -158,7 +146,7 @@ describe "Account handling tests", ->
         (done) ->
             @cozyPwd = "password"
             data = password: @cozyPwd
-            client.setBasicAuth "proxy", null
+            client.setBasicAuth "proxy", ''
             client.post 'accounts/password/', data, (err, res, body) =>
                 @res = res
                 done()

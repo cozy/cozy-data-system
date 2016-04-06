@@ -3,7 +3,7 @@ var checkPermissions, couchDBHeaders, db, getCredentialsHeader, log, request, re
 
 db = require('../helpers/db_connect_helper').db_connect();
 
-checkPermissions = require('../helpers/utils').checkReplicationPermissionsSync;
+checkPermissions = require('../helpers/utils').checkPermissionsSync;
 
 request = require('request');
 
@@ -76,7 +76,7 @@ retrieveJsonDocument = function(data) {
 };
 
 requestOptions = function(req) {
-  var bodyToTransmit, docInfo, err, headers, host, options, port, targetURL;
+  var bodyToTransmit, err, headers, host, options, port, targetURL;
   headers = couchDBHeaders(req.headers);
   if (process.env.NODE_ENV === "production") {
     headers['Authorization'] = getCredentialsHeader();
@@ -95,11 +95,7 @@ requestOptions = function(req) {
     if ((req.body != null) && Object.keys(req.body).length > 0) {
       bodyToTransmit = JSON.stringify(req.body);
       options['body'] = bodyToTransmit;
-      docInfo = {
-        id: bodyToTransmit._id,
-        docType: bodyToTransmit.docType
-      };
-      err = checkPermissions(req, docInfo);
+      err = checkPermissions(req, bodyToTransmit.docType);
       return [err, options];
     }
   }
@@ -124,7 +120,7 @@ module.exports.proxy = function(req, res, next) {
       permissions = true;
     }
     response.on('data', function(chunk) {
-      var content, doc, docInfo, error, ref1;
+      var content, doc, error, ref1;
       if (req.method === 'GET' && !(req.query.heartbeat && chunk.toString() === "\n")) {
         if (permissions) {
           return res.write(chunk);
@@ -142,13 +138,9 @@ module.exports.proxy = function(req, res, next) {
             ref1 = retrieveJsonDocument(content), err = ref1[0], doc = ref1[1];
           }
           if (doc) {
-            docInfo = {
-              id: doc._id,
-              docType: doc.docType
-            };
-            err = checkPermissions(req, docInfo);
+            err = checkPermissions(req, doc.docType);
             if (err) {
-              res.send(403, err);
+              res.status(403).send(err);
               return couchReq.end();
             } else {
               permissions = true;
@@ -170,20 +162,16 @@ module.exports.proxy = function(req, res, next) {
   data = [];
   permissions = false;
   req.on('data', function(chunk) {
-    var doc, docInfo, ref1;
+    var doc, ref1;
     if (permissions) {
       return stream.emit('data', chunk);
     } else {
       data.push(chunk);
       ref1 = retrieveJsonDocument(Buffer.concat(data).toString()), err = ref1[0], doc = ref1[1];
       if (!err) {
-        docInfo = {
-          id: doc._id,
-          docType: doc.docType
-        };
-        err = checkPermissions(req, docInfo);
+        err = checkPermissions(req, doc.docType);
         if (err) {
-          res.send(403, err);
+          res.status(403).send(err);
           stream.emit('end');
           couchReq.end();
           return req.destroy();

@@ -114,8 +114,8 @@ task "clean-coverage", "Clean the files generated for coverage report", ->
 
 task "lint", "Run Coffeelint", ->
     process.env.TZ = "Europe/Paris"
-    command = "coffeelint "
-    command += " -f coffeelint.json -r server/"
+    lintFiles = walk 'server'
+    command = "coffeelint -f coffeelint.json " + lintFiles.join " "
     logger.options.prefix = 'cake:lint'
     logger.info 'Start linting...'
     exec command, (err, stdout, stderr) ->

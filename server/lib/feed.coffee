@@ -4,6 +4,7 @@ async = require 'async'
 Client = require('request-json').JsonClient
 client = null
 thumb = require('./thumb')
+indexer = require './indexer'
 
 log = require('printit')
     prefix: 'feed'
@@ -40,7 +41,7 @@ module.exports = class Feed
         @axonSock.bind axonPort
         @logger.info 'Pub server started'
 
-        @axonSock.sock.on 'connect', () =>
+        @axonSock.sock.on 'connect', =>
             @logger.info "An application connected to the change feeds"
 
         @axonSock.sock.on 'message', (event,id) =>
@@ -89,6 +90,8 @@ module.exports = class Feed
                     doc = doc[0].ok
                     # Publish deletion
                     @_publish "#{doc.docType.toLowerCase()}.delete", change.id
+                    indexer.onDocumentDelete doc, change.seq
+
                 # If document has a binary, remove the binary
                 if doc.binary?
                     removeBinary = (name, callback) =>
@@ -103,13 +106,11 @@ module.exports = class Feed
                                 # Retrieve binary and remove it
                                 @db.get binary, (err, doc) =>
                                     return callback err if err
-                                    if doc
-                                        @db.remove doc._id, doc._rev, (err, doc) =>
-                                            if not err?
-                                                @_publish "binary.delete", doc.id
-                                            callback err
-                                    else
-                                        callback()
+                                    return callback() unless doc
+                                    @db.remove doc._id, doc._rev, (err, doc) =>
+                                        if not err?
+                                            @_publish "binary.delete", doc.id
+                                        callback err
 
                             else
                                 # Binary is linked to another document.
@@ -128,11 +129,12 @@ module.exports = class Feed
                 doctype = doc?.docType?.toLowerCase()
 
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
+                indexer.onDocumentUpdate doc, change.seq
 
                 if doctype is 'file'
                     @db.get change.id, (err, file) ->
                         if file.class is 'image' and
-                            file.binary?.file? and not file.binary.thumb
-                                # Creates thumb for image.
-                                thumb.create file, false
+                                file.binary?.file? and not file.binary.thumb
+                            # Creates thumb for image.
+                            thumb.create file.id, false
 module.exports = new Feed()

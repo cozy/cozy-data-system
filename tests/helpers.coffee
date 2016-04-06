@@ -20,8 +20,6 @@ helpers.options =
     serverHost: process.env.HOST or 'localhost'
     serverPort: process.env.PORT or 8888
 
-    # default port must also be changed in server/lib/indexer.coffee
-    indexerPort: process.env.INDEXER_PORT or 9092
     # default port must also be changed in server/lib/feed.coffee
     axonPort: parseInt process.env.AXON_PORT or 9105
 
@@ -41,19 +39,21 @@ helpers.getClient = (url = null) ->
 
 initializeApplication = require "#{helpers.prefix}server"
 
+
+appClosure = null
 helpers.startApp = (done) ->
 
     @timeout 15000 if @timeout
     initializeApplication (app, server) =>
-        @app = app
-        @app.server = server
+        appClosure = app
+        appClosure.server = server
         done()
 
 helpers.stopApp = (done) ->
 
     @timeout 10000 if @timeout
     setTimeout =>
-        @app.server.close done
+        appClosure.server.close done
     , 250
 
 helpers.clearDB = (db) -> (done) ->
@@ -72,6 +72,11 @@ helpers.clearDB = (db) -> (done) ->
                 logger.info "db.create err : ", err if err
                 done err
         , 2000
+
+helpers.wait = (ms) -> (done) ->
+    @timeout ms + 100
+    @slow 3*ms
+    setTimeout done, ms
 
 helpers.randomString = (length=32) ->
     string = ""

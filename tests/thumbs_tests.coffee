@@ -1,5 +1,6 @@
 should = require('chai').Should()
 fs = require 'fs'
+gm = require('gm').subClass(imageMagick: true)
 Client = require('request-json').JsonClient
 helpers = require './helpers'
 
@@ -39,7 +40,7 @@ describe "Thumbs", ->
     describe "Thumb creation", ->
 
         it "When I post a file (without thumb)", (done) ->
-            file = 
+            file =
                 "docType": "File"
                 "name": "test.png"
                 "class": 'image'
@@ -63,8 +64,8 @@ describe "Thumbs", ->
                 should.exist file.binary.file
                 done()
 
-        it "And after 5 seconds file has a thumb and a screen defined in binary field", (done)->
-            @timeout 10 * 1000
+        it "And after 8 seconds file has a thumb and a screen defined in binary field", (done)->
+            @timeout 12 * 1000
             setTimeout () =>
                 @client.get "data/#{@id}/", (err, res, file) =>
                     should.exist file.binary
@@ -72,28 +73,26 @@ describe "Thumbs", ->
                     should.exist file.binary.thumb
                     should.exist file.binary.screen
                     done()
-            , 5 * 1000
+            , 8 * 1000
 
         it "And thumb corresponds to thumb file", (done) ->
             dstPath = 'thumb.png'
             writeStream = fs.createWriteStream dstPath
             stream = @client.get "data/#{@id}/binaries/thumb", (err, res) ->
-                resultStats = fs.statSync dstPath
-                expectedStats = fs.statSync "./tests/fixtures/thumb.png"
-                resultStats.size.should.equal expectedStats.size
-                fs.unlink dstPath, (err) ->
-                    done()
+                gm().compare dstPath, 'tests/fixtures/thumb.png', (err, eql) ->
+                    should.not.exist err
+                    eql.should.be.true
+                    fs.unlink dstPath, done
             stream.pipe writeStream
 
         it "And thumb corresponds to screen file", (done) ->
             dstPath = 'screen.png'
             writeStream = fs.createWriteStream dstPath
             stream = @client.get "data/#{@id}/binaries/screen", (err, res) ->
-                resultStats = fs.statSync dstPath
-                expectedStats = fs.statSync "./tests/fixtures/screen.png"
-                resultStats.size.should.equal expectedStats.size
-                fs.unlink dstPath, (err) ->
-                    done()
+                gm().compare dstPath, 'tests/fixtures/screen.png', (err, eql) ->
+                    should.not.exist err
+                    eql.should.be.true
+                    fs.unlink dstPath, done
             stream.pipe writeStream
 
         it "And temporary thumb was deleted from temporary file", ->
@@ -120,8 +119,8 @@ describe "Thumbs", ->
                 should.exist file.binary.file
                 done()
 
-        it "And after 5 seconds file has a thumb and a screen defined in binary field", (done)->
-            @timeout 10 * 1000
+        it "And after 8 seconds file has a thumb and a screen defined in binary field", (done)->
+            @timeout 12 * 1000
             setTimeout () =>
                 @client.get "data/111/", (err, res, file) =>
                     should.exist file.binary
@@ -129,31 +128,28 @@ describe "Thumbs", ->
                     should.exist file.binary.thumb
                     should.exist file.binary.screen
                     done()
-            , 5 * 1000
+            , 8 * 1000
 
         it "And thumb corresponds to thumb file", (done) ->
             dstPath = 'thumb.png'
             writeStream = fs.createWriteStream dstPath
             stream = @client.get "data/111/binaries/thumb", (err, res) ->
-                resultStats = fs.statSync dstPath
-                expectedStats = fs.statSync "./tests/fixtures/thumb-2.png"
-                resultStats.size.should.equal expectedStats.size
-                fs.unlink dstPath, (err) ->
-                    done()
+                gm().compare dstPath, 'tests/fixtures/thumb-2.png', (err, eql) ->
+                    should.not.exist err
+                    eql.should.be.true
+                    fs.unlink dstPath, done
             stream.pipe writeStream
 
         it "And thumb corresponds to screen file", (done) ->
             dstPath = 'screen.png'
             writeStream = fs.createWriteStream dstPath
             stream = @client.get "data/111/binaries/screen", (err, res) ->
-                resultStats = fs.statSync dstPath
-                expectedStats = fs.statSync "./tests/fixtures/screen-2.png"
-                resultStats.size.should.equal expectedStats.size
-                fs.unlink dstPath, (err) ->
-                    done()
+                gm().compare dstPath, 'tests/fixtures/screen-2.png', (err, eql) ->
+                    should.not.exist err
+                    eql.should.be.true
+                    fs.unlink dstPath, done
             stream.pipe writeStream
 
         it "And temporary thumb was deleted from temporary file", ->
             files = fs.readdirSync '/tmp'
             @nbOfFileInTmpFolder.should.equal files.length
-

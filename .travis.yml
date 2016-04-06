@@ -1,16 +1,42 @@
+sudo: false
+
 language: node_js
+
 matrix:
     fast_finish: true
     allow_failures:
-        - node_js: "0.11"
+        - node_js: "5"
+
 node_js:
-    - "0.11"
     - "0.10"
+    - "0.12"
+    - "4"
+    - "5"
+
 services:
     - couchdb
+
 env:
     global:
         - NODE_ENV=test
+        - APPLICATION_PERSISTENT_DIRECTORY=$HOME
+        - CXX=g++-4.8
+
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - gcc-4.8
+            - g++-4.8
+
 before_install:
     - npm config set ca ""
-    - npm install coffee-script -g
+    - travis_retry npm install npm@latest-2 -g
+
+before_script:
+    - npm run build
+
+script:
+    - npm run lint
+    - npm run test

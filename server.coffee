@@ -18,7 +18,7 @@ application = module.exports = (callback) ->
             root: __dirname
 
         # Start data-system server
-        americano.start options, (app, server) ->
+        americano.start options, (err, app, server) ->
             app.use errorMiddleware
             # Clean lost binaries
             initialize app, server, callback
