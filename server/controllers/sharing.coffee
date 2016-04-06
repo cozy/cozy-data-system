@@ -70,7 +70,7 @@ module.exports.create = (req, res, next) ->
         return next err
     # ...and well formed
     for rule in share.rules
-         unless rule.docType and rule.id
+        unless rule.docType and rule.id
             err = new Error "Incorrect rule detected"
             err.status = 400
             return next err
