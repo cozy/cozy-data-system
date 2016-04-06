@@ -94,21 +94,21 @@ module.exports.checkDocTypeSync = (auth, docType) ->
         return [null, name, true]
 
 
-## function checkSharingRule (auth, docInfo, callback)
+## function checkSharingRule (auth, doc, callback)
 ## @auth {string} Field 'authorization' of request
-## @docInfo {Object} Contains the permission informations
+## @doc {Object} Contains the document to evaluate
 ## @callback {function} Continuation to pass control back to when complete.
 ## Check if the sharing can manage the document
-module.exports.checkSharingRule = (auth, docInfo, callback) ->
+module.exports.checkSharingRule = (auth, doc, callback) ->
     if productionOrTest
         # Check if requester is authenticated
         [err, isAuthenticated, name] = checkToken auth, sharingTokens
         if isAuthenticated
-            if docInfo?.id? && docInfo?.docType?
-                docInfo.docType = docInfo.docType.toLowerCase()
+            if doc?.id? && doc?.docType?
+                doc.docType = doc.docType.toLowerCase()
                 # Check all the sharing rules defined for this login
                 for rule in sharingPermissions[name]
-                    if rule.id is docInfo.id && rule.docType is docInfo.docType
+                    if rule.id is doc.id && rule.docType is doc.docType
                         # Request is granted
                         return callback null, name, true
                 # Request is denied
@@ -126,20 +126,20 @@ module.exports.checkSharingRule = (auth, docInfo, callback) ->
 
 
 
-## function checkSharingRuleSync (auth, rule, callback)
+## function checkSharingRuleSync (auth, doc, callback)
 ## @auth {string} Field 'authorization' of request
-## @docInfo {Object} Contains the permission informations
+## @doc {Object} Contains the document to evaluate
 ## Check if the sharing can manage the document
-module.exports.checkSharingRuleSync = (auth, docInfo) ->
+module.exports.checkSharingRuleSync = (auth, doc) ->
     if productionOrTest
         # Check if requester is authenticated
         [err, isAuthenticated, name] = checkToken auth, sharingTokens
         if isAuthenticated
-            if docInfo?.id? && docInfo?.docType?
-                docInfo.docType = docInfo.docType.toLowerCase()
+            if doc?.id? && doc?.docType?
+                doc.docType = doc.docType.toLowerCase()
                 # Check all the sharing rules defined for this login
                 for rule in sharingPermissions[name]
-                    if rule.id is docInfo.id && rule.docType is docInfo.docType
+                    if rule.id is doc.id && rule.docType is doc.docType
                         # Request is granted
                         return [null, name, true]
                 # Request is denied

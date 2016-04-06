@@ -83,8 +83,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                         err.status = 403
                         cb err
                     else
-                        docInfo = {id: doc._id, docType: doc.docType}
-                        checkReplicationPermissions req, docInfo, cb
+                        checkReplicationPermissions req, doc, cb
             # Manage in request
             else
                 # The document is not well formed
@@ -93,8 +92,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                     err.status = 403
                     cb err
                 else
-                    docInfo = {id: doc._id, docType: doc.docType}
-                    checkReplicationPermissions req, docInfo, cb
+                    checkReplicationPermissions req, doc, cb
         , next
     else
         err = new Error "Forbidden operation"

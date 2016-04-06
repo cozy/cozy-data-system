@@ -29,10 +29,6 @@ module.exports.checkPermissions = (req, permission, next) ->
             
 # Check the permissions for a couchDB replication
 # @permission {Object} : contains the permission linked to the request
-# Depending on the context, the permission can contains :
-#   * id       -> check the doc id is authorized
-#   * docType  -> check the document type is authorized
-#   * doc      -> [not implemented] Evaluate the doc against a sharing rule
 module.exports.checkReplicationPermissions = (req, permission, next) ->
     auth = req.header('authorization')
 
@@ -68,10 +64,6 @@ module.exports.checkReplicationPermissions = (req, permission, next) ->
 
 # Check the permissions for a couchDB replication
 # @permission {Object} contains the permission linked to the request
-# Depending on the context, the permission can contains :
-#   * id       -> check the doc id is authorized
-#   * docType  -> check the document type is authorized
-#   * doc      -> [not implemented] Evaluate the doc against a sharing rule
 module.exports.checkReplicationPermissionsSync = (req, permission) ->
     auth = req.header('authorization')
 
