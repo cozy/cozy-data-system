@@ -6,7 +6,8 @@ errors = require './errors'
 
 # Helpers
 helpers = require '../helpers/utils'
-checkPermissions = helpers.checkReplicationPermissions
+checkReplicationPermissions = helpers.checkReplicationPermissions
+checkPermissions = helpers.checkPermissions
 deleteFiles = helpers.deleteFiles
 
 # Lock document to avoid multiple modifications at the same time.
@@ -83,7 +84,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                         cb err
                     else
                         docInfo = {id: doc._id, docType: doc.docType}
-                        checkPermissions req, docInfo, cb
+                        checkReplicationPermissions req, docInfo, cb
             # Manage in request
             else
                 # The document is not well formed
@@ -93,7 +94,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                     cb err
                 else
                     docInfo = {id: doc._id, docType: doc.docType}
-                    checkPermissions req, docInfo, cb
+                    checkReplicationPermissions req, docInfo, cb
         , next
     else
         err = new Error "Forbidden operation"
