@@ -5,15 +5,7 @@ log = require('printit')
     date: true
     prefix: 'lib/request'
 
-# Define random function for application's token
-randomString = (length) ->
-    string = ""
-    while (string.length < length)
-        string = string + Math.random().toString(36).substr(2)
-    return string.substr 0, length
-
-productionOrTest = process.env.NODE_ENV is "production" or
-    process.env.NODE_ENV is "test"
+productionOrTest = process.env.NODE_ENV in ['production', 'test']
 
 ## function create (app, req, views, newView, callback)
 ## @app {String} application name
@@ -23,8 +15,8 @@ productionOrTest = process.env.NODE_ENV is "production" or
 ## @callback {function} Continuation to pass control back to when complete.
 ## Store new view with name <app>-request name in case of conflict
 ## Callback view name (req.req_name or name-req.req_name)
-module.exports.create = (app, req, views, newView, callback) =>
-    storeRam = (path) =>
+module.exports.create = (app, req, views, newView, callback) ->
+    storeRam = (path) ->
         request[app] ?= {}
         request[app]["#{req.type}/#{req.req_name}"] = path
         callback null, path
@@ -56,7 +48,7 @@ module.exports.create = (app, req, views, newView, callback) =>
 ## @req {Object} contains type and request name
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback correct request name
-module.exports.get = (app, req, callback) =>
+module.exports.get = (app, req, callback) ->
     if productionOrTest and request[app]?["#{req.type}/#{req.req_name}"]?
         callback request[app]["#{req.type}/#{req.req_name}"]
     else
@@ -68,15 +60,15 @@ module.exports.get = (app, req, callback) =>
 ## function recoverApp (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback all application names from database
-recoverApp = (callback) =>
+recoverApp = (callback) ->
     apps = []
-    db.view 'application/all', (err, res) =>
+    db.view 'application/all', (err, res) ->
         if err
             callback err
         else if not res
             callback null, []
         else
-            res.forEach (app) =>
+            res.forEach (app) ->
                 apps.push app.name
             callback null, apps
 
@@ -85,10 +77,10 @@ recoverApp = (callback) =>
 ## @docs {tab} design docs with view
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback all design documents from database
-recoverDocs = (res, docs, callback) =>
+recoverDocs = (res, docs, callback) ->
     if res and res.length isnt 0
         doc = res.pop()
-        db.get doc.id, (err, result) =>
+        db.get doc.id, (err, result) ->
             docs.push(result)
             recoverDocs res, docs, callback
     else
@@ -97,25 +89,25 @@ recoverDocs = (res, docs, callback) =>
 ## function recoverDocs (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Callback all design documents from database
-recoverDesignDocs = (callback) =>
+recoverDesignDocs = (callback) ->
     filterRange =
         startkey: "_design/"
         endkey: "_design0"
-    db.all filterRange, (err, res) =>
+    db.all filterRange, (err, res) ->
         return callback err if err?
         recoverDocs res, [], callback
 
 
-# Data system uses some views, this function initialize it.
+# Data system uses some views, this function initializes them.
 initializeDSView = (callback) ->
     views =
-        # Usefull for function 'doctypes' (controller/request. Databrowser)
+        # Useful for function 'doctypes' (controller/request. Databrowser)
         doctypes:
             all:
                 map: """
                 function(doc) {
                     if(doc.docType) {
-                        return emit(doc.docType, null);
+                        return emit(doc.docType.toLowerCase(), null);
                     }
                 }
                 """
@@ -125,7 +117,7 @@ initializeDSView = (callback) ->
                     return true;
                 }
                 """
-        # Usefull to manage device access
+        # Useful to manage device access
         device:
             all:
                 map: """
@@ -143,12 +135,13 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
-        # Usefull to manage application access
+        # Useful to manage application access
         application:
             all:
                 map: """
                 function(doc) {
-                    if(doc.docType && doc.docType.toLowerCase() === "application") {
+                    if(doc.docType &&
+                            doc.docType.toLowerCase() === "application") {
                         return emit(doc._id, doc);
                     }
                 }
@@ -157,13 +150,14 @@ initializeDSView = (callback) ->
             byslug:
                 map: """
                 function(doc) {
-                    if(doc.docType && doc.docType.toLowerCase() === "application") {
+                    if(doc.docType &&
+                            doc.docType.toLowerCase() === "application") {
                         return emit(doc.slug, doc);
                     }
                 }
                 """
 
-        # Usefull to manage application access
+        # Useful to manage application access
         withoutDocType:
             all:
                 map: """
@@ -174,7 +168,7 @@ initializeDSView = (callback) ->
                 }
                 """
 
-        # Usefull to manage access
+        # Useful to manage access
         access:
             all:
                 map: """
@@ -193,7 +187,7 @@ initializeDSView = (callback) ->
                 }
                 """
 
-        # Usefull to remove binary lost
+        # Useful to remove binary lost
         binary:
             all:
                 map: """
@@ -213,27 +207,29 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
-        # Usefull for thumbs creation
+        # Useful for thumbs creation
         file:
             withoutThumb:
                 map: """
                 function(doc) {
                     if(doc.docType && doc.docType.toLowerCase() === "file") {
-                        if(doc.class === "image" && doc.binary && doc.binary.file && !doc.binary.thumb) {
+                        if(doc.class === "image" && doc.binary &&
+                                doc.binary.file && !doc.binary.thumb) {
                             emit(doc._id, null);
                         }
                     }
                 }
                 """
-        # Usefull for API tags
+        # Useful for API tags
         tags:
             all:
                 map: """
                 function (doc) {
-                var _ref;
-                return (_ref = doc.tags) != null ? typeof _ref.forEach === "function" ? _ref.forEach(function(tag) {
-                   return emit(tag, null);
-                    }) : void 0 : void 0;
+                    var _ref = doc.tags;
+                    return _ref != null ? typeof _ref.forEach === "function" ?
+                        _ref.forEach(function(tag) {
+                            return emit(tag, null);
+                        }) : void 0 : void 0;
                 }
                 """
                 # use to make a "distinct"
@@ -242,6 +238,29 @@ initializeDSView = (callback) ->
                     return true;
                 }
                 """
+
+        # Useful to manage sharing
+        sharing:
+            all:
+                map: """
+                function(doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "sharing") {
+                        return emit(doc._id, null);
+                    }
+                }
+                """
+
+        indexdefinition:
+            all:
+                map: """
+                function(doc) {
+                    if(doc.docType &&
+                       doc.docType.toLowerCase() === "indexdefinition") {
+                        emit(doc._id, null)
+                    }
+                }
+                """
+
     async.forEach Object.keys(views), (docType, cb) ->
         view = views[docType]
         db.get "_design/#{docType}", (err, doc) ->
@@ -260,9 +279,9 @@ initializeDSView = (callback) ->
 ## function init (callback)
 ## @callback {function} Continuation to pass control back to when complete.
 ## Initialize request
-module.exports.init = (callback) =>
+module.exports.init = (callback) ->
     removeEmptyView = (doc, callback) ->
-        if Object.keys(doc.views).length is 0 or not doc?.views?
+        if not doc?.views? or Object.keys(doc.views).length is 0
             db.remove doc._id, doc._rev, (err, response) ->
                 if err
                     log.error "[Definition] err: " + err.message
@@ -302,19 +321,24 @@ module.exports.init = (callback) =>
     initializeDSView ->
         if productionOrTest
             # Recover all applications in database
-            recoverApp (err, apps) =>
+            recoverApp (err, apps) ->
                 return callback err if err?
                 # Recover all design docs in database
-                recoverDesignDocs (err, docs) =>
+                recoverDesignDocs (err, docs) ->
                     return callback err if err?
                     async.forEach docs, (doc, cb) ->
-                        async.forEach Object.keys(doc.views), (view, cb) ->
-                            body = doc.views[view]
-                            storeAppView apps, doc, view, body, cb
-                        , (err) ->
-                            removeEmptyView doc, (err) ->
-                                log.error err if err?
-                                cb()
+                        if not doc?.views?
+                            log.warn "Document has no view"
+                            log.warn doc
+                            cb()
+                        else
+                            async.forEach Object.keys(doc.views), (view, cb) ->
+                                body = doc.views[view]
+                                storeAppView apps, doc, view, body, cb
+                            , (err) ->
+                                removeEmptyView doc, (err) ->
+                                    log.error err if err?
+                                    cb()
                     , (err) ->
                         log.error err if err?
                         callback()
