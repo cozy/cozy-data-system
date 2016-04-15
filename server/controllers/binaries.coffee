@@ -183,7 +183,7 @@ module.exports.convert = (req, res, next) ->
                 console.log err if err
 
             data =
-                name: keyData.newKey
+                name: keyData.newBinaryKey
                 body: ''
             # Attach document to binary
             writeStream = db.saveAttachment binDoc, data, (err, res) ->
@@ -194,19 +194,20 @@ module.exports.convert = (req, res, next) ->
                         callback err
                     else
                         # Store binaries information
-                        binaries[keyData.newKey] =
+                        binaries[keyData.newFileKey] =
                             id: doc._id
                             rev: doc._rev
                         callback()
             readStream.pipe(writeStream)
 
     if req.doc._attachments?
-        name = req.params.name
         keys = Object.keys(req.doc._attachments)
         datas = keys.map (key) -> {
             oldKey: key,
-            newKey: if name then name else key
+            newFileKey: if keys.length = 1 then name else key,
+            newBinaryKey: if req.params.name then req.params.name else key
         }
+
         async.eachSeries datas, createBinary, (err) ->
             if err
                 next err
