@@ -157,6 +157,7 @@ module.exports.remove = (req, res, next) ->
 
 module.exports.convert = (req, res, next) ->
     binaries = {}
+    name = req.params.name
 
     removeOldAttach = (attach, binaryId, callback) ->
         db.get req.doc.id, (err, doc) ->
@@ -174,6 +175,8 @@ module.exports.convert = (req, res, next) ->
                                 callback null, doc
 
     createBinary = (keyData, callback) ->
+        return callback() unless keyData?
+        console.log "create", keyData
         # Create binary
         binary =
             docType: "Binary"
@@ -200,13 +203,20 @@ module.exports.convert = (req, res, next) ->
                         callback()
             readStream.pipe(writeStream)
 
-    if req.doc._attachments?
-        keys = Object.keys(req.doc._attachments)
-        datas = keys.map (key) -> {
-            oldKey: key,
-            newFileKey: if keys.length = 1 then name else key,
-            newBinaryKey: if req.params.name then req.params.name else key
-        }
+    attachments = req.doc._attachments
+    keys2 = []
+    if attachments?
+        keys = Object.keys attachments
+        keys2.push key for key in keys
+        datas = []
+
+        #for key, val of req.doc_attachments
+        for key in keys2
+            datas.push {
+                oldKey: key
+                newFileKey: if keys.length = 1 and name? then name else key
+                newBinaryKey: if name? then name else key
+            }
 
         async.eachSeries datas, createBinary, (err) ->
             if err
@@ -224,3 +234,4 @@ module.exports.convert = (req, res, next) ->
     else
         res.status(200).send success: true
         next()
+
