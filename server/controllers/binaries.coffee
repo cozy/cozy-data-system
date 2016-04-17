@@ -176,7 +176,7 @@ module.exports.convert = (req, res, next) ->
 
     createBinary = (keyData, callback) ->
         return callback() unless keyData?
-        console.log "create", keyData
+
         # Create binary
         binary =
             docType: "Binary"
