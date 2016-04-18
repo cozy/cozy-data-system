@@ -74,16 +74,14 @@ module.exports.replicateDocs = (params, callback) ->
         callback err
     else
         # Add the credentials in the url
-        auth = params.id + ":" + params.target.token
-        url = params.target.url.replace "://", "://" + auth + "@"
+        auth = "#{params.id}:#{params.target.token}"
+        url = params.target.url.replace "://", "://#{auth}@"
 
         replication =
             source: "cozy"
             target: url + "/services/sharing/replication/"
             continuous: params.continuous or false
             doc_ids: params.docIDs
-
-        log.info  "Replicate " + JSON.stringify params.docIDs + " to " + url
 
         db.replicate replication.target, replication, (err, body) ->
             if err? then callback err

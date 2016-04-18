@@ -39,7 +39,7 @@ describe "Sharing controller tests:", ->
             data = {}
             client.post 'services/sharing/', data, (err, res, body) ->
                 res.statusCode.should.equal 400
-                res.body.error.should.equal 'Bad request: no body'
+                res.body.error.should.equal 'Body is incomplete'
                 done()
 
         it 'should return a bad request when no target is specified', (done) ->
@@ -47,7 +47,7 @@ describe "Sharing controller tests:", ->
             data.targets = []
             client.post 'services/sharing/', data, (err, res, body) ->
                 res.statusCode.should.equal 400
-                res.body.error.should.equal 'No target specified'
+                res.body.error.should.equal 'Body is incomplete'
                 done()
 
         it 'should return a bad request when a target does not have an url',
@@ -67,7 +67,7 @@ describe "Sharing controller tests:", ->
             data.rules = []
             client.post 'services/sharing/', data, (err, res, body) ->
                 res.statusCode.should.equal 400
-                res.body.error.should.equal 'No rules specified'
+                res.body.error.should.equal 'Body is incomplete'
                 done()
 
         it 'should return a bad request when a rule does not have an id',
@@ -450,7 +450,7 @@ describe "Sharing controller tests:", ->
             client.post 'services/sharing/sendAnswer/', data,
             (err, res, body) ->
                 res.statusCode.should.equal 400
-                res.body.error.should.equal "Bad request: body is missing"
+                res.body.error.should.equal "Bad request: body is incomplete"
                 done()
 
         it 'should return an error when the req structure is incorrect: id is
@@ -707,7 +707,7 @@ describe "Sharing controller tests:", ->
         it 'should return an error when the body is missing', (done) ->
             data = {}
             client.post 'services/sharing/answer/', data, (err, res, body) ->
-                res.body.error.should.equal "Bad request: body is empty"
+                res.body.error.should.equal "Bad request: body is incomplete"
                 res.statusCode.should.equal 400
                 done()
 
