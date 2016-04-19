@@ -16,6 +16,10 @@ TOKEN_LENGTH = 32
 generateToken = (length) ->
     return crypto.randomBytes(length).toString('hex')
 
+# Returns the target position in the array
+findTargetIndex = (targetArray, target) ->
+    i = targetArray.map((t) ->
+        return t.recipientUrl).indexOf target.recipientUrl
 
 # Creation of the Sharing document
 #
@@ -315,8 +319,7 @@ module.exports.validateTarget = (req, res, next) ->
         else
             log.info "Sharing #{answer.shareID} denied by
                 #{target.recipientUrl}"
-
-            i = doc.targets.indexOf target
+            i = findTargetIndex doc.targets, target
             doc.targets.splice i, 1
 
         # Update the Sharing doc
@@ -366,8 +369,7 @@ module.exports.replicate = (req, res, next) ->
 
                 # Update the target with the repID if the sharing is continuous
                 if replicate.continuous
-
-                    i = doc.targets.indexOf target
+                    i = findTargetIndex doc.targets, target
                     doc.targets[i].repID = repID
 
                     db.merge doc._id, doc, (err, result) ->

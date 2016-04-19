@@ -115,11 +115,11 @@ describe "Sharing controller tests:", ->
                          {recipientUrl: 'url3.com', preToken: 'preToken3'}]
             continuous: true
 
-        # Spies on the parameters given to the `notifyTarget` module
+        # Spies on the parameters given to the `notifyRecipient` module
         spyRoute   = {}
         spyRequest = {}
 
-        # We stub the `notifyTarget` module to avoid calling it (if so it would
+        # We stub the `notifyRecipient` module to avoid calling it (if so it would
         # try to request the url we declare in the share object).
         stubFn = (route, request, callback) ->
             spyRoute   = route
@@ -128,7 +128,7 @@ describe "Sharing controller tests:", ->
         notifyStub = {}
 
         beforeEach (done) ->
-            notifyStub = sinon.stub Sharing, "notifyTarget", stubFn
+            notifyStub = sinon.stub Sharing, "notifyRecipient", stubFn
             done()
 
         afterEach (done) ->
@@ -207,13 +207,13 @@ describe "Sharing controller tests:", ->
             sharing.sendSharingRequests req, resStub, ->
                 done()
 
-        it 'should return an error when notifyTarget failed', (done) ->
+        it 'should return an error when notifyRecipient failed', (done) ->
             # remove previously defined stub...
             notifyStub.restore()
             # ... and generate a new one that mimicks failure
             stubFn = (route, request, callback) ->
                 callback "Error" # to mimick failure we return something
-            notifyStub = sinon.stub Sharing, "notifyTarget", stubFn
+            notifyStub = sinon.stub Sharing, "notifyRecipient", stubFn
 
             # We want a correct structure
             req = share: _.cloneDeep share
@@ -342,13 +342,13 @@ describe "Sharing controller tests:", ->
             shareID: 103
             targets: targets
 
-        # sharing.notifyTarget stub (lib/sharing.coffee).
+        # sharing.notifyRecipient stub (lib/sharing.coffee).
         # Returning `null` mimicks success.
         notifyTargetFn   = (route, notification, callback) -> callback null
         notifyTargetStub = {}
 
         beforeEach (done) ->
-            notifyTargetStub = sinon.stub Sharing, "notifyTarget",
+            notifyTargetStub = sinon.stub Sharing, "notifyRecipient",
                 notifyTargetFn
             done()
 
@@ -370,7 +370,7 @@ describe "Sharing controller tests:", ->
                     #{req.share.shareID} has been deleted"
                 callback null
 
-            notifyTargetStub = sinon.stub Sharing, "notifyTarget",
+            notifyTargetStub = sinon.stub Sharing, "notifyRecipient",
                 testNotifyTargetFn
 
             # mimick Express `res.send`
@@ -401,7 +401,7 @@ describe "Sharing controller tests:", ->
             notifyTargetStub.restore() # cancel stub
             errNotifyTargetFn = (route, notification, callback) ->
                 callback "Error"
-            notifyTargetStub = sinon.stub Sharing, "notifyTarget",
+            notifyTargetStub = sinon.stub Sharing, "notifyRecipient",
                 errNotifyTargetFn
 
             sharing.sendDeleteNotifications req, {}, (err) ->
@@ -624,9 +624,9 @@ describe "Sharing controller tests:", ->
         notifyTargetStub = {}
 
         beforeEach (done) ->
-            notifyTargetStub = sinon.stub Sharing, "notifyTarget",
+            notifyTargetStub = sinon.stub Sharing, "notifySharer",
                 (route, data, callback) ->
-                    callback new Error "Sharing.notifyTarget"
+                    callback new Error "Sharing.notifySharer"
 
             done()
 
@@ -635,9 +635,9 @@ describe "Sharing controller tests:", ->
             done()
 
 
-        it 'should return an error when notifyTarget failed', (done) ->
+        it 'should return an error when notifySharer failed', (done) ->
             sharing.sendAnswer req, {}, (err) ->
-                err.should.deep.equal new Error "Sharing.notifyTarget"
+                err.should.deep.equal new Error "Sharing.notifySharer"
                 done()
 
         it 'should notify the target', (done) ->
@@ -645,12 +645,12 @@ describe "Sharing controller tests:", ->
                 notifyTargetStub.callCount.should.equal 1
                 done()
 
-        it 'should send success when notifyTarget succeeded', (done) ->
+        it 'should send success when notifySharer succeeded', (done) ->
             # We change the stub for one that succeeds
             notifyTargetStub.restore()
             notifyTargetFnOk = (route, data, callback) ->
                 callback null
-            notifyTargetStub = sinon.stub Sharing, "notifyTarget",
+            notifyTargetStub = sinon.stub Sharing, "notifySharer",
                 notifyTargetFnOk
 
             res =
@@ -756,15 +756,6 @@ describe "Sharing controller tests:", ->
                 res.statusCode.should.equal 400
                 done()
 
-        it 'should return an error when db.get failed', (done) ->
-            dbGetStub.restore() # cancel default stub
-            dbGetStub = sinon.stub db, "get", (id, callback) ->
-                callback new Error "db.get"
-
-            sharing.validateTarget req, {}, (err) ->
-                err.should.deep.equal new Error "db.get"
-                done()
-
         it 'should return an error when the target was not found for this
         share', (done) ->
             dbGetStub.restore() # cancel default stub that fails
@@ -861,28 +852,22 @@ describe "Sharing controller tests:", ->
                 callback null # do nothing and return no error
 
             sharing.validateTarget req, {}, ->
-                should.exist req.replicate
-                req.replicate.target.recipientUrl.should.equal \
+                should.exist req.share
+                req.share.target.recipientUrl.should.equal \
                     req.body.recipientUrl
                 # `preToken` should not exist and `token` should since
                 # `accepted` is true
-                should.not.exist req.replicate.target.preToken
-                should.exist req.replicate.target.token
-                req.replicate.id.should.equal doc_orig._id
-                req.replicate.docIDs.should.deep.equal (r.id for r in \
-                    doc_orig.rules)
-                req.replicate.continuous.should.equal doc_orig.continuous
+                should.not.exist req.share.target.preToken
+                should.exist req.share.target.token
+                should.exist req.share.doc
+                should.exist req.share.doc._id
+                should.exist req.share.doc.rules
                 done()
 
 
     describe 'replicate module', ->
 
         # Correct structures expected
-        req = replicate: { id        : 12345,\
-                           target    : {recipientUrl: 'urlOfTheRecipient',\
-                                        token: 'token'},\
-                           docIDS    : [1, 2],
-                           continuous: true }
         doc_orig =
             _id       : 12345
             targets   : [{recipientUrl: 'foo', preToken: 'preTokenFoo'},\
@@ -890,6 +875,13 @@ describe "Sharing controller tests:", ->
                          {recipientUrl: 'urlOfTheRecipient', token: 'token'}]
             rules     : [{id: 1, docType: 'event'}, {id: 2, docType: 'event'}]
             continuous: true
+
+
+        req = share:
+            doc: doc_orig
+            target: {recipientUrl: 'urlOfTheRecipient', token: 'token'}
+
+
 
         # stubs
         replicateDocsStub = {}
@@ -919,7 +911,7 @@ describe "Sharing controller tests:", ->
 
         it 'should replicate only when a token exists', (done) ->
             req_no_token = _.cloneDeep req
-            delete req_no_token.replicate.target.token
+            delete req_no_token.share.target.token
 
             res =
                 status: (value) ->
@@ -959,15 +951,6 @@ describe "Sharing controller tests:", ->
                 err.should.deep.equal errRep
                 done()
 
-        it 'should return an error when `db.get` failed', (done) ->
-            dbGetStub.restore()
-            dbGetStub = sinon.stub db, "get", (id, callback) ->
-                callback new Error "db.get"
-
-            sharing.replicate req, res, (err) ->
-                err.should.deep.equal new Error "db.get"
-                done()
-
         it 'should return an error when the `db.merge` failed', (done) ->
             dbMergeStub.restore() # cancel default stub
             dbMergeStub = sinon.stub db, "merge", (id, doc, callback) ->
@@ -982,7 +965,7 @@ describe "Sharing controller tests:", ->
             dbMergeStub.restore() # cancel default stub
             dbMergeStub = sinon.stub db, "merge", (id, doc, callback) ->
                 for target in doc.targets
-                    if target.recipientUrl is req.replicate.target.recipientUrl
+                    if target.recipientUrl is req.share.target.recipientUrl
                         # `987` is the repID in the default stub
                         target.repID.should.equal 987
                     else
@@ -1009,7 +992,7 @@ describe "Sharing controller tests:", ->
         it 'should return success when the replication is not continuous and the
         `Sharing.replicateDocs` succeeded', (done) ->
             req_no_continuous = _.cloneDeep req
-            req_no_continuous.replicate.continuous = false
+            req_no_continuous.share.doc.continuous = false
 
             res =
                 status: (value) ->
