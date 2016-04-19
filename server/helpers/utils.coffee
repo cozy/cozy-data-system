@@ -4,11 +4,47 @@ checkDocType = require('../lib/token').checkDocType
 checkDocTypeSync = require('../lib/token').checkDocTypeSync
 checkSharingRule = require('../lib/token').checkSharingRule
 checkSharingRuleSync = require('../lib/token').checkSharingRuleSync
+_ = require 'lodash'
+
 
 # Delete files on the file system
 module.exports.deleteFiles = (files) ->
     if files? and Object.keys(files).length > 0
         fs.unlinkSync file.path for key, file of files
+
+
+# Check if an object has empty field: `keys` is an array that contains the keys
+# the object should have. We check that each `obj[key]` exists and is not empty
+hasEmptyField = module.exports.hasEmptyField = (obj, keys) ->
+    i = 0
+    while (key = keys[i])?
+        value = obj[key]
+
+        # Caveats:
+        # 1. _.isEmpty returns true if tested against a boolean
+        # 2. _.isEmpty returns true if tested against a number
+        # 3. the keyword `not` needs paranthesis otherwise it takes the whole
+        #    expression
+        # 4. use paranthesis otherwise all hell breaks loose...
+        unless value? and ((not _.isEmpty value) or (_.isBoolean value) or
+        (_.isNumber value))
+            return true
+        i++
+
+    return false
+
+
+# Check that a set of elements has a correct structure: all elements must have
+# the keys specified
+module.exports.hasIncorrectStructure = (set, keys) ->
+    i = 0
+    while (obj = set[i])?
+        if hasEmptyField obj, keys
+            return true
+        i++
+
+    return false
+
 
 # Check the application has the permissions to access the route
 module.exports.checkPermissions = (req, permission, next) ->
@@ -26,7 +62,8 @@ module.exports.checkPermissions = (req, permission, next) ->
             feed.publish 'usage.application', appName
             req.appName = appName
             next()
-            
+
+
 # Check the permissions for a couchDB replication
 # @permission {Object} : contains the permission linked to the request
 module.exports.checkReplicationPermissions = (req, permission, next) ->
@@ -59,8 +96,9 @@ module.exports.checkReplicationPermissions = (req, permission, next) ->
         # Permissions are correct
         else
             feed.publish 'usage.application', login
-            req.login = login
+            req.appName = login
             next()
+
 
 # Check the permissions for a couchDB replication
 # @permission {Object} contains the permission linked to the request
@@ -94,5 +132,6 @@ module.exports.checkReplicationPermissionsSync = (req, permission) ->
     # Permissions are correct
     else
         feed.publish 'usage.application', login
-        req.login = login
+        req.appName = login
         return
+

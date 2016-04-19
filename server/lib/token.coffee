@@ -1,7 +1,9 @@
-db = require('../helpers/db_connect_helper').db_connect()
-fs = require 'fs'
+db  = require('../helpers/db_connect_helper').db_connect()
+_   = require 'lodash'
+fs  = require 'fs'
 log = require('printit')
     prefix: 'token'
+
 permissions = {}
 tokens = {}
 sharingTokens = {}
@@ -18,7 +20,8 @@ productionOrTest = process.env.NODE_ENV in ['production', 'test']
 checkToken = module.exports.checkToken = (auth, tokensTab) ->
     if auth isnt "undefined" and auth?
         # Default case for tokens
-        unless tokensTab? then tokensTab = tokens
+        #unless tokensTab? then tokensTab = tokens
+        tokensTab ?= tokens
         # Recover username and password in field authorization
         auth = auth.substr(5, auth.length - 1)
         auth = new Buffer(auth, 'base64').toString('ascii')
@@ -43,9 +46,9 @@ checkToken = module.exports.checkToken = (auth, tokensTab) ->
 ## Check if application can manage docType
 module.exports.checkDocType = (auth, docType, callback) ->
     # Check if application is authenticated
+    [err, isAuthenticated, name] = checkToken auth, tokens
 
     if productionOrTest
-        [err, isAuthenticated, name] = checkToken auth, tokens
         if isAuthenticated
             if docType?
                 docType = docType.toLowerCase()
@@ -61,7 +64,6 @@ module.exports.checkDocType = (auth, docType, callback) ->
         else
             callback null, false, false
     else
-        [err, isAuthenticated, name] = checkToken auth, tokens
         name ?= 'unknown'
         callback null, name, true
 
@@ -104,15 +106,12 @@ module.exports.checkSharingRule = (auth, doc, callback) ->
         # Check if requester is authenticated
         [err, isAuthenticated, name] = checkToken auth, sharingTokens
         if isAuthenticated
-            if doc?.id? && doc?.docType?
+            if doc?.id? and doc?.docType?
                 doc.docType = doc.docType.toLowerCase()
                 # Check all the sharing rules defined for this login
-                for rule in sharingPermissions[name]
-                    if rule.id is doc.id && rule.docType is doc.docType
-                        # Request is granted
-                        return callback null, name, true
-                # Request is denied
-                callback null, name, false
+                rule = _.findWhere sharingPermissions[name], {id: doc.id,\
+                    docType: doc.docType}
+                callback null, name, rule?
             else
                 # Particular case for couchDB requests without id or docType
                 callback null, name, true
@@ -135,15 +134,12 @@ module.exports.checkSharingRuleSync = (auth, doc) ->
         # Check if requester is authenticated
         [err, isAuthenticated, name] = checkToken auth, sharingTokens
         if isAuthenticated
-            if doc?.id? && doc?.docType?
+            if doc?.id? and doc?.docType?
                 doc.docType = doc.docType.toLowerCase()
                 # Check all the sharing rules defined for this login
-                for rule in sharingPermissions[name]
-                    if rule.id is doc.id && rule.docType is doc.docType
-                        # Request is granted
-                        return [null, name, true]
-                # Request is denied
-                return [null, name, false]
+                rule = _.findWhere sharingPermissions[name], {id: doc.id, \
+                    docType: doc.docType}
+                return [null, name, rule?]
             else
                 # Particular case for couchDB requests without id or docType
                 return [null, name, true]
@@ -273,7 +269,7 @@ module.exports.updateAccess = (id, doc, callback) ->
             # Create new access
             access.login = doc.slug or access.login
             access.token = doc.password or access.token
-            
+
             # The rules are only for the sharing
             if doc.rules?
                 access.rules = doc.rules
@@ -375,7 +371,7 @@ initAccess = (access, callback) ->
             for docType, description of access.permissions
                 docType = docType.toLowerCase()
                 permissions[name][docType] = description
-    
+
     callback null
 
 ## function init (callback)
