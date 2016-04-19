@@ -158,13 +158,16 @@ describe "Binaries", ->
 
         it "And I convert document", (done) ->
             @client.get 'data/321/binaries/convert', (err, res, body) ->
+                console.log err, body
                 @err = err
                 done()
 
         it "Then document should have only binary", (done) ->
             @client.get 'data/321/', (err, res, doc) =>
+                console.log doc
                 should.exist doc.binary
                 should.not.exist doc._attachment
+
                 should.exist doc.binary['test.png']
                 should.exist doc.binary['test-get.png']
                 @binary1 = doc.binary['test.png'].id

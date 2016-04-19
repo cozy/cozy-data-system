@@ -144,9 +144,9 @@ module.exports.remove = function(req, res, next) {
 };
 
 module.exports.convert = function(req, res, next) {
-  var binaries, createBinary, id, keys, removeOldAttach;
+  var attachments, binaries, createBinary, datas, i, j, key, keys, keys2, len, len1, name, removeOldAttach;
   binaries = {};
-  id = req.doc.id;
+  name = req.params.name;
   removeOldAttach = function(attach, binaryId, callback) {
     return db.get(req.doc.id, function(err, doc) {
       if (err) {
@@ -168,31 +168,34 @@ module.exports.convert = function(req, res, next) {
       }
     });
   };
-  createBinary = function(attach, callback) {
+  createBinary = function(keyData, callback) {
     var binary;
+    if (keyData == null) {
+      return callback();
+    }
     binary = {
       docType: "Binary"
     };
     return db.save(binary, function(err, binDoc) {
       var data, readStream, writeStream;
-      readStream = db.getAttachment(req.doc.id, attach, function(err) {
+      readStream = db.getAttachment(req.doc.id, keyData.oldKey, function(err) {
         if (err) {
           return console.log(err);
         }
       });
       data = {
-        name: attach,
+        name: keyData.newBinaryKey,
         body: ''
       };
       writeStream = db.saveAttachment(binDoc, data, function(err, res) {
         if (err) {
           return callback(err);
         }
-        return removeOldAttach(attach, binDoc._id, function(err, doc) {
+        return removeOldAttach(keyData.oldKey, binDoc._id, function(err, doc) {
           if (err) {
             return callback(err);
           } else {
-            binaries[attach] = {
+            binaries[keyData.newFileKey] = {
               id: doc._id,
               rev: doc._rev
             };
@@ -203,9 +206,24 @@ module.exports.convert = function(req, res, next) {
       return readStream.pipe(writeStream);
     });
   };
-  if (req.doc._attachments != null) {
-    keys = Object.keys(req.doc._attachments);
-    return async.eachSeries(keys, createBinary, function(err) {
+  attachments = req.doc._attachments;
+  keys2 = [];
+  if (attachments != null) {
+    keys = Object.keys(attachments);
+    for (i = 0, len = keys.length; i < len; i++) {
+      key = keys[i];
+      keys2.push(key);
+    }
+    datas = [];
+    for (j = 0, len1 = keys2.length; j < len1; j++) {
+      key = keys2[j];
+      datas.push({
+        oldKey: key,
+        newFileKey: (keys.length = 1 && (name != null)) ? name : key,
+        newBinaryKey: name != null ? name : key
+      });
+    }
+    return async.eachSeries(datas, createBinary, function(err) {
       if (err) {
         return next(err);
       } else {

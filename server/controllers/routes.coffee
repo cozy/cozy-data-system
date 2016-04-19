@@ -148,7 +148,15 @@ module.exports =
             attachments.remove
             utils.unlockRequest
         ]
-    'data/:id/binaries/convert':
+    'data/:id/binaries/convert/':
+        get: [
+            utils.lockRequest
+            utils.getDoc
+            utils.checkPermissionsByDoc
+            binaries.convert
+            utils.unlockRequest
+        ]
+    'data/:id/binaries/convert/:name':
         get: [
             utils.lockRequest
             utils.getDoc

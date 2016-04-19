@@ -23,7 +23,7 @@ module.exports.deleteFiles = function(files) {
 
 module.exports.checkPermissions = function(req, permission, next) {
   var authHeader;
-  authHeader = req.header('authorization');
+  authHeader = req.header('authorization') || req.query.authorization;
   return checkDocType(authHeader, permission, function(err, appName, isAuthorized) {
     if (!appName) {
       err = new Error("Application is not authenticated");

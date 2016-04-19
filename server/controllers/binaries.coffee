@@ -157,7 +157,7 @@ module.exports.remove = (req, res, next) ->
 
 module.exports.convert = (req, res, next) ->
     binaries = {}
-    id = req.doc.id
+    name = req.params.name
 
     removeOldAttach = (attach, binaryId, callback) ->
         db.get req.doc.id, (err, doc) ->
@@ -174,36 +174,51 @@ module.exports.convert = (req, res, next) ->
                             else
                                 callback null, doc
 
-    createBinary = (attach, callback) ->
+    createBinary = (keyData, callback) ->
+        return callback() unless keyData?
+
         # Create binary
         binary =
             docType: "Binary"
         db.save binary, (err, binDoc) ->
             # Get attachment
-            readStream = db.getAttachment req.doc.id, attach, (err) ->
+            readStream = db.getAttachment req.doc.id, keyData.oldKey, (err) ->
                 console.log err if err
 
             data =
-                name: attach
+                name: keyData.newBinaryKey
                 body: ''
             # Attach document to binary
             writeStream = db.saveAttachment binDoc, data, (err, res) ->
                 return callback err if err
                 # Remove attachment from documents
-                removeOldAttach attach, binDoc._id, (err, doc) ->
+                removeOldAttach keyData.oldKey, binDoc._id, (err, doc) ->
                     if err
                         callback err
                     else
                         # Store binaries information
-                        binaries[attach] =
+                        binaries[keyData.newFileKey] =
                             id: doc._id
                             rev: doc._rev
                         callback()
             readStream.pipe(writeStream)
 
-    if req.doc._attachments?
-        keys = Object.keys(req.doc._attachments)
-        async.eachSeries keys, createBinary, (err) ->
+    attachments = req.doc._attachments
+    keys2 = []
+    if attachments?
+        keys = Object.keys attachments
+        keys2.push key for key in keys
+        datas = []
+
+        #for key, val of req.doc_attachments
+        for key in keys2
+            datas.push {
+                oldKey: key
+                newFileKey: if keys.length = 1 and name? then name else key
+                newBinaryKey: if name? then name else key
+            }
+
+        async.eachSeries datas, createBinary, (err) ->
             if err
                 next err
             else
@@ -219,3 +234,4 @@ module.exports.convert = (req, res, next) ->
     else
         res.status(200).send success: true
         next()
+
