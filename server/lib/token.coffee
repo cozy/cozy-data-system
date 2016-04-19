@@ -110,7 +110,7 @@ module.exports.checkSharingRule = (auth, doc, callback) ->
                 doc.docType = doc.docType.toLowerCase()
                 # Check all the sharing rules defined for this login
                 rule = _.findWhere sharingPermissions[name], {id: doc.id,\
-                    docType: docType}
+                    docType: doc.docType}
                 callback null, name, rule?
             else
                 # Particular case for couchDB requests without id or docType
@@ -269,7 +269,7 @@ module.exports.updateAccess = (id, doc, callback) ->
             # Create new access
             access.login = doc.slug or access.login
             access.token = doc.password or access.token
-            
+
             # The rules are only for the sharing
             if doc.rules?
                 access.rules = doc.rules
@@ -371,7 +371,7 @@ initAccess = (access, callback) ->
             for docType, description of access.permissions
                 docType = docType.toLowerCase()
                 permissions[name][docType] = description
-    
+
     callback null
 
 ## function init (callback)

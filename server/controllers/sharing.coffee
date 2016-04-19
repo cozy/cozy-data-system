@@ -18,8 +18,7 @@ generateToken = (length) ->
 
 # Returns the target position in the array
 findTargetIndex = (targetArray, target) ->
-    i = targetArray.map((t) ->
-        return t.recipientUrl).indexOf target.recipientUrl
+    i = targetArray.map((t) -> t.recipientUrl).indexOf target.recipientUrl
 
 # Creation of the Sharing document
 #
@@ -276,7 +275,7 @@ module.exports.validateTarget = (req, res, next) ->
     answer = req.body
 
     # Check the structure of the answer
-    if utils.hasEmptyField answer, ["shareID", "recipientUrl", "accepted",
+    if utils.hasEmptyField answer, ["shareID", "recipientUrl", "accepted",\
                                     "preToken", "token"]
         err = new Error "Bad request: body is incomplete"
         err.status = 400
@@ -287,9 +286,8 @@ module.exports.validateTarget = (req, res, next) ->
         return next err if err?
 
         # Get the answering target
-        i = 0
-        while t = doc.targets[i++]
-            if t.recipientUrl is answer.recipientUrl then target = t
+        target = doc.targets.filter (t)-> t.recipientUrl is answer.recipientUrl
+        target = target[0]
 
         unless target?
             err = new Error "#{answer.recipientUrl} not found for this sharing"
@@ -365,7 +363,7 @@ module.exports.replicate = (req, res, next) ->
                 err.status = 500
                 next err
             else
-                log.info "Data sent to #{target.recipientUrl}"
+                log.info "Data successfully sent to #{target.recipientUrl}"
 
                 # Update the target with the repID if the sharing is continuous
                 if replicate.continuous

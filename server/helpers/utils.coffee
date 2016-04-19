@@ -17,7 +17,7 @@ module.exports.deleteFiles = (files) ->
 # the object should have. We check that each `obj[key]` exists and is not empty
 hasEmptyField = module.exports.hasEmptyField = (obj, keys) ->
     i = 0
-    while key = keys[i]
+    while (key = keys[i])?
         value = obj[key]
 
         # Caveats:
@@ -38,7 +38,7 @@ hasEmptyField = module.exports.hasEmptyField = (obj, keys) ->
 # the keys specified
 module.exports.hasIncorrectStructure = (set, keys) ->
     i = 0
-    while obj = set[i]
+    while (obj = set[i])?
         if hasEmptyField obj, keys
             return true
         i++
@@ -96,7 +96,7 @@ module.exports.checkReplicationPermissions = (req, permission, next) ->
         # Permissions are correct
         else
             feed.publish 'usage.application', login
-            req.login = login
+            req.appName = login
             next()
 
 
@@ -132,6 +132,6 @@ module.exports.checkReplicationPermissionsSync = (req, permission) ->
     # Permissions are correct
     else
         feed.publish 'usage.application', login
-        req.login = login
+        req.appName = login
         return
 
