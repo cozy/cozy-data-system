@@ -283,9 +283,9 @@ module.exports.validateTarget = (req, res, next) ->
         return next err if err?
 
         # Get the answering target
-        for t in doc.targets
-            if t.recipientUrl is answer.recipientUrl
-                target = t
+        i = 0
+        while t = doc.targets[i++]
+            if t.recipientUrl is answer.recipientUrl then target = t
 
         unless target?
             err = new Error "#{answer.recipientUrl} not found for this sharing"
@@ -323,32 +323,36 @@ module.exports.validateTarget = (req, res, next) ->
         db.merge doc._id, doc, (err, result) ->
             return next err if err?
 
-            # Retrieve all the docIDs
-            docIDs = (rule.id for rule in doc.rules)
-
             # Params structure for the replication
-            replicate =
-                target    : target
-                id        : doc._id
-                docIDs    : docIDs
-                continuous: doc.continuous
+            share =
+                target : target
+                doc    : doc
 
-            req.replicate = replicate
+            req.share = share
             next()
 
 
 # Replicate documents to the target url
 
 # Params must contain:
-#   id         -> the Sharing id, used as a login
+#   doc        -> the Sharing document
 #   target     -> contains the url and the token of the target
-#   docIDs     -> the docIDs to replicate
-#   continuous -> [optionnal] if the sharing is synchronous or not
 module.exports.replicate = (req, res, next) ->
-    replicate = req.replicate
+    share = req.share
 
     # Replicate only if the target has accepted, i.e. gave a token
-    if replicate.target.token?
+    if share.target.token?
+        doc = share.doc
+        target = share.target
+
+        # Retrieve all the docIDs
+        docIDs = (rule.id for rule in doc.rules)
+        replicate =
+            id          : doc._id
+            target      : target
+            docIDs      : docIDs
+            continuous  : doc.continuous
+
         Sharing.replicateDocs replicate, (err, repID) ->
             if err?
                 next err
@@ -358,23 +362,18 @@ module.exports.replicate = (req, res, next) ->
                 err.status = 500
                 next err
             else
-                log.info "Data sent to #{replicate.target.recipientUrl}"
+                log.info "Data sent to #{target.recipientUrl}"
 
                 # Update the target with the repID if the sharing is continuous
                 if replicate.continuous
-                    db.get replicate.id, (err, doc) ->
+
+                    i = doc.targets.indexOf target
+                    doc.targets[i].repID = repID
+
+                    db.merge doc._id, doc, (err, result) ->
                         return next err if err?
 
-                        # Find the target in the db and update it
-                        targetUrl = replicate.target.recipientUrl
-                        for target, i in doc.targets
-                            if target.recipientUrl is targetUrl
-                                target.repID = repID
-
-                        db.merge replicate.id, doc, (err, result) ->
-                            return next err if err?
-
-                            res.status(200).send success: true
+                        res.status(200).send success: true
                 else
                     res.status(200).send success: true
 
