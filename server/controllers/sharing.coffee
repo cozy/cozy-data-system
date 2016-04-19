@@ -11,6 +11,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 
 TOKEN_LENGTH = 32
 
+
 # Randomly generates a token.
 generateToken = (length) ->
     return crypto.randomBytes(length).toString('hex')
@@ -127,11 +128,9 @@ module.exports.sendSharingRequests = (req, res, next) ->
             rules       : share.rules
             desc        : share.desc
 
-        log.info "Send sharing request to : #{request.url}"
+        log.info "Send sharing request to : #{request.recipientUrl}"
 
-        Sharing.notifyTarget "services/sharing/request", request,
-        (err, result) ->
-            callback err
+        Sharing.notifyRecipient "services/sharing/request", request, callback
 
     , (err) ->
         if err?
@@ -159,7 +158,8 @@ module.exports.sendDeleteNotifications = (req, res, next) ->
 
         log.info "Send sharing cancel notification to : #{notif.recipientUrl}"
 
-        Sharing.notifyTarget "services/sharing/cancel", notif, callback
+        Sharing.notifyRecipient "services/sharing/cancel", notif, callback
+
     , (err) ->
         if err?
             next err
@@ -240,18 +240,17 @@ module.exports.handleRecipientAnswer = (req, res, next) ->
 module.exports.sendAnswer = (req, res, next) ->
     share = req.share
 
-    # Note that we switch the url and hostUrl
     answer =
         shareID     : share.shareID
-        sharerUrl   : share.sharerUrl  #hostUrl: share.url
-        recipientUrl: share.recipientUrl  #url: share.hostUrl
+        sharerUrl   : share.sharerUrl
+        recipientUrl: share.recipientUrl
         accepted    : share.accepted
         preToken    : share.preToken
         token       : share.token
 
-    log.info "Send sharing answer to : #{answer.url}"
+    log.info "Send sharing answer to : #{answer.sharerUrl}"
 
-    Sharing.notifyTarget "services/sharing/answer", answer,
+    Sharing.notifySharer "services/sharing/answer", answer,
     (err, result, body) ->
         if err?
             next err
@@ -284,11 +283,12 @@ module.exports.validateTarget = (req, res, next) ->
         return next err if err?
 
         # Get the answering target
-        target = doc.targets.find (target) -> target.recipientUrl is \
-            answer.recipientUrl
+        for t in doc.targets
+            if t.recipientUrl is answer.recipientUrl
+                target = t
 
         unless target?
-            err = new Error answer.hostUrl + " not found for this sharing"
+            err = new Error "#{answer.recipientUrl} not found for this sharing"
             err.status = 404
             return next err
 
@@ -358,17 +358,18 @@ module.exports.replicate = (req, res, next) ->
                 err.status = 500
                 next err
             else
+                log.info "Data sent to #{replicate.target.recipientUrl}"
+
                 # Update the target with the repID if the sharing is continuous
                 if replicate.continuous
                     db.get replicate.id, (err, doc) ->
                         return next err if err?
 
-                        # Find the target in the db
+                        # Find the target in the db and update it
                         targetUrl = replicate.target.recipientUrl
-                        # Get index of the target and update it
-                        i = doc.targets.findIndex (target) ->
-                            target.recipientUrl is targetUrl
-                        doc.targets[i].repID = repID
+                        for target, i in doc.targets
+                            if target.recipientUrl is targetUrl
+                                target.repID = repID
 
                         db.merge replicate.id, doc, (err, result) ->
                             return next err if err?
