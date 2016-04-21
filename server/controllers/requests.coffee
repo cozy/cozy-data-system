@@ -63,7 +63,13 @@ module.exports.results = (req, res, next) ->
                         catch
                             # catch error
                             value._passwordStillEncrypted = true
-
+                    try
+                        for field in Object.keys(value)
+                            if field.match /^encrypted/
+                                value[field] = encryption.decrypt value[field]
+                    catch error
+                        # Do nothing with the error
+                            
                 res.send docs
             else
                 res.send docs

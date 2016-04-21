@@ -14,6 +14,8 @@ cryptoTools = new CryptoTools()
 slaveKey = null
 day = 24 * 60 * 60 * 1000
 
+encryptionPattern = /^encrypted/
+
 sendEmail = (mailOptions, callback) ->
     transport = nodemailer.createTransport "SMTP", {}
     transport.sendMail mailOptions, (error, response) ->
@@ -107,6 +109,27 @@ exports.encrypt = (password) ->
         return password
 
 
+## function encryptNeededFields (obj, callback)
+## @obj {object} object containing fields to decrypt if needed
+## Analyzes an object to determine if some fields need to be encrypted, and
+## proceed to encryption when needed
+exports.encryptNeededFields = (obj) ->
+    if obj?
+        # Searching for fields to encrypt
+        try
+            for field in Object.keys(obj)
+                if field.match encryptionPattern
+                    obj[field] = @encrypt obj[field]
+            return obj
+        catch error
+            # Error are already logged by the encrypt function
+            throw error
+    else
+        err = "object to encrypt doesn't exist"
+        logger.error "[encryptNeededFields]: #{err}"
+        throw error
+
+
 ## function decrypt (password, callback)
 ## @password {string} document password
 ## @callback {function} Continuation to pass control back to when complete.
@@ -127,6 +150,27 @@ exports.decrypt = (password) ->
             throw err
     else
         return password
+
+
+## function decryptNeededFields (obj, callback)
+## @obj {object} object containing fields to decrypt if needed
+## Analyzes an object to determine if some fields need to be decrypted, and
+## proceed to decryption when needed
+exports.decryptNeededFields = (obj) ->
+    if obj?
+        # Searching for fields to decrypt
+        try
+            for field in Object.keys(obj)
+                if field.match encryptionPattern
+                    obj[field] = @decrypt obj[field]
+            return obj
+        catch error
+            # Error are already logged by the decrypt function
+            throw error
+    else
+        err = "object to decrypt doesn't exist"
+        logger.error "[decryptNeededFields]: #{err}"
+        throw err
 
 
 ## function init (password, user, callback)

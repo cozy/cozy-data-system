@@ -7,18 +7,26 @@ account = require './accounts'
 
 ## Before and after methods
 
-## Encrypt data in field password
-module.exports.encryptPassword = (req, res, next) ->
+## Encrypt data in field password, and every field which name matches
+## the pattern
+module.exports.encryptFields = (req, res, next) ->
     try
         password = encryption.encrypt req.body.password
     catch error
         return next error
 
     req.body.password = password if password?
+    
+    try
+        req.body = encryption.encryptNeededFields req.body
+    catch error
+        return next error
+        
     next()
 
-# Decrypt data in field password
-module.exports.decryptPassword = (req, res, next) ->
+# Decrypt data in field password, and every field which name matches
+# the pattern
+module.exports.decryptFields = (req, res, next) ->
     try
         password = encryption.decrypt req.doc.password
     catch error
@@ -26,8 +34,13 @@ module.exports.decryptPassword = (req, res, next) ->
         account.addApp req.appName
 
     req.doc.password = password if password?
-    next()
 
+    try
+        req.doc = encryption.decryptNeededFields req.doc
+    catch
+        # Do nothing with the error
+        
+    next()
 
 ## Actions
 

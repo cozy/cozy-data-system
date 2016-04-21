@@ -27,7 +27,7 @@ module.exports =
     'data/':
         post: [
             utils.checkPermissionsByBody
-            data.encryptPassword
+            data.encryptFields
             data.create
         ]
     'data/search/':
@@ -39,19 +39,19 @@ module.exports =
         get: [
             utils.getDoc
             utils.checkPermissionsByDoc
-            data.decryptPassword
+            data.decryptFields
             data.find
         ]
         post: [
             utils.checkPermissionsByBody
-            data.encryptPassword
+            data.encryptFields
             data.create
         ]
         put: [
             utils.lockRequest
             utils.checkPermissionsByBody
             utils.getDoc
-            data.encryptPassword
+            data.encryptFields
             data.update
             utils.unlockRequest
         ]
@@ -70,7 +70,7 @@ module.exports =
         put: [
             utils.lockRequest
             utils.checkPermissionsByBody
-            data.encryptPassword
+            data.encryptFields
             data.upsert
             utils.unlockRequest
         ]
@@ -80,7 +80,7 @@ module.exports =
             utils.checkPermissionsByBody
             utils.getDoc
             utils.checkPermissionsByDoc
-            data.encryptPassword
+            data.encryptFields
             data.merge
             utils.unlockRequest
         ]
