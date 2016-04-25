@@ -14,7 +14,7 @@ cryptoTools = new CryptoTools()
 slaveKey = null
 day = 24 * 60 * 60 * 1000
 
-pattern = /^encrypted/
+encryptionPattern = /^encrypted/
 
 sendEmail = (mailOptions, callback) ->
     transport = nodemailer.createTransport "SMTP", {}
@@ -117,8 +117,8 @@ exports.encryptNeededFields = (obj) ->
     if obj?
         # Searching for fields to encrypt
         try
-            obj[field] = @encrypt obj[field] for field in Object.keys(obj) \
-                    when field.match pattern
+            for field in Object.keys(obj) when field.match encryptionPattern
+                obj[field] = @encrypt obj[field]
             return obj
         catch error
             # Error are already logged by the encrypt function
@@ -159,8 +159,8 @@ exports.decryptNeededFields = (obj) ->
     if obj?
         # Searching for fields to decrypt
         try
-            obj[field] = @decrypt obj[field] for field in Object.keys(obj) \
-                    when field.match pattern
+            for field in Object.keys(obj) when field.match encryptionPattern
+                obj[field] = @decrypt obj[field]
             return obj
         catch error
             # Error are already logged by the decrypt function
