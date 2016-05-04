@@ -121,7 +121,8 @@ describe "Sharing controller tests:", ->
 
         # We stub the `notifyRecipient` module to avoid calling it (if so it would
         # try to request the url we declare in the share object).
-        stubFn = (route, request, callback) ->
+        stubFn = (url, route, request, callback) ->
+            spyUrl = url
             spyRoute   = route
             spyRequest = request
             callback null # to mimick success
@@ -211,7 +212,7 @@ describe "Sharing controller tests:", ->
             # remove previously defined stub...
             notifyStub.restore()
             # ... and generate a new one that mimicks failure
-            stubFn = (route, request, callback) ->
+            stubFn = (url, route, request, callback) ->
                 callback "Error" # to mimick failure we return something
             notifyStub = sinon.stub Sharing, "notifyRecipient", stubFn
 
@@ -344,7 +345,7 @@ describe "Sharing controller tests:", ->
 
         # sharing.notifyRecipient stub (lib/sharing.coffee).
         # Returning `null` mimicks success.
-        notifyTargetFn   = (route, notification, callback) -> callback null
+        notifyTargetFn   = (url, route, notification, callback) -> callback null
         notifyTargetStub = {}
 
         beforeEach (done) ->
@@ -357,15 +358,12 @@ describe "Sharing controller tests:", ->
             done()
 
         it 'should define the notifications correctly and call the route
-        "services/sharing/cancel"', (done) ->
+        "services/sharing/revoke"', (done) ->
             notifyTargetStub.restore() # cancel stub
             # change to a custom stub that tests the values passed
-            testNotifyTargetFn = (route, notification, callback) ->
-                route.should.equal "services/sharing/cancel"
+            testNotifyTargetFn = (url, route, notification, callback) ->
+                route.should.equal "services/sharing/revoke"
                 urls.should.contain notification.recipientUrl
-                should.exist notification.token
-                tokens.should.contain notification.token
-                notification.shareID.should.equal req.share.shareID
                 notification.desc.should.equal "The sharing
                     #{req.share.shareID} has been deleted"
                 callback null
@@ -399,7 +397,7 @@ describe "Sharing controller tests:", ->
         it 'should return an error when a notification could not be sent',
         (done) ->
             notifyTargetStub.restore() # cancel stub
-            errNotifyTargetFn = (route, notification, callback) ->
+            errNotifyTargetFn = (url, route, notification, callback) ->
                 callback "Error"
             notifyTargetStub = sinon.stub Sharing, "notifyRecipient",
                 errNotifyTargetFn
@@ -415,20 +413,24 @@ describe "Sharing controller tests:", ->
         # Correct answer structure expected
         answer =
             id          : 'IdOfTheRecipientShareDocument'
-            shareID     : 'IdOfTheSharerShareDocument'
+            #shareID     : 'IdOfTheSharerShareDocument'
             accepted    : true
-            preToken    : 'preToken'
-            recipientUrl: 'urlOfTheRecipient'
-            sharerUrl   : 'urlOfTheSharer'
-            rules       : [{id: 1, docType: 'event'}, {id: 2, docType: 'event'}]
+            #preToken    : 'preToken'
+            #recipientUrl: 'urlOfTheRecipient'
+            #sharerUrl   : 'urlOfTheSharer'
+            #rules       : [{id: 1, docType: 'event'}, {id: 2, docType: 'event'}]
 
         # We stub the addAccess module from lib/token.coffee: we return an
         # error to avoid having our code run entirely if a test fails.
         addAccessStub = {}
-        # Same for the remove function
+        # Same for the remove and get function
         dbRemoveStub  = {}
+        dbGetStub = {}
 
         before (done) ->
+            dbGetStub    = sinon.stub db, "get", (id, callback) ->
+                callback null, _.cloneDeep answer
+
             addAccessStub = sinon.stub libToken, "addAccess",
                 (access, callback) ->
                     callback new Error "libToken.addAccess"
@@ -439,6 +441,7 @@ describe "Sharing controller tests:", ->
             done()
 
         after (done) ->
+            dbGetStub.restore()
             addAccessStub.restore()
             dbRemoveStub.restore()
             done()
@@ -463,15 +466,6 @@ describe "Sharing controller tests:", ->
                 res.body.error.should.equal "Bad request: body is incomplete"
                 done()
 
-        it 'should return an error when the req structure is incorrect: shareID
-        is missing or empty', (done) ->
-            data = _.cloneDeep answer
-            data.shareID = null
-            client.post "services/sharing/sendAnswer/", data,
-            (err, res, body) ->
-                res.statusCode.should.equal 400
-                res.body.error.should.equal "Bad request: body is incomplete"
-                done()
 
         it 'should return an error when the req structure is incorrect: accepted
         is missing or empty', (done) ->
@@ -481,68 +475,6 @@ describe "Sharing controller tests:", ->
             (err, res, body) ->
                 res.statusCode.should.equal 400
                 res.body.error.should.equal "Bad request: body is incomplete"
-                done()
-
-        it 'should return an error when the req structure is incorrect: preToken
-        is missing or empty', (done) ->
-            data = _.cloneDeep answer
-            data.preToken = ''
-            client.post "services/sharing/sendAnswer/", data,
-            (err, res, body) ->
-                res.statusCode.should.equal 400
-                res.body.error.should.equal "Bad request: body is incomplete"
-                done()
-
-        it 'should return an error when the req structure is incorrect: url is
-        missing or empty', (done) ->
-            data = _.cloneDeep answer
-            data.recipientUrl = null
-            client.post "services/sharing/sendAnswer/", data,
-            (err, res, body) ->
-                res.statusCode.should.equal 400
-                res.body.error.should.equal "Bad request: body is incomplete"
-                done()
-
-        it 'should return an error when the req structure is incorrect:
-        sharerUrl is missing or empty', (done) ->
-            data = _.cloneDeep answer
-            data.sharerUrl = null
-            client.post "services/sharing/sendAnswer/", data,
-            (err, res, body) ->
-                res.statusCode.should.equal 400
-                res.body.error.should.equal "Bad request: body is incomplete"
-                done()
-
-        it 'should return an error when the req structure is incorrect: rules is
-        missing or empty', (done) ->
-            data = _.cloneDeep answer
-            data.rules = []
-            client.post "services/sharing/sendAnswer/", data,
-            (err, res, body) ->
-                res.statusCode.should.equal 400
-                res.body.error.should.equal "Bad request: body is incomplete"
-                done()
-
-        it 'should return an error when the req structure is incorrect: a rule
-        is missing an id', (done) ->
-            data = _.cloneDeep answer
-            data.rules = [{id: 1, docType: 'event'},{id: '', docType: 'event'}]
-            client.post "services/sharing/sendAnswer/", data,
-            (err, res, body) ->
-                res.statusCode.should.equal 400
-                res.body.error.should.equal "Bad request: incorrect rule
-                    detected"
-                done()
-
-        it 'should return an error when the req structure is incorrect: a rule
-        is missing a docType', (done) ->
-            data = _.cloneDeep answer
-            data.rules = [{id: 1, docType: 'event'},{id: 2}]
-            client.post "services/sharing/sendAnswer/", data,
-            (err, res, body) ->
-                res.statusCode.should.equal 400
-                res.body.error.should.equal "Bad request: incorrect rule
-                    detected"
                 done()
 
         it 'should return an error when addAccess failed', (done) ->
@@ -594,12 +526,6 @@ describe "Sharing controller tests:", ->
                 should.exist req.share
                 should.exist req.share.token
                 req.share.id.should.equal answer.id
-                req.share.shareID.should.equal answer.shareID
-                req.share.preToken.should.equal answer.preToken
-                req.share.accepted.should.equal answer.accepted
-                req.share.recipientUrl.should.equal answer.recipientUrl
-                req.share.sharerUrl.should.equal answer.sharerUrl
-                req.share.rules.should.deep.equal answer.rules
                 done()
 
 
@@ -625,7 +551,7 @@ describe "Sharing controller tests:", ->
 
         beforeEach (done) ->
             notifyTargetStub = sinon.stub Sharing, "notifySharer",
-                (route, data, callback) ->
+                (url, route, data, callback) ->
                     callback new Error "Sharing.notifySharer"
 
             done()
@@ -648,7 +574,7 @@ describe "Sharing controller tests:", ->
         it 'should send success when notifySharer succeeded', (done) ->
             # We change the stub for one that succeeds
             notifyTargetStub.restore()
-            notifyTargetFnOk = (route, data, callback) ->
+            notifyTargetFnOk = (url, route, data, callback) ->
                 callback null
             notifyTargetStub = sinon.stub Sharing, "notifySharer",
                 notifyTargetFnOk
@@ -742,15 +668,6 @@ describe "Sharing controller tests:", ->
         missing/empty', (done) ->
             data = _.cloneDeep req.body
             data.preToken = null
-            client.post 'services/sharing/answer/', data, (err, res, body) ->
-                res.body.error.should.equal "Bad request: body is incomplete"
-                res.statusCode.should.equal 400
-                done()
-
-        it 'should return an error when the body is incomplete: token is
-        missing/empty', (done) ->
-            data = _.cloneDeep req.body
-            data.token = ''
             client.post 'services/sharing/answer/', data, (err, res, body) ->
                 res.body.error.should.equal "Bad request: body is incomplete"
                 res.statusCode.should.equal 400
