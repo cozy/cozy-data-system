@@ -249,6 +249,17 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
+            byShareID:
+                map: """
+                function(doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "sharing") {
+                        if(doc.shareID) {
+                            return emit(doc.shareID, doc._id);
+                        }
+                    }
+                }
+                """
+
 
         indexdefinition:
             all:
