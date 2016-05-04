@@ -109,7 +109,7 @@ module.exports.checkSharingRule = (auth, doc, callback) ->
             if doc?.id? and doc?.docType?
                 doc.docType = doc.docType.toLowerCase()
                 # Check all the sharing rules defined for this login
-                rule = _.findWhere sharingPermissions[name], {id: doc.id,\
+                rule = _.find sharingPermissions[name], {id: doc.id,\
                     docType: doc.docType}
                 callback null, name, rule?
             else
@@ -137,7 +137,7 @@ module.exports.checkSharingRuleSync = (auth, doc) ->
             if doc?.id? and doc?.docType?
                 doc.docType = doc.docType.toLowerCase()
                 # Check all the sharing rules defined for this login
-                rule = _.findWhere sharingPermissions[name], {id: doc.id, \
+                rule = _.find sharingPermissions[name], {id: doc.id, \
                     docType: doc.docType}
                 return [null, name, rule?]
             else
