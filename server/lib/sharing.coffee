@@ -55,13 +55,13 @@ handleNotifyResponse = (err, result, body, callback) ->
 # Params must at least contain:
 #   recipientUrl -> the url of the target
 # A successful request is expected to return a 200 HTTP status
-module.exports.notifyRecipient = (path, params, callback) ->
+module.exports.notifyRecipient = (url, path, params, callback) ->
     # Get the domain if not already set
     checkDomain params.sharerUrl, (err, domain) ->
         return err if err?
 
         params.sharerUrl = domain
-        remote = request.createClient params.recipientUrl
+        remote = request.createClient url
         remote.post path, params, (err, result, body) ->
             handleNotifyResponse err, result, body, callback
 
@@ -70,13 +70,13 @@ module.exports.notifyRecipient = (path, params, callback) ->
 # Params must at least contain:
 #   sharerUrl -> the url of the sharer
 # A successful request is expected to return a 200 HTTP status
-module.exports.notifySharer = (path, params, callback) ->
+module.exports.notifySharer = (url, path, params, callback) ->
     # Get the domain if not already set
     checkDomain params.recipientUrl, (err, domain) ->
         return err if err?
 
         params.recipientUrl = domain
-        remote = request.createClient params.sharerUrl
+        remote = request.createClient url
         remote.post path, params, (err, result, body) ->
             handleNotifyResponse err, result, body, callback
 

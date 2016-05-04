@@ -149,7 +149,9 @@ module.exports.sendSharingRequests = (req, res, next) ->
 
         log.info "Send sharing request to : #{request.recipientUrl}"
 
-        Sharing.notifyRecipient "services/sharing/request", request, callback
+        url = target.recipientUrl
+        path = "services/sharing/request"
+        Sharing.notifyRecipient url, path, request, callback
 
     , (err) ->
         if err?
@@ -158,9 +160,9 @@ module.exports.sendSharingRequests = (req, res, next) ->
             res.status(200).send success: true
 
 
-# Send a sharing request for each target defined in the share object
+# Send a sharing revocation for each target defined in the share object
 # It will be viewed as a notification on the targets side
-# Params must contains :# share {
+# Params must contains :
 #   shareID    -> the id of the sharing process
 #   targets[]  -> the targets to notify. Each target must have an url
 #                 and a token
@@ -169,15 +171,19 @@ module.exports.sendDeleteNotifications = (req, res, next) ->
 
     # Notify each target
     async.eachSeries share.targets, (target, callback) ->
-        notif =
+        revoke =
             recipientUrl: target.recipientUrl
-            token       : target.token or target.preToken
-            shareID     : share.shareID
             desc        : "The sharing #{share.shareID} has been deleted"
 
-        log.info "Send sharing cancel notification to : #{notif.recipientUrl}"
+        log.info "Send sharing cancel notification to : #{revoke.recipientUrl}"
 
-        Sharing.notifyRecipient "services/sharing/cancel", notif, callback
+        # Add the credentials in the url
+        token = target.token or target.preToken
+        auth = "#{share.shareID}:#{token}"
+        url = revoke.recipientUrl.replace "://", "://#{auth}@"
+        path = "services/sharing/revoke"
+
+        Sharing.notifyRecipient url, path, revoke, callback
 
     , (err) ->
         if err?
@@ -258,16 +264,18 @@ module.exports.sendAnswer = (req, res, next) ->
     share = req.share
 
     answer =
-        shareID     : share.shareID
         sharerUrl   : share.sharerUrl
         recipientUrl: share.recipientUrl
         accepted    : share.accepted
-        preToken    : share.preToken
         token       : share.token
 
     log.info "Send sharing answer to : #{answer.sharerUrl}"
 
-    Sharing.notifySharer "services/sharing/answer", answer,
+    # Add the credentials in the url
+    auth = "#{share.shareID}:#{share.preToken}"
+    url = answer.sharerUrl.replace "://", "://#{auth}@"
+
+    Sharing.notifySharer url, "services/sharing/answer", answer,
     (err, result, body) ->
         if err?
             next err
