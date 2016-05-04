@@ -16,9 +16,25 @@ TOKEN_LENGTH = 32
 generateToken = (length) ->
     return crypto.randomBytes(length).toString('hex')
 
+
 # Returns the target position in the array
 findTargetIndex = (targetArray, target) ->
     i = targetArray.map((t) -> t.recipientUrl).indexOf target.recipientUrl
+
+
+# Add a shareID field for each doc specified in the sharing rules
+addShareIDnDocs = (rules, shareID, callback) ->
+    async.eachSeries rules, (rule, cb) ->
+        db.get rule.id, (err, doc) ->
+            if err?
+                cb err
+            else
+                doc.shareID = shareID
+                db.merge rule.id, doc, (err, result) ->
+                    cb err
+    , (err) ->
+        callback err
+
 
 # Creation of the Sharing document
 #
@@ -324,13 +340,17 @@ module.exports.validateTarget = (req, res, next) ->
         db.merge doc._id, doc, (err, result) ->
             return next err if err?
 
-            # Params structure for the replication
-            share =
-                target : target
-                doc    : doc
+            # Add the shareID for each shared document
+            addShareIDnDocs doc.rules, doc._id, (err) ->
+                return next err if err?
 
-            req.share = share
-            next()
+                # Params structure for the replication
+                share =
+                    target : target
+                    doc    : doc
+
+                req.share = share
+                next()
 
 
 # Replicate documents to the target url
