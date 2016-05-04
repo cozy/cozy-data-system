@@ -195,55 +195,53 @@ module.exports.sendDeleteNotifications = (req, res, next) ->
 # Params must contains :
 #   id           -> the id of the Sharing document, created when the sharing
 #                   request was received
-#   shareID      -> the id of the Sharing document created by the sharer.
-#                   This will be used as the sharer's login
 #   accepted     -> boolean specifying if the share was accepted or not
-#   preToken     -> the token sent by the sharer to authenticate the receiver
-#   recipientUrl -> the url of the recipient's cozy
-#   sharerUrl    -> the url of the sharer's cozy
-#   rules        -> the set of rules specifying which documents are shared,
-#                   with their docTypes.
 module.exports.handleRecipientAnswer = (req, res, next) ->
 
     share = req.body
 
+    console.log JSON.stringify share
+
     # A correct answer must have the following attributes
-    if utils.hasEmptyField share, ["id", "shareID", "preToken", "accepted",\
-                                   "recipientUrl", "sharerUrl", "rules"]
+    if utils.hasEmptyField share, ["id", "accepted"]
         err = new Error "Bad request: body is incomplete"
         err.status = 400
         return next err
 
-    # Each rule must have an id and a docType
-    if utils.hasIncorrectStructure share.rules, ["id", "docType"]
-        err = new Error "Bad request: incorrect rule detected"
-        err.status = 400
-        return next err
+    # Get the Sharing document thanks to its id
+    db.get share.id, (err, doc) ->
+        return next err if err?
 
-    # Create an access if the sharing is accepted
-    if share.accepted
-        access =
-            login   : share.shareID
-            password: generateToken TOKEN_LENGTH
-            id      : share.id
-            rules   : share.rules
+        # The sharing is accepted : create an access and update the sharing doc
+        if share.accepted
 
-        libToken.addAccess access, (err, doc) ->
-            return next err if err?
+            access =
+                login   : doc.shareID
+                password: generateToken TOKEN_LENGTH
+                id      : share.id
+                rules   : doc.rules
 
-            share.token = access.password
-            req.share = share
-            return next()
+            libToken.addAccess access, (err, accessDoc) ->
+                return next err if err?
 
-        # TODO : enforce the docType protection with the couchDB's document
-        # update validation
+                doc.accepted = share.accepted
+                doc.token = access.password
+                db.merge share.id, doc, (err, result) ->
+                    return next err if err?
 
-    # Delete the Sharing doc if the sharing is refused
-    else
-        db.remove share.id, (err, res) ->
-            return next err if err?
-            req.share = share
-            next()
+                    req.share = doc
+                    return next()
+
+            # TODO : enforce the docType protection with the couchDB's document
+            # update validation
+
+        # The sharing is refused : delete the Sharing doc
+        else
+            db.remove share.id, (err, res) ->
+                return next err if err?
+                doc.accepted = false
+                req.share = doc
+                next()
 
 
 # Send the answer to the emitter of the sharing request
