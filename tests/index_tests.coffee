@@ -6,6 +6,7 @@ helpers = require './helpers'
 db = require("#{helpers.prefix}server/helpers/db_connect_helper").db_connect()
 
 client = helpers.getClient()
+indexer = require('../server/lib/indexer')
 
 # helpers
 
@@ -46,7 +47,8 @@ describe "Indexation", ->
     before helpers.clearDB db
     before helpers.startApp
 
-    before require('../server/lib/indexer').cleanup
+    before indexer.initialize
+    before indexer.cleanup
 
     after helpers.stopApp
 
@@ -112,6 +114,7 @@ describe "Indexation", ->
 
     describe "indexing and searching", ->
         it "Given I index four notes", (done) =>
+            @timeout 10000
             async.series [
                 createNoteFunction "Note 01", "little stories begin"
                 createNoteFunction "Note 02", "great dragons are coming"
@@ -178,10 +181,11 @@ describe "Indexation", ->
 
     describe "Reindexing", ->
 
-        it "When I erase the index", (done) ->
+        before helpers.stopApp
+
+        it "When, DS stoped, I erase the index", (done) ->
             require('../server/lib/indexer').cleanup done
 
-        it "And stop the DS", helpers.stopApp
         it "And start the DS", helpers.startApp
 
         it "wait a bit", helpers.wait 2000

@@ -22,10 +22,14 @@ checkToken = module.exports.checkToken = function(auth) {
     auth = new Buffer(auth, 'base64').toString('ascii');
     username = auth.split(':')[0];
     password = auth.split(':')[1];
-    if (password !== void 0 && tokens[username] === password) {
-      return [null, true, username];
+    if (productionOrTest) {
+      if (password !== void 0 && tokens[username] === password) {
+        return [null, true, username];
+      } else {
+        return [null, false, username];
+      }
     } else {
-      return [null, false, username];
+      return [null, true, username];
     }
   } else {
     return [null, false, null];
@@ -152,12 +156,16 @@ addAccess = module.exports.addAccess = function(doc, callback) {
   return db.save(access, function(err, doc) {
     if (err != null) {
       log.error(err);
-    }
-    return updatePermissions(access, function() {
       if (callback != null) {
-        return callback(null, access);
+        return callback(err);
       }
-    });
+    } else {
+      return updatePermissions(access, function() {
+        if (callback != null) {
+          return callback(null, access);
+        }
+      });
+    }
   });
 };
 

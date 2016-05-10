@@ -22,7 +22,8 @@ module.exports.defineIndex = (req, res, next) ->
         res.status(200).send success: true
 
 module.exports.indexingStatus = (req, res, next) ->
-    indexer.status (err, status) ->
+    docType = req.params.type.toLowerCase()
+    indexer.status docType, (err, status) ->
         return next err if err
         res.status(200).send status
 

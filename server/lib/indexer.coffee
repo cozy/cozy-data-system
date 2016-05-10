@@ -1,4 +1,5 @@
 path = require 'path'
+
 # set env for cozy-indexer
 # if we have APPLICATION_PERSISTENT_DIRECTORY, we have the new controller
 # and we use the provided directory
@@ -9,12 +10,13 @@ if persistentDirectory
     process.env.INDEXES_PATH ?= path.join persistentDirectory, 'indexes'
 
 indexer = require 'cozy-indexer'
-db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
-locker = require '../lib/locker'
 log =  require('printit')
     date: true
     prefix: 'indexer'
+
+locker = require '../lib/locker'
+db = require('../helpers/db_connect_helper').db_connect()
 
 indexQueue = {}
 batchInProgress = false
@@ -25,17 +27,20 @@ indexdefinitionsID = {}
 
 FETCH_AT_ONCE_FOR_REINDEX = BATCH_SIZE
 
+
 # indexfield added to all documents
 # @TODO: figure out a way to add a common date field
 commonIndexFields =
     "docType": filter: true, searchable: false
     "tags":    filter: true
 
+
 # prevent from adding or removing doc while
 # a cleanup is in progress (cause fatal exception)
 forgetDoc = locker.wrap 'indexfile', indexer.forget
 addBatch  = locker.wrap 'indexfile', indexer.addBatch
 cleanup   = locker.wrap 'indexfile', indexer.cleanup
+
 
 ###*
 # Initialize the indexer
@@ -44,21 +49,25 @@ cleanup   = locker.wrap 'indexfile', indexer.cleanup
 ###
 exports.initialize = (callback) ->
 
-    async.waterfall [
+    async.series [
         (callback) ->
-            indexer.store.open callback
+            indexer.init callback
 
         (callback) -> # FETCH INDEX DEFINITIONS
             query = include_docs: true
             db.view "indexdefinition/all", query, (err, rows) ->
                 return callback err if err
                 for row in rows
-                    docType = row.doc.targetDocType
-                    definitionDocument = row.doc
-                    for k, v of commonIndexFields
-                        definitionDocument.ftsIndexedFields[k] = v
-                    indexdefinitions[docType] = definitionDocument
-                    indexdefinitionsID[row.id] = docType
+                    if row?.doc?
+                        docType = row.doc.targetDocType
+                        definitionDocument = row.doc
+                        for k, v of commonIndexFields
+                            definitionDocument.ftsIndexedFields[k] = v
+                        indexdefinitions[docType] = definitionDocument
+                        indexdefinitionsID[row.id] = docType
+                    else
+                        log.error "Index definition has no row"
+                        log.raw row
 
                 registerDefaultIndexes callback
 
@@ -68,8 +77,17 @@ exports.initialize = (callback) ->
 
         (callback) -> # REINDEX CHANGES SINCE LAST
             indexer.store.get 'indexedseq', (err, seqno) ->
-                return callback err if err
-                reindexChanges seqno, callback
+                if err
+                    if err.type is 'NotFoundError'
+                        log.warn """
+Last index sequence was not found. If no document is indexed yet, it's ok.
+In other cases, there is probably an error with the data-system indexer.
+"""
+                        callback()
+                    else
+                        callback err
+                else
+                    reindexChanges seqno, callback
 
     ], callback
 
@@ -102,7 +120,7 @@ dequeue = ->
         checkpointSeqNumber maxseqno, (err) ->
             log.error "checkpoint error", err if err
             batchInProgress = false
-            setImmediate dequeue
+            setTimeout dequeue, 1000
 
 ###*
 # Destroy the index completely (used for tests)
@@ -335,6 +353,10 @@ getStatus = (docType, callback) ->
 
         callback null, status
 
+
+exports.status = getStatus
+
+
 saveStatus = (docType, status, callback) ->
     status = JSON.stringify status
     indexer.store.set "indexingstatus/#{docType}", status, callback
@@ -400,13 +422,14 @@ resumeReindexing = (docType, status, callback) ->
             saveStatus docType, status, (err) ->
                 return callback err if err
                 next = resumeReindexing.bind null, docType, status, callback
-                setTimeout next, 500 # let leveldb breath
+                setTimeout next, 1000 # let leveldb breath
 
 
 finishReindexing = (docType, status, callback) ->
     status.state = 'indexing-by-changes'
     status.skip = 0
     saveStatus docType, status, callback
+
 
 ###*
 # Check if given docType definition is the same we used to index it
@@ -423,8 +446,8 @@ maybeReindexDocType = (docType, callback) ->
 
     getStatus docType, (err, status) ->
         log.info """
-            Check index status for #{docType} :
-                in indexer:#{status.rev} #{status.state} #{status.skip} ,
+            Check index status for #{docType}:
+                in indexer:#{status.rev} #{status.state} #{status.skip},
                 in data-system:#{definition._rev}
         """
 
@@ -486,6 +509,7 @@ registerDefaultIndexes = (callback) ->
     actions.push registerFolder unless indexdefinitions.folder
     async.series actions, (err) -> callback err
 
+
 ###*
 # [TMP] Wait for a given document to be indexed
 #
@@ -504,3 +528,4 @@ exports.waitIndexing = (id, callback) ->
         setTimeout tryAgain, 100
     else
         callback null
+

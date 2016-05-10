@@ -1,7 +1,7 @@
 {
   "name": "cozy-data-system",
   "description": "Data-layer between cozy applications and persistence systems",
-  "version": "2.1.9",
+  "version": "2.5.2",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
   "license": "AGPL-3.0",
   "engines": [
@@ -13,9 +13,9 @@
   },
   "dependencies": {
     "americano": "0.4.2",
-    "async": "0.2.10",
+    "async": "1.5.2",
     "axon": "0.6.1",
-    "cozy-indexer": "0.0.3",
+    "cozy-indexer": "0.0.7",
     "cradle": "0.7.1",
     "git-rev": "0.2.1",
     "gm": "1.21.1",
@@ -36,8 +36,10 @@
     "coffee-jshint": "0.2.3",
     "coffee-script": "1.10.0",
     "coffeelint": "1.13.0",
+    "lodash": "4.6.1",
     "mocha": "1.17.1",
-    "should": "3.1.2"
+    "should": "3.1.2",
+    "sinon": "1.17.3"
   },
   "main": "build/server.js",
   "scripts": {

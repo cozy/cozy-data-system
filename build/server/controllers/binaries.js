@@ -87,9 +87,6 @@ module.exports.get = function(req, res, next) {
         req.once('close', function() {
           return request.abort();
         });
-        if (req.headers['range'] != null) {
-          stream.setHeader('range', req.headers['range']);
-        }
         return stream.pipe(res);
       }
     });

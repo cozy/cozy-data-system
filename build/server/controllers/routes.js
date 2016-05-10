@@ -105,7 +105,7 @@ module.exports = {
   'data/index/clear-all/': {
     "delete": [utils.checkPermissionsFactory('all'), indexer.removeAll]
   },
-  'data/index/status': {
+  'data/index/status/:type': {
     get: [indexer.indexingStatus]
   },
   'data/index/define/:type': {
@@ -139,8 +139,5 @@ module.exports = {
   },
   'accounts/reset/': {
     "delete": [account.checkPermissions, account.resetKeys]
-  },
-  'accounts/': {
-    "delete": [account.checkPermissions, account.deleteKeys]
   }
 };

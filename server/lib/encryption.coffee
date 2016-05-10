@@ -11,7 +11,6 @@ user = new User()
 
 cryptoTools = new CryptoTools()
 
-masterKey = null
 slaveKey = null
 day = 24 * 60 * 60 * 1000
 
@@ -48,7 +47,7 @@ getBody = (domain) ->
 
 resetTimeout = -> timeout = null
 sendMailNow = ->
-    if (masterKey? and slaveKey?)
+    if slaveKey?
         return resetTimeout()
 
     user.getUser (err, user) ->
@@ -79,12 +78,10 @@ sendMail = ->
 
 
 ## function updateKeys (oldKey,password, encryptedslaveKey, callback)
-## @oldKey {string} Old master key
 ## @password {string} user's password
-## @encryptedslaveKey {string} encrypted slave key
 ## @callback {function} Continuation to pass control back to when complete.
 ## Update keys, return in data new encrypted slave key and new salt
-updateKeys = (oldKey, password, encryptedslaveKey, callback) ->
+updateKeys = (password, callback) ->
     salt = cryptoTools.genSalt(32 - password.length)
     masterKey = cryptoTools.genHashWithSalt password, salt
     encryptedSlaveKey = cryptoTools.encrypt masterKey, slaveKey
@@ -98,19 +95,16 @@ updateKeys = (oldKey, password, encryptedslaveKey, callback) ->
 ## Return encrypted password
 exports.encrypt = (password) ->
     if password? and process.env.NODE_ENV isnt "development"
-        if masterKey? and slaveKey?
+        if slaveKey?
             newPwd = cryptoTools.encrypt slaveKey, password
             return newPwd
         else
             sendMail()
-            err = new Error "master key and slave key don't exist"
+            err = new Error "slave key doesn't exist"
             logger.error err.message
             throw err
     else
         return password
-
-
-exports.get = -> return masterKey
 
 
 ## function decrypt (password, callback)
@@ -119,7 +113,7 @@ exports.get = -> return masterKey
 ## Return decrypted password if password was encrypted
 exports.decrypt = (password) ->
     if password? and process.env.NODE_ENV isnt "development"
-        if masterKey? and slaveKey?
+        if slaveKey?
             newPwd = password
             try
                 newPwd = cryptoTools.decrypt slaveKey, password
@@ -178,18 +172,12 @@ exports.logIn = (password, user, callback) ->
 ## @callback {function} Continuation to pass control back to when complete.
 ## Update keys when user changes his password
 exports.update = (password, user, callback) ->
-    unless masterKey? and slaveKey?
-        err = errors.http 400, "masterKey and slaveKey don't exist"
+    unless slaveKey?
+        err = errors.http 400, "slaveKey doesn't exist"
         logger.error "[update] : #{err}"
         return callback err
 
-    if masterKey.length isnt 32
-        err = errors.http 400, """
-            password to initialize keys is different than user password"""
-        logger.error "[update] : #{err}"
-        return callback err
-
-    updateKeys masterKey, password, slaveKey, (data) ->
+    updateKeys password, (data) ->
         db.merge user._id, data, (err, res) ->
             if err
                 logger.error "[update] : #{err}"
@@ -211,6 +199,6 @@ exports.reset = (user, callback) ->
             callback()
 
 ## function isLog ()
-## Return if keys exist so if user is connected
+## Return true if slaveKey exists, which indicates if user is connected
 exports.isLog = ->
-    return slaveKey? and masterKey?
+    return slaveKey?

@@ -115,10 +115,3 @@ module.exports.resetKeys = (req, res, next) ->
             return next err if err
 
             res.status(204).send success: true
-
-
-#DELETE /accounts/
-## TODO : Remove this function (wait proxy updating)
-module.exports.deleteKeys = (req, res) ->
-    res.status(204).send success: true
-

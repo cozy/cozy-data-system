@@ -10,6 +10,7 @@ user = require './user'
 account = require './accounts'
 access = require './access'
 replication = require './replication'
+sharing = require './sharing'
 filters = require './filters'
 
 utils = require '../middlewares/utils'
@@ -328,8 +329,32 @@ module.exports =
             account.checkPermissions
             account.resetKeys
         ]
-    'accounts/':
-        delete: [
-            account.checkPermissions
-            account.deleteKeys
+
+
+    # Sharing management
+    'services/sharing/':
+        post: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.create
+            sharing.sendSharingRequests
         ]
+    'services/sharing/:id':
+        delete: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.delete
+            sharing.stopReplications
+            sharing.sendDeleteNotifications
+        ]
+    'services/sharing/sendAnswer':
+        post: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.handleRecipientAnswer
+            sharing.sendAnswer
+        ]
+    'services/sharing/answer':
+        post: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.validateTarget
+            sharing.replicate
+        ]
+

@@ -13,16 +13,16 @@ if (persistentDirectory) {
 
 indexer = require('cozy-indexer');
 
-db = require('../helpers/db_connect_helper').db_connect();
-
 async = require('async');
-
-locker = require('../lib/locker');
 
 log = require('printit')({
   date: true,
   prefix: 'indexer'
 });
+
+locker = require('../lib/locker');
+
+db = require('../helpers/db_connect_helper').db_connect();
 
 indexQueue = {};
 
@@ -62,9 +62,9 @@ cleanup = locker.wrap('indexfile', indexer.cleanup);
  */
 
 exports.initialize = function(callback) {
-  return async.waterfall([
+  return async.series([
     function(callback) {
-      return indexer.store.open(callback);
+      return indexer.init(callback);
     }, function(callback) {
       var query;
       query = {
@@ -77,14 +77,19 @@ exports.initialize = function(callback) {
         }
         for (i = 0, len = rows.length; i < len; i++) {
           row = rows[i];
-          docType = row.doc.targetDocType;
-          definitionDocument = row.doc;
-          for (k in commonIndexFields) {
-            v = commonIndexFields[k];
-            definitionDocument.ftsIndexedFields[k] = v;
+          if ((row != null ? row.doc : void 0) != null) {
+            docType = row.doc.targetDocType;
+            definitionDocument = row.doc;
+            for (k in commonIndexFields) {
+              v = commonIndexFields[k];
+              definitionDocument.ftsIndexedFields[k] = v;
+            }
+            indexdefinitions[docType] = definitionDocument;
+            indexdefinitionsID[row.id] = docType;
+          } else {
+            log.error("Index definition has no row");
+            log.raw(row);
           }
-          indexdefinitions[docType] = definitionDocument;
-          indexdefinitionsID[row.id] = docType;
         }
         return registerDefaultIndexes(callback);
       });
@@ -95,9 +100,15 @@ exports.initialize = function(callback) {
     }, function(callback) {
       return indexer.store.get('indexedseq', function(err, seqno) {
         if (err) {
-          return callback(err);
+          if (err.type === 'NotFoundError') {
+            log.warn("Last index sequence was not found. If no document is indexed yet, it's ok.\nIn other cases, there is probably an error with the data-system indexer.");
+            return callback();
+          } else {
+            return callback(err);
+          }
+        } else {
+          return reindexChanges(seqno, callback);
         }
-        return reindexChanges(seqno, callback);
       });
     }
   ], callback);
@@ -138,7 +149,7 @@ dequeue = function() {
         log.error("checkpoint error", err);
       }
       batchInProgress = false;
-      return setImmediate(dequeue);
+      return setTimeout(dequeue, 1000);
     });
   });
 };
@@ -448,6 +459,8 @@ getStatus = function(docType, callback) {
   });
 };
 
+exports.status = getStatus;
+
 saveStatus = function(docType, status, callback) {
   status = JSON.stringify(status);
   return indexer.store.set("indexingstatus/" + docType, status, callback);
@@ -527,7 +540,7 @@ resumeReindexing = function(docType, status, callback) {
           return callback(err);
         }
         next = resumeReindexing.bind(null, docType, status, callback);
-        return setTimeout(next, 500);
+        return setTimeout(next, 1000);
       });
     });
   });
@@ -554,7 +567,7 @@ maybeReindexDocType = function(docType, callback) {
   var definition;
   definition = indexdefinitions[docType];
   return getStatus(docType, function(err, status) {
-    log.info("Check index status for " + docType + " :\n    in indexer:" + status.rev + " " + status.state + " " + status.skip + " ,\n    in data-system:" + definition._rev);
+    log.info("Check index status for " + docType + ":\n    in indexer:" + status.rev + " " + status.state + " " + status.skip + ",\n    in data-system:" + definition._rev);
     if (status.rev === definition._rev) {
       if (status.state === 'indexing-by-doctype') {
         return resumeReindexing(docType, status, callback);
