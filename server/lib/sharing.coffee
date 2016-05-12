@@ -1,5 +1,5 @@
 db = require('../helpers/db_connect_helper').db_connect()
-replicator = require('../helpers/db_connect_helper').db_replicator_connect()
+replicator = require('../helpers/db_connect_helper').dbReplicatorConnect()
 
 async = require 'async'
 request = require 'request-json'

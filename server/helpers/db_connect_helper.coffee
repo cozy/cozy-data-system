@@ -42,7 +42,7 @@ exports.db_connect = ->
 
     return db
 
-exports.db_replicator_connect = ->
+exports.dbReplicatorConnect = ->
     if not replicator?
         credentials = setup_credentials '_replicator'
         connection = new cradle.Connection credentials
