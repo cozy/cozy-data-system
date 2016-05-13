@@ -11,7 +11,7 @@ initLoginCouch = ->
     lines = S(data.toString('utf8')).lines()
     return lines
 
-setup_credentials = (dbName) ->
+setupCredentials = (dbName) ->
     #default credentials
     credentials = {
         host : process.env.COUCH_HOST or 'localhost',
@@ -36,15 +36,15 @@ replicator = null #replicator connection
 
 exports.db_connect = ->
     if not db?
-        credentials = setup_credentials 'cozy'
+        credentials = setupCredentials 'cozy'
         connection = new cradle.Connection credentials
         db = connection.database credentials.db
 
     return db
 
-exports.dbReplicatorConnect = ->
+exports.db_replicator_connect = ->
     if not replicator?
-        credentials = setup_credentials '_replicator'
+        credentials = setupCredentials '_replicator'
         connection = new cradle.Connection credentials
         replicator = connection.database credentials.db
 
