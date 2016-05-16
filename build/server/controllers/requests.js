@@ -64,16 +64,31 @@ module.exports.results = function(req, res, next) {
         return next(err);
       } else if (util.isArray(docs)) {
         docs.forEach(function(value) {
-          var error, ref, ref1;
+          var error, error1, error2, field, i, len, ref, ref1, ref2, results;
           if (!sendRev) {
             delete value._rev;
           }
           if ((value.password != null) && ((ref = (ref1 = value.docType) != null ? ref1.toLowerCase() : void 0) !== 'application' && ref !== 'user')) {
             try {
-              return value.password = encryption.decrypt(value.password);
-            } catch (error) {
-              return value._passwordStillEncrypted = true;
+              value.password = encryption.decrypt(value.password);
+            } catch (error1) {
+              value._passwordStillEncrypted = true;
             }
+          }
+          try {
+            ref2 = Object.keys(value);
+            results = [];
+            for (i = 0, len = ref2.length; i < len; i++) {
+              field = ref2[i];
+              if (field.match(/^encrypted/)) {
+                results.push(value[field] = encryption.decrypt(value[field]));
+              } else {
+                results.push(void 0);
+              }
+            }
+            return results;
+          } catch (error2) {
+            error = error2;
           }
         });
         return res.send(docs);

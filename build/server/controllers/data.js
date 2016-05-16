@@ -11,8 +11,8 @@ encryption = require('../lib/encryption');
 
 account = require('./accounts');
 
-module.exports.encryptPassword = function(req, res, next) {
-  var error, error1, password;
+module.exports.encryptFields = function(req, res, next) {
+  var error, error1, error2, password;
   try {
     password = encryption.encrypt(req.body.password);
   } catch (error1) {
@@ -22,11 +22,17 @@ module.exports.encryptPassword = function(req, res, next) {
   if (password != null) {
     req.body.password = password;
   }
+  try {
+    req.body = encryption.encryptNeededFields(req.body);
+  } catch (error2) {
+    error = error2;
+    return next(error);
+  }
   return next();
 };
 
-module.exports.decryptPassword = function(req, res, next) {
-  var error, error1, password;
+module.exports.decryptFields = function(req, res, next) {
+  var error, error1, error2, password;
   try {
     password = encryption.decrypt(req.doc.password);
   } catch (error1) {
@@ -38,6 +44,11 @@ module.exports.decryptPassword = function(req, res, next) {
   }
   if (password != null) {
     req.doc.password = password;
+  }
+  try {
+    req.doc = encryption.decryptNeededFields(req.doc);
+  } catch (error2) {
+
   }
   return next();
 };

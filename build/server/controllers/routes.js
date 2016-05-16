@@ -30,25 +30,25 @@ module.exports = {
     get: [data.index]
   },
   'data/': {
-    post: [utils.checkPermissionsByBody, data.encryptPassword, data.create]
+    post: [utils.checkPermissionsByBody, data.encryptFields, data.create]
   },
   'data/search/': {
     post: [utils.checkPermissionsFactory('all'), indexer.search]
   },
   'data/:id/': {
-    get: [utils.getDoc, utils.checkPermissionsByDoc, data.decryptPassword, data.find],
-    post: [utils.checkPermissionsByBody, data.encryptPassword, data.create],
-    put: [utils.lockRequest, utils.checkPermissionsByBody, utils.getDoc, data.encryptPassword, data.update, utils.unlockRequest],
+    get: [utils.getDoc, utils.checkPermissionsByDoc, data.decryptFields, data.find],
+    post: [utils.checkPermissionsByBody, data.encryptFields, data.create],
+    put: [utils.lockRequest, utils.checkPermissionsByBody, utils.getDoc, data.encryptFields, data.update, utils.unlockRequest],
     "delete": [utils.lockRequest, utils.getDoc, utils.checkPermissionsByDoc, data.softdelete, utils.unlockRequest]
   },
   'data/exist/:id/': {
     get: [data.exist]
   },
   'data/upsert/:id/': {
-    put: [utils.lockRequest, utils.checkPermissionsByBody, data.encryptPassword, data.upsert, utils.unlockRequest]
+    put: [utils.lockRequest, utils.checkPermissionsByBody, data.encryptFields, data.upsert, utils.unlockRequest]
   },
   'data/merge/:id/': {
-    put: [utils.lockRequest, utils.checkPermissionsByBody, utils.getDoc, utils.checkPermissionsByDoc, data.encryptPassword, data.merge, utils.unlockRequest]
+    put: [utils.lockRequest, utils.checkPermissionsByBody, utils.getDoc, utils.checkPermissionsByDoc, data.encryptFields, data.merge, utils.unlockRequest]
   },
   'request/:type/:req_name/': {
     post: [utils.checkPermissionsByType, requests.results],
