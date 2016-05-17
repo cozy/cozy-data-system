@@ -19,11 +19,14 @@ generateToken = (length) ->
 
 # Returns the target position in the array
 findTargetIndex = (targetArray, target) ->
-    i = targetArray.map((t) -> t.recipientUrl).indexOf target.recipientUrl
+    unless targetArray? and targetArray.length isnt 0
+        return -1
+    else
+        targetArray.map((t) -> t.recipientUrl).indexOf target.recipientUrl
 
 
 # Add a shareID field for each doc specified in the sharing rules
-addShareIDnDocs = (rules, shareID, callback) ->
+addShareIDDocs = (rules, shareID, callback) ->
     async.eachSeries rules, (rule, cb) ->
         db.get rule.id, (err, doc) ->
             if err?
@@ -100,9 +103,8 @@ module.exports.create = (req, res, next) ->
             next()
 
 
-# Delete an existing sharing, identified by its id
-module.exports.delete = (req, res, next) ->
-    # check if the information is available
+# Delete an existing sharing, on the sharer side
+module.exports.deleteFromSharer = (req, res, next) ->
     if not req.params?.id?
         err = new Error "Bad request"
         err.status = 400
@@ -126,6 +128,68 @@ module.exports.delete = (req, res, next) ->
                     next()
 
 
+# Delete a target from an existing sharing, on the sharer side
+module.exports.deleteTargetFromSharer = (req, res, next) ->
+    unless req.params?.id? and req.params?.target?
+        err = new Error "Bad request"
+        err.status = 400
+        next err
+    else
+        shareID = req.params.id
+        target = {recipientUrl: req.params.target}
+
+        # Get the sharing document
+        db.get shareID, (err, doc) ->
+            if err?
+                next err
+            else
+                # Remove the target
+                i = findTargetIndex doc.targets, target
+                if i < 0
+                    err = new Error "Target not found"
+                    err.status = 404
+                    next err
+                else
+                    target = doc.targets[i]
+                    doc.targets.splice i, 1
+
+                    # Update the Sharing doc
+                    db.merge shareID, doc, (err, result) ->
+                        return next err if err?
+
+                        share =
+                            shareID: shareID
+                            targets: [target]
+
+                        req.share = share
+                        next()
+
+
+# Delete an existing sharing, on the recipient side
+module.exports.deleteFromTarget = (req, res, next) ->
+    if not req.params?.id?
+        err = new Error "Bad request"
+        err.status = 400
+        next err
+    else
+        id = req.params.id
+        # Get the recipient's sharing doc
+        db.get id, (err, doc) ->
+            if err?
+                next err
+            else
+                # Revoke the access
+                libToken.removeAccess doc, (err) ->
+                    if err?
+                        next err
+                    else
+                        # Remove the sharing doc
+                        db.remove id, (err) ->
+                            return next err if err?
+                            req.share = doc
+                            next()
+
+
 # Send a sharing request for each target defined in the share object
 # It will be viewed as a notification on the targets side
 # Params must contains :
@@ -135,7 +199,6 @@ module.exports.delete = (req, res, next) ->
 #   targets[]  -> the targets to notify. Each target must have an url
 #                 and a preToken
 module.exports.sendSharingRequests = (req, res, next) ->
-
     share = req.share
 
     # Notify each target
@@ -161,31 +224,59 @@ module.exports.sendSharingRequests = (req, res, next) ->
 
 
 # Send a sharing revocation for each target defined in the share object
-# It will be viewed as a notification on the targets side
 # Params must contains :
 #   shareID    -> the id of the sharing process
 #   targets[]  -> the targets to notify. Each target must have an url
-#                 and a token
-module.exports.sendDeleteNotifications = (req, res, next) ->
+#                 and a token (or preToken if it has not answered)
+module.exports.sendRevocationToTargets = (req, res, next) ->
     share = req.share
 
     # Notify each target
     async.eachSeries share.targets, (target, callback) ->
         revoke =
             recipientUrl: target.recipientUrl
-            desc        : "The sharing #{share.shareID} has been deleted"
+            desc: "The sharing #{share.shareID} has been deleted"
 
-        log.info "Send sharing cancel notification to : #{revoke.recipientUrl}"
+        log.info "Send sharing revocation to the target #{revoke.recipientUrl}"
 
         # Add the credentials in the url
+        # The password can be a token or preToken depending if the
+        # target has answered the sharing request or not
         token = target.token or target.preToken
         auth = "#{share.shareID}:#{token}"
         url = revoke.recipientUrl.replace "://", "://#{auth}@"
-        path = "services/sharing/revoke"
+        path = "services/sharing"
 
-        Sharing.notifyRecipient url, path, revoke, callback
+        Sharing.sendRevocation url, path, revoke, callback
 
     , (err) ->
+        if err?
+            next err
+        else
+            res.status(200).send success: true
+
+
+# Send a sharing revocation to the sharer defined in the share object
+# Params must contains :
+#   shareID    -> the id of the sharing process
+#   sharerUrl  -> the url of the sharer's cozy
+#   token      -> the token used to authenticate the recipient
+module.exports.sendRevocationToSharer = (req, res, next) ->
+    share = req.share
+
+    revoke =
+        sharerUrl: share.sharerUrl
+        desc: "The sharing target #{share.recipientUrl} has revoked itself"
+
+    log.info "Send sharing revocation to the sharer #{revoke.sharerUrl}"
+
+    # Add the credentials in the url
+    token = share.token
+    auth = "#{share.shareID}:#{token}"
+    url = revoke.sharerUrl.replace "://", "://#{auth}@"
+    path = "services/sharing/target"
+
+    Sharing.sendRevocation url, path, revoke, (err) ->
         if err?
             next err
         else
@@ -205,8 +296,6 @@ module.exports.sendDeleteNotifications = (req, res, next) ->
 module.exports.handleRecipientAnswer = (req, res, next) ->
 
     share = req.body
-
-    console.log JSON.stringify share
 
     # A correct answer must have the following attributes
     if utils.hasEmptyField share, ["id", "accepted"]
@@ -231,11 +320,10 @@ module.exports.handleRecipientAnswer = (req, res, next) ->
                 return next err if err?
 
                 doc.accepted = share.accepted
-                doc.token = access.password
                 db.merge share.id, doc, (err, result) ->
                     return next err if err?
-
                     req.share = doc
+                    req.share.token = access.password
                     return next()
 
             # TODO : enforce the docType protection with the couchDB's document
@@ -347,7 +435,7 @@ module.exports.validateTarget = (req, res, next) ->
             return next err if err?
 
             # Add the shareID for each shared document
-            addShareIDnDocs doc.rules, doc._id, (err) ->
+            addShareIDDocs doc.rules, doc._id, (err) ->
                 return next err if err?
 
                 # Params structure for the replication
@@ -360,7 +448,6 @@ module.exports.validateTarget = (req, res, next) ->
 
 
 # Replicate documents to the target url
-
 # Params must contain:
 #   doc        -> the Sharing document
 #   target     -> contains the url and the token of the target

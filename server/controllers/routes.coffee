@@ -338,12 +338,26 @@ module.exports =
             sharing.create
             sharing.sendSharingRequests
         ]
-    'services/sharing/:id':
+    'services/sharing/sharer/:id/':
         delete: [
             utils.checkPermissionsFactory 'sharing'
-            sharing.delete
+            sharing.deleteFromSharer
             sharing.stopReplications
-            sharing.sendDeleteNotifications
+            sharing.sendRevocationToTargets
+        ]
+    'services/sharing/sharer/:id/:target/':
+        delete: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.deleteTargetFromSharer
+            sharing.stopReplications
+            sharing.sendRevocationToTargets
+        ]
+
+    'services/sharing/target/:id/':
+        delete: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.deleteFromTarget
+            sharing.sendRevocationToSharer
         ]
     'services/sharing/sendAnswer':
         post: [

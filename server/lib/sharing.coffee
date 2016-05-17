@@ -73,8 +73,6 @@ handleNotifyResponse = (err, result, body, callback) ->
 
 
 # Send a notification to a recipient url on the specified path
-# Params must at least contain:
-#   recipientUrl -> the url of the target
 # A successful request is expected to return a 200 HTTP status
 module.exports.notifyRecipient = (url, path, params, callback) ->
     # Get the domain if not already set
@@ -88,8 +86,6 @@ module.exports.notifyRecipient = (url, path, params, callback) ->
 
 
 # Send a notification to a recipient url on the specified path
-# Params must at least contain:
-#   sharerUrl -> the url of the sharer
 # A successful request is expected to return a 200 HTTP status
 module.exports.notifySharer = (url, path, params, callback) ->
     # Get the domain if not already set
@@ -100,6 +96,13 @@ module.exports.notifySharer = (url, path, params, callback) ->
         remote = request.createClient url
         remote.post path, params, (err, result, body) ->
             handleNotifyResponse err, result, body, callback
+
+
+# Send a revocation request to the specified url
+module.exports.sendRevocation = (url, path, params, callback) ->
+    remote = request.createClient url
+    remote.del path, params, (err, result, body) ->
+        handleNotifyResponse err, result, body, callback
 
 
 # Replicate documents to the specified target
