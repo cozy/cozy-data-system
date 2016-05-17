@@ -256,7 +256,7 @@ describe "Sharing controller tests:", ->
         it 'should return an error when the document does not exist in the db',
         (done) ->
             dbGetStub.restore() # we want the correct behavior, not the stub
-            client.del "services/sharing/103", (err, res, body) ->
+            client.del "services/sharing/sharer/103", (err, res, body) ->
                 res.statusCode.should.equal 404
                 # Funny thing: the message CouchDB sends us to inform us about
                 # an error is "stringified" twice hence the following check.
@@ -265,13 +265,13 @@ describe "Sharing controller tests:", ->
 
 
         it 'should remove the document from the database', (done) ->
-            sharing.delete req, {}, ->
+            sharing.deleteFromSharer req, {}, ->
                 dbRemoveStub.callCount.should.equal 1
                 done()
 
         it 'should transmit the targets and the shareID to the next callback',
         (done) ->
-            sharing.delete req, {}, ->
+            sharing.deleteFromSharer req, {}, ->
                 should.exist req.share
                 should.exist req.share.targets
                 should.exist req.share.shareID
@@ -326,7 +326,7 @@ describe "Sharing controller tests:", ->
                 done()
 
 
-    describe 'sendDeleteNotifications module', ->
+    describe 'sendRevocationToTargets module', ->
 
         # Phony document
         targets =
@@ -378,7 +378,7 @@ describe "Sharing controller tests:", ->
                         done()
 
             # and finally call the test
-            sharing.sendDeleteNotifications req, resStub, ->
+            sharing.sendRevocationToTargets req, resStub, ->
                 done()
 
         it 'should send notifications to all targets that have a token and a
@@ -391,7 +391,7 @@ describe "Sharing controller tests:", ->
                         done()
 
             # and finally call the test
-            sharing.sendDeleteNotifications req, resStub, ->
+            sharing.sendRevocationToTargets req, resStub, ->
                 done()
 
         it 'should return an error when a notification could not be sent',
@@ -399,10 +399,10 @@ describe "Sharing controller tests:", ->
             notifyTargetStub.restore() # cancel stub
             errNotifyTargetFn = (url, route, notification, callback) ->
                 callback "Error"
-            notifyTargetStub = sinon.stub Sharing, "notifyRecipient",
+            notifyTargetStub = sinon.stub Sharing, "sendRevocation",
                 errNotifyTargetFn
 
-            sharing.sendDeleteNotifications req, {}, (err) ->
+            sharing.sendRevocationToTargets req, {}, (err) ->
                 should.exist err
                 err.should.equal "Error"
                 done()
