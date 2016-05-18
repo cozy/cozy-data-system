@@ -188,7 +188,7 @@ initializeDSView = function(callback) {
 module.exports.init = function(callback) {
   var removeEmptyView, storeAppView;
   removeEmptyView = function(doc, callback) {
-    if ((((doc != null ? doc.views : void 0) == null) || Object.keys(doc.views).length === 0) && (((doc != null ? doc.filter : void 0) == null) || Object.keys(doc.filter).length === 0)) {
+    if (((doc != null ? doc.views : void 0) == null) || Object.keys(doc.views).length === 0) {
       log.warn("This doc " + (JSON.stringify(doc)) + " is empty so remove it.");
       return db.remove(doc._id, doc._rev, function(err, response) {
         if (err) {
@@ -243,7 +243,9 @@ module.exports.init = function(callback) {
             return callback(err);
           }
           return async.forEach(docs, function(doc, cb) {
-            if ((doc != null ? doc.views : void 0) == null) {
+            if ((doc != null ? doc.filters : void 0) != null) {
+              return cb();
+            } else if ((doc != null ? doc.views : void 0) == null) {
               log.warn("Document has no view");
               log.warn(doc);
               return cb();
