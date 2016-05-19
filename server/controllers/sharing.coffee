@@ -19,10 +19,10 @@ generateToken = (length) ->
 
 # Returns the target position in the array
 findTargetIndex = (targetArray, target) ->
-    unless targetArray? and targetArray.length isnt 0
-        return -1
-    else
+    if targetArray? and targetArray.length isnt 0
         targetArray.map((t) -> t.recipientUrl).indexOf target.recipientUrl
+    else
+        return -1
 
 
 # Add a shareID field for each doc specified in the sharing rules

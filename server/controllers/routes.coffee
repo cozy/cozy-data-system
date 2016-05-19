@@ -352,7 +352,6 @@ module.exports =
             sharing.stopReplications
             sharing.sendRevocationToTargets
         ]
-
     'services/sharing/target/:id/':
         delete: [
             utils.checkPermissionsFactory 'sharing'
