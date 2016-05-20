@@ -1,10 +1,11 @@
 db = require('../helpers/db_connect_helper').db_connect()
 replicator = require('../helpers/db_connect_helper').db_replicator_connect()
-
 async = require 'async'
 request = require 'request-json'
 log = require('printit')
     prefix: 'sharing'
+User = require './user'
+user = new User()
 
 replications = {}
 
@@ -37,6 +38,7 @@ getDomain = (callback) ->
             callback null, domain
         else
             callback null
+
 
 # Retrieve the domain if the url is not set, to avoid
 # unacessary call and potential domain mismatch on the target side
@@ -78,11 +80,17 @@ module.exports.notifyRecipient = (url, path, params, callback) ->
     # Get the domain if not already set
     checkDomain params.sharerUrl, (err, domain) ->
         return err if err?
-
         params.sharerUrl = domain
-        remote = request.createClient url
-        remote.post path, params, (err, result, body) ->
-            handleNotifyResponse err, result, body, callback
+
+        # Get the user name
+        user.getUser (err, userInfos) ->
+            return err if err?
+            params.userName = userInfos.public_name
+
+            # Send to recipient
+            remote = request.createClient url
+            remote.post path, params, (err, result, body) ->
+                handleNotifyResponse err, result, body, callback
 
 
 # Send a notification to a recipient url on the specified path
