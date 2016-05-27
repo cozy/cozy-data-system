@@ -41,7 +41,7 @@ addShareIDDocs = (rules, shareID, callback) ->
 
 # Save the error in the sharing doc
 saveErrorInTarget = (error, id, target, callback) ->
-    if error?
+    if error?.message?
         db.get id, (err, doc) ->
             if err?
                 callback err
