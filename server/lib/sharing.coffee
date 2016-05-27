@@ -85,8 +85,11 @@ module.exports.notifyRecipient = (url, path, params, callback) ->
         # Get the user name
         user.getUser (err, userInfos) ->
             return err if err?
-            params.userName = userInfos.public_name
 
+            params.sharerName = userInfos.public_name
+            # Avoid empty usernames
+            if not params.sharerName? or (params.sharerName is '')
+                params.sharerName = params.sharerUrl.replace "https://", ""
             # Send to recipient
             remote = request.createClient url
             remote.post path, params, (err, result, body) ->
