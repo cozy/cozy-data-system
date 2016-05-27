@@ -63,7 +63,7 @@ handleNotifyResponse = (err, result, body, callback) ->
         err.status = 400
         callback err
     else if body?.error?
-        err = body
+        err = new Error body.error
         err.status = result.statusCode
         callback err
     else if result?.statusCode isnt 200

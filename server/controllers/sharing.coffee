@@ -39,6 +39,22 @@ addShareIDDocs = (rules, shareID, callback) ->
         callback err
 
 
+# Save the error in the sharing doc
+saveErrorInTarget = (error, id, target, callback) ->
+    if error?
+        db.get id, (err, doc) ->
+            if err?
+                callback err
+            else
+                i = findTargetIndex doc.targets, target
+                doc.targets[i].error = error.message
+
+                db.merge id, doc, (err, result) ->
+                    callback err
+    else
+        callback()
+
+
 # Creation of the Sharing document
 #
 # The structure of a Sharing document is as following.
@@ -214,8 +230,9 @@ module.exports.sendSharingRequests = (req, res, next) ->
 
         url = target.recipientUrl
         path = "services/sharing/request"
-        Sharing.notifyRecipient url, path, request, callback
-
+        Sharing.notifyRecipient url, path, request, (err) ->
+            saveErrorInTarget err, share.shareID, target, (error) ->
+                if error? then callback error else callback err
     , (err) ->
         if err?
             next err
@@ -247,8 +264,9 @@ module.exports.sendRevocationToTargets = (req, res, next) ->
         url = revoke.recipientUrl.replace "://", "://#{auth}@"
         path = "services/sharing"
 
-        Sharing.sendRevocation url, path, revoke, callback
-
+        Sharing.sendRevocation url, path, revoke, (err) ->
+            saveErrorInTarget err, share.shareID, target, (error) ->
+                if error? then callback error else callback err
     , (err) ->
         if err?
             next err
@@ -469,12 +487,14 @@ module.exports.replicate = (req, res, next) ->
 
         Sharing.replicateDocs replicate, (err, repID) ->
             if err?
-                next err
+                saveErrorInTarget err, doc._id, target, (error) ->
+                    if error? then next error else next err
             # The repID is needed if continuous
             else if replicate.continuous and not repID?
                 err = new Error "Replication error"
                 err.status = 500
-                next err
+                saveErrorInTarget err, doc._id, target, (error) ->
+                    if error? then next error else next err
             else
                 log.info "Data successfully sent to #{target.recipientUrl}"
 
