@@ -10,6 +10,7 @@ user = require './user'
 account = require './accounts'
 access = require './access'
 replication = require './replication'
+sharing = require './sharing'
 filters = require './filters'
 
 utils = require '../middlewares/utils'
@@ -264,7 +265,7 @@ module.exports =
             utils.checkPermissionsFactory 'all'
             indexer.removeAll
         ]
-    'data/index/status/:type':
+    'data/index/status':
         get: [
             indexer.indexingStatus
         ]
@@ -336,3 +337,45 @@ module.exports =
             account.checkPermissions
             account.resetKeys
         ]
+
+
+    # Sharing management
+    'services/sharing/':
+        post: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.create
+            sharing.sendSharingRequests
+        ]
+    'services/sharing/sharer/:id/':
+        delete: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.deleteFromSharer
+            sharing.stopReplications
+            sharing.sendRevocationToTargets
+        ]
+    'services/sharing/sharer/:id/:target/':
+        delete: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.deleteTargetFromSharer
+            sharing.stopReplications
+            sharing.sendRevocationToTargets
+        ]
+    'services/sharing/target/:id/':
+        delete: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.deleteFromTarget
+            sharing.sendRevocationToSharer
+        ]
+    'services/sharing/sendAnswer':
+        post: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.handleRecipientAnswer
+            sharing.sendAnswer
+        ]
+    'services/sharing/answer':
+        post: [
+            utils.checkPermissionsFactory 'sharing'
+            sharing.validateTarget
+            sharing.replicate
+        ]
+

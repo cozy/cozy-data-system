@@ -6,6 +6,7 @@ errors = require './errors'
 
 # Helpers
 helpers = require '../helpers/utils'
+checkReplicationPermissions = helpers.checkReplicationPermissions
 checkPermissions = helpers.checkPermissions
 deleteFiles = helpers.deleteFiles
 
@@ -62,7 +63,6 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
         # Use to ensure that every transferred bit is laid down
         # on disk or other persistent storage place
         next()
-
     else if req.url.indexOf('/replication/_changes') is 0
         next()
     else if req.url.indexOf('/replication/_bulk_docs') is 0
@@ -77,11 +77,22 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                     else if err
                         logger.error err
                         cb err
+                    # The document is not well formed
+                    else if not (doc._id? and doc.docType?)
+                        err = new Error "Forbidden operation"
+                        err.status = 403
+                        cb err
                     else
-                        checkPermissions req, doc.docType, cb
+                        checkReplicationPermissions req, doc, cb
+            # Manage in request
             else
-                # Manage in request
-                checkPermissions req, doc.docType, cb
+                # The document is not well formed
+                if not (doc._id? and doc.docType?)
+                    err = new Error "Forbidden operation"
+                    err.status = 403
+                    cb err
+                else
+                    checkReplicationPermissions req, doc, cb
         , next
     else
         err = new Error "Forbidden operation"

@@ -136,7 +136,7 @@ describe "Token of applications handling tests", ->
         describe "Requests with authentification and authorization", ->
 
             it "When I try to create a document with docType " +
-                    "UnauthorizedDocType' ", (done) ->
+                    "AuthorizedDocType' ", (done) ->
                 data =
                     test: "test"
                     docType: "Authorized"
