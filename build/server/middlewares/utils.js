@@ -85,7 +85,7 @@ module.exports.checkPermissionsPostReplication = function(req, res, next) {
           } else if (err) {
             logger.error(err);
             return cb(err);
-          } else if (!((doc._id != null) && (doc.docType != null))) {
+          } else if (doc._id == null) {
             err = new Error("Forbidden operation");
             err.status = 403;
             return cb(err);
@@ -94,7 +94,7 @@ module.exports.checkPermissionsPostReplication = function(req, res, next) {
           }
         });
       } else {
-        if (!((doc._id != null) && (doc.docType != null))) {
+        if (doc._id == null) {
           err = new Error("Forbidden operation");
           err.status = 403;
           return cb(err);
