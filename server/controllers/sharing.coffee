@@ -115,8 +115,13 @@ module.exports.create = (req, res, next) ->
             next err
         else
             share.shareID = res._id
-            req.share = share
-            next()
+
+            # Add the shareID for each shared document
+            addShareIDDocs share.rules, share.shareID, (err) ->
+                return next err if err?
+
+                req.share = share
+                next()
 
 
 # Delete an existing sharing, on the sharer side
@@ -237,7 +242,7 @@ module.exports.sendSharingRequests = (req, res, next) ->
         if err?
             next err
         else
-            res.status(200).send success: true
+            res.status(200).send success: true, shareID: share.shareID
 
 
 # Send a sharing revocation for each target defined in the share object
@@ -452,17 +457,13 @@ module.exports.validateTarget = (req, res, next) ->
         db.merge doc._id, doc, (err, result) ->
             return next err if err?
 
-            # Add the shareID for each shared document
-            addShareIDDocs doc.rules, doc._id, (err) ->
-                return next err if err?
+            # Params structure for the replication
+            share =
+                target : target
+                doc    : doc
 
-                # Params structure for the replication
-                share =
-                    target : target
-                    doc    : doc
-
-                req.share = share
-                next()
+            req.share = share
+            next()
 
 
 # Replicate documents to the target url
