@@ -29,7 +29,7 @@ describe "Sharing controller tests:", ->
         # Correct sharing structure
         share =
             desc: 'description'
-            rules: [ {id: 1, docType: 'event'}, {id: 2, docType: 'Tasky'} ]
+            rules: [ {id: '1234', docType: 'event'}, {id: '4567', docType: 'Tasky'} ]
             targets: [{recipientUrl: 'url1.com'}, {recipientUrl: 'url2.com'}, \
                 {recipientUrl: 'url3.com'}]
             continuous: true
@@ -94,10 +94,10 @@ describe "Sharing controller tests:", ->
             req = body: _.cloneDeep share
             res = {}
             sharing.create req, res, ->
-                req.share.should.exist
-                req.share.shareID.should.exist
-                req.share.docType.should.equal "sharing"
-                for target in req.share.targets
+                req.body.should.exist
+                req.body.shareID.should.exist
+                req.body.docType.should.equal "sharing"
+                for target in req.body.targets
                     should.exist(target.preToken)
                 done()
 
@@ -330,16 +330,16 @@ describe "Sharing controller tests:", ->
         # Phony document
         targets =
             [{recipientUrl: 'url1.com', preToken:'preToken1'},
-             {recipientUrl: 'url2.com', token:'token2', repID: 2},
+             {recipientUrl: 'url2.com', token:'token2', repID: '2'},
              {recipientUrl: 'url3.com', preToken:'preToken3'},
-             {recipientUrl: 'url4.com', token:'token4', repID: 4},
+             {recipientUrl: 'url4.com', token:'token4', repID: '4'},
              {recipientUrl: 'url5.com', preToken:'preToken5'}]
         urls = (target.recipientUrl for target in targets)     # extract urls
         tokens = (target.token for target in targets) # extract tokens and pre
         tokens = tokens.concat (target.preToken for target in targets)
         # req to mimick result of preceeding calls
         req = share:
-            shareID: 103
+            shareID: '103'
             targets: targets
 
         # sharing.notifyRecipient stub (lib/sharing.coffee).
@@ -356,7 +356,7 @@ describe "Sharing controller tests:", ->
             notifyTargetStub.restore()
             done()
 
-        it.skip 'should define the notifications correctly and call the route
+        it 'should define the notifications correctly and call the route
         "services/sharing/revoke"', (done) ->
             notifyTargetStub.restore() # cancel stub
             # change to a custom stub that tests the values passed
@@ -381,7 +381,7 @@ describe "Sharing controller tests:", ->
             sharing.sendRevocationToTargets req, resStub, ->
                 done()
 
-        it.skip 'should send notifications to all targets that have a token and a
+        it 'should send notifications to all targets that have a token and a
         repID', (done) ->
             # mimick Express `res.send`
             resStub =
