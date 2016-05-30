@@ -128,11 +128,16 @@ module.exports = Feed = (function() {
       requestPath = "/" + dbName + "/" + change.id + "?revs_info=true&open_revs=all";
       return client.get(requestPath, (function(_this) {
         return function(err, res, doc) {
-          var ref, ref1, removeBinary;
+          var doctype, event, ref, ref1, removeBinary;
           if ((doc != null ? (ref = doc[0]) != null ? (ref1 = ref.ok) != null ? ref1.docType : void 0 : void 0 : void 0) != null) {
             doc = doc[0].ok;
-            _this._publish((doc.docType.toLowerCase()) + ".delete", change.id);
+            doctype = doc.docType.toLowerCase();
+            _this._publish(doctype + ".delete", change.id);
             indexer.onDocumentDelete(doc, change.seq);
+            if ((doc.shareID != null) && (doctype !== 'sharing')) {
+              event = "sharing." + doctype + ".delete";
+              _this._publish(event, change.id + ":" + doc.shareID);
+            }
           }
           if (doc.binary != null) {
             removeBinary = function(name, callback) {
@@ -177,7 +182,7 @@ module.exports = Feed = (function() {
       operation = isCreation ? 'create' : 'update';
       return this.db.get(change.id, (function(_this) {
         return function(err, doc) {
-          var doctype, ref;
+          var doctype, event, ref;
           if (err) {
             _this.logger.error(err);
           }
@@ -186,6 +191,10 @@ module.exports = Feed = (function() {
             _this._publish(doctype + "." + operation, doc._id);
           }
           indexer.onDocumentUpdate(doc, change.seq);
+          if ((doc.shareID != null) && (doctype !== 'sharing')) {
+            event = "sharing." + doctype + "." + operation;
+            _this._publish(event, change.id + ":" + doc.shareID);
+          }
           if (doctype === 'file') {
             return _this.db.get(change.id, function(err, file) {
               var ref1;

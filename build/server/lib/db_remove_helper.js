@@ -9,7 +9,8 @@ getDeletedDoc = function(doc) {
     _rev: doc._rev,
     _deleted: true,
     docType: doc.docType,
-    binary: doc.binary
+    binary: doc.binary,
+    shareID: doc.shareID
   };
 };
 
