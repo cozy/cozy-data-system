@@ -88,9 +88,15 @@ module.exports = class Feed
             client.get requestPath, (err, res, doc) =>
                 if doc?[0]?.ok?.docType?
                     doc = doc[0].ok
+                    doctype = doc.docType.toLowerCase()
                     # Publish deletion
-                    @_publish "#{doc.docType.toLowerCase()}.delete", change.id
+                    @_publish "#{doctype}.delete", change.id
                     indexer.onDocumentDelete doc, change.seq
+
+                    # Special case for received shared documents.
+                    if doc.shareID? and (doctype isnt 'sharing')
+                        event = "sharing.#{doctype}.delete"
+                        @_publish event, "#{change.id}:#{doc.shareID}"
 
                 # If document has a binary, remove the binary
                 if doc.binary?
@@ -130,6 +136,11 @@ module.exports = class Feed
 
                 @_publish "#{doctype}.#{operation}", doc._id if doctype
                 indexer.onDocumentUpdate doc, change.seq
+
+                # Special case for received shared documents.
+                if doc.shareID? and (doctype isnt 'sharing')
+                    event = "sharing.#{doctype}.#{operation}"
+                    @_publish event, "#{change.id}:#{doc.shareID}"
 
                 if doctype is 'file'
                     @db.get change.id, (err, file) ->

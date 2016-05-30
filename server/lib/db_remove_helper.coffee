@@ -10,6 +10,7 @@ getDeletedDoc = (doc) ->
     _deleted: true
     docType: doc.docType
     binary: doc.binary
+    shareID: doc.shareID
 
 
 # Remove givend document.
