@@ -78,7 +78,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                         logger.error err
                         cb err
                     # The document is not well formed
-                    else if not (doc._id? and doc.docType?)
+                    else if not doc._id?
                         err = new Error "Forbidden operation"
                         err.status = 403
                         cb err
@@ -87,7 +87,7 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
             # Manage in request
             else
                 # The document is not well formed
-                if not (doc._id? and doc.docType?)
+                if not doc._id?
                     err = new Error "Forbidden operation"
                     err.status = 403
                     cb err
