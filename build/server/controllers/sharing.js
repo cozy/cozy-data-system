@@ -100,8 +100,13 @@ module.exports.create = function(req, res, next) {
       return next(err);
     } else {
       share.shareID = res._id;
-      req.share = share;
-      return next();
+      return addShareIDDocs(share.rules, share.shareID, function(err) {
+        if (err != null) {
+          return next(err);
+        }
+        req.share = share;
+        return next();
+      });
     }
   });
 };
@@ -236,7 +241,8 @@ module.exports.sendSharingRequests = function(req, res, next) {
       return next(err);
     } else {
       return res.status(200).send({
-        success: true
+        success: true,
+        shareID: share.shareID
       });
     }
   });
@@ -411,21 +417,16 @@ module.exports.validateTarget = function(req, res, next) {
       doc.targets.splice(i, 1);
     }
     return db.merge(doc._id, doc, function(err, result) {
+      var share;
       if (err != null) {
         return next(err);
       }
-      return addShareIDDocs(doc.rules, doc._id, function(err) {
-        var share;
-        if (err != null) {
-          return next(err);
-        }
-        share = {
-          target: target,
-          doc: doc
-        };
-        req.share = share;
-        return next();
-      });
+      share = {
+        target: target,
+        doc: doc
+      };
+      req.share = share;
+      return next();
     });
   });
 };
