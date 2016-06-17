@@ -105,9 +105,14 @@ module.exports.create = (req, res, next) ->
     # The docType is fixed
     share.docType = "sharing"
 
-    # Generate a preToken for each target
     for target in share.targets
+        # Generate a preToken for each target
         target.preToken = generateToken TOKEN_LENGTH
+        # Remove last slash in recipient's url
+        url = target.recipientUrl
+        if url.charAt(url.length - 1) is '/'
+            target.recipientUrl = url.substring(0, url.length - 1)
+
 
     # save the share document in the database
     db.save share, (err, res) ->
