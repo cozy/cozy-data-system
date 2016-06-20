@@ -134,11 +134,12 @@ module.exports = class Feed
                 @logger.error err if err
                 doctype = doc?.docType?.toLowerCase()
 
-                @_publish "#{doctype}.#{operation}", doc._id if doctype
-                indexer.onDocumentUpdate doc, change.seq
+                if doctype
+                    @_publish "#{doctype}.#{operation}", doc._id
+                    indexer.onDocumentUpdate doc, change.seq
 
                 # Special case for received shared documents.
-                if doc.shareID? and (doctype isnt 'sharing')
+                if doc?.shareID? and (doctype isnt 'sharing')
                     event = "sharing.#{doctype}.#{operation}"
                     @_publish event, "#{change.id}:#{doc.shareID}"
 
