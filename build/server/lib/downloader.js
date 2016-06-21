@@ -71,7 +71,7 @@ module.exports = {
           return releaseStream(res);
         } else if (res.statusCode !== 200) {
           msg = err.message;
-          err = callback(new Error("error occured while downloading attachment " + msg + " "));
+          err = new Error("error occured while downloading attachment " + msg + " ");
           err.status = res.statusCode;
           callback(err);
           return releaseStream(res);
