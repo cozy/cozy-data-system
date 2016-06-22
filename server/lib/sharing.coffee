@@ -132,6 +132,10 @@ module.exports.replicateDocs = (params, callback) ->
         auth = "#{params.id}:#{params.target.token}"
         url = params.target.recipientUrl.replace "://", "://#{auth}@"
 
+        # Remove last slash in recipient's url
+        if url.charAt(url.length - 1) is '/'
+            url = url.substring(0, url.length - 1)
+
         couchCred = db.connection
         couch = [couchCred.host, couchCred.port]
         if couchCred.auth?
