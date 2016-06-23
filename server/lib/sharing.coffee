@@ -10,6 +10,12 @@ user = new User()
 replications = {}
 
 
+# Add https in case the protocol is not specified in the url
+addProtocol = (url) ->
+    url = "https://" + url if url?.indexOf("://") is -1
+    return url
+
+
 # Called each time a change occurs in the _replicator db
 onChange = (change) ->
     if replications[change.id]?
@@ -90,6 +96,9 @@ module.exports.notifyRecipient = (url, path, params, callback) ->
             # Avoid empty usernames
             if not params.sharerName? or (params.sharerName is '')
                 params.sharerName = params.sharerUrl.replace "https://", ""
+
+            # Add https if not specified
+            url = addProtocol url
             # Send to recipient
             remote = request.createClient url
             remote.post path, params, (err, result, body) ->
@@ -111,6 +120,8 @@ module.exports.notifySharer = (url, path, params, callback) ->
 
 # Send a revocation request to the specified url
 module.exports.sendRevocation = (url, path, params, callback) ->
+    # Add https if not specified
+    url = addProtocol url
     remote = request.createClient url
     remote.del path, params, (err, result, body) ->
         handleNotifyResponse err, result, body, callback
@@ -130,7 +141,8 @@ module.exports.replicateDocs = (params, callback) ->
     else
         # Add the credentials in the url
         auth = "#{params.id}:#{params.target.token}"
-        url = params.target.recipientUrl.replace "://", "://#{auth}@"
+        url = addProtocol params.target.recipientUrl
+        url = url.replace "://", "://#{auth}@"
 
         # Remove last slash in recipient's url
         if url.charAt(url.length - 1) is '/'
