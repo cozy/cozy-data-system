@@ -189,9 +189,9 @@ module.exports = Feed = (function() {
           doctype = doc != null ? (ref = doc.docType) != null ? ref.toLowerCase() : void 0 : void 0;
           if (doctype) {
             _this._publish(doctype + "." + operation, doc._id);
+            indexer.onDocumentUpdate(doc, change.seq);
           }
-          indexer.onDocumentUpdate(doc, change.seq);
-          if ((doc.shareID != null) && (doctype !== 'sharing')) {
+          if (((doc != null ? doc.shareID : void 0) != null) && (doctype !== 'sharing')) {
             event = "sharing." + doctype + "." + operation;
             _this._publish(event, change.id + ":" + doc.shareID);
           }

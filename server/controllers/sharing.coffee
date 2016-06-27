@@ -105,8 +105,8 @@ module.exports.create = (req, res, next) ->
     # The docType is fixed
     share.docType = "sharing"
 
-    # Generate a preToken for each target
     for target in share.targets
+        # Generate a preToken for each target
         target.preToken = generateToken TOKEN_LENGTH
 
     # save the share document in the database

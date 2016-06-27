@@ -71,7 +71,7 @@ module.exports =
                     releaseStream res
                 else if res.statusCode isnt 200
                     msg = err.message
-                    err = callback new Error """
+                    err = new Error """
                         error occured while downloading attachment #{msg} """
                     err.status = res.statusCode
                     callback err
