@@ -310,6 +310,7 @@ module.exports.removeAccess = (doc, callback) ->
 ## Initialize tokens and permissions for Home and Proxy
 initHomeProxy = (callback) ->
     token = process.env.TOKEN
+    throw new Error('you need to define process.env.TOKEN') unless token
     token = token.split('\n')[0]
     # Add home token and permissions
     tokens['home'] = token

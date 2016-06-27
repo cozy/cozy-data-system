@@ -13,7 +13,7 @@ module.exports.create = (req, res, next) ->
         req.body = encryption.encryptNeededFields req.body
     catch error
         return next error
-    
+
     if req.params.id
         # this GET needed because of cache
         db.get req.params.id, (err, doc) ->
