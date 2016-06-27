@@ -72,7 +72,7 @@ saveErrorInTarget = function(error, id, target, callback) {
 };
 
 module.exports.create = function(req, res, next) {
-  var err, j, len, ref, share, target, url;
+  var err, j, len, ref, share, target;
   share = req.body;
   if (utils.hasEmptyField(share, ["targets", "rules"])) {
     err = new Error("Body is incomplete");
@@ -94,10 +94,6 @@ module.exports.create = function(req, res, next) {
   for (j = 0, len = ref.length; j < len; j++) {
     target = ref[j];
     target.preToken = generateToken(TOKEN_LENGTH);
-    url = target.recipientUrl;
-    if (url.charAt(url.length - 1) === '/') {
-      target.recipientUrl = url.substring(0, url.length - 1);
-    }
   }
   return db.save(share, function(err, res) {
     if (err != null) {

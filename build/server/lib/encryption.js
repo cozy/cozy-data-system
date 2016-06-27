@@ -137,9 +137,9 @@ exports.encryptNeededFields = function(obj) {
       throw error;
     }
   } else {
-    err = "object to encrypt doesn't exist";
-    logger.error("[encryptNeededFields]: " + err);
-    throw error;
+    err = new Error("object to encrypt doesn't exist");
+    logger.error("[encryptNeededFields]: " + err.message);
+    throw err;
   }
 };
 

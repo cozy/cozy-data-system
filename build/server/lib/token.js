@@ -309,6 +309,9 @@ module.exports.removeAccess = function(doc, callback) {
 initHomeProxy = function(callback) {
   var token;
   token = process.env.TOKEN;
+  if (!token) {
+    throw new Error('you need to define process.env.TOKEN');
+  }
   token = token.split('\n')[0];
   tokens['home'] = token;
   permissions.home = {
