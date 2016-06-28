@@ -39,6 +39,9 @@ module.exports.addBinary = function(doc, attachData, readStream, callback) {
         });
       }
     });
+    if (readStream.headers) {
+      delete readStream.headers['content-disposition'];
+    }
     return readStream.pipe(stream);
   };
   if (((ref = doc.binary) != null ? ref[name] : void 0) != null) {
