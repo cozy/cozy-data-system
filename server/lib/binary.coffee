@@ -30,7 +30,9 @@ module.exports.addBinary = (doc, attachData, readStream, callback) ->
                     log.error err if err?
                     cb()
 
-        delete readStream.headers['content-disposition']
+        if readStream.headers
+            delete readStream.headers['content-disposition']
+
         readStream.pipe stream
 
     # Update binary list set on given doc then save file to CouchDB
