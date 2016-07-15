@@ -4,6 +4,7 @@ async = require 'async'
 Client = require('request-json').JsonClient
 client = null
 thumb = require('./thumb')
+audio = require('./audio')
 indexer = require './indexer'
 
 log = require('printit')
@@ -145,6 +146,10 @@ module.exports = class Feed
 
                 if doctype is 'file'
                     @db.get change.id, (err, file) ->
+                        if file.class is 'music'  and
+                                file.binary?.file? and not file.audio_metadata
+                            audio.create file.id, false
+
                         if file.class is 'image' and
                                 file.binary?.file? and not file.binary.thumb
                             # Creates thumb for image.
