@@ -8,3 +8,4 @@ server.coffee
 .editorconfig
 .travis.yml
 coffeelint.json
+*.log
