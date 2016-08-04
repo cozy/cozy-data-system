@@ -28,7 +28,7 @@
     "nodemailer-smtp-transport": "1.0.3",
     "printit": "0.1.15",
     "request": "2.67.0",
-    "request-json": "0.5.5",
+    "request-json": "0.6.1",
     "string": "1.8.0",
     "through": "2.3.7"
   },
