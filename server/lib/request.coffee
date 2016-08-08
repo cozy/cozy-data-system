@@ -207,14 +207,26 @@ initializeDSView = (callback) ->
                     }
                 }
                 """
-        # Useful for thumbs creation
         file:
+            # Useful for thumbs creation
             withoutThumb:
                 map: """
                 function(doc) {
                     if(doc.docType && doc.docType.toLowerCase() === "file") {
                         if(doc.class === "image" && doc.binary &&
                                 doc.binary.file && !doc.binary.thumb) {
+                            emit(doc._id, null);
+                        }
+                    }
+                }
+                """
+            # Useful for audio metadata creation
+            withoutAudioMeta:
+                map: """
+                function(doc) {
+                    if(doc.docType && doc.docType.toLowerCase() === "file") {
+                        if(doc.class === "music" && doc.binary &&
+                                doc.binary.file && !doc.binary.audio_metadata) {
                             emit(doc._id, null);
                         }
                     }
