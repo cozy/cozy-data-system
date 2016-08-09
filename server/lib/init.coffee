@@ -6,6 +6,7 @@ db = require('../helpers/db_connect_helper').db_connect()
 async = require 'async'
 permissionsManager = require './token'
 thumb = require('./thumb')
+audio = require('./audio')
 initTokens = require('./token').init
 
 
@@ -108,6 +109,20 @@ exports.addThumbs = (callback) ->
         else
             async.forEach files, (file, cb) ->
                 thumb.create file.id, false
+                cb()
+            , callback
+
+# Add audio_metadata for audio without metadata
+exports.addAudioMeta = (callback) ->
+    # Retrieve images without thumb
+    db.view 'file/withoutAudioMeta', (err, files) ->
+        if err
+            callback err
+        else if files.length is 0
+            callback()
+        else
+            async.forEach files, (file, cb) ->
+                audio.create file.id, false
                 cb()
             , callback
 
