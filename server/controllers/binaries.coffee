@@ -8,8 +8,8 @@ binaryManagement = require '../lib/binary'
 dbHelper = require '../lib/db_remove_helper'
 downloader = require '../lib/downloader'
 async = require 'async'
-
-
+https = require 'https'
+fs = require 'fs'
 ## Actions
 
 # API to manage attachments separately from the CouchDB API. Cozy term for such
@@ -34,7 +34,6 @@ module.exports.add = (req, res, next) ->
     # We read part one by one to avoid writing the full file to the disk
     # and send it directly as a stream.
     form.on 'part', (part) ->
-
         # It's a field, we store it in case of the file name is set in the
         # form
         unless part.filename?
@@ -72,10 +71,57 @@ module.exports.add = (req, res, next) ->
         next err
 
     form.on 'close', ->
-        res.status(400).send error: 'No file sent' if nofile
-        # If no file was found, returns a client error.
-        next()
+        if fields.fromURL?
+            downloadFromUrl(form, res, req.doc, fields.fromURL, fields.name)
+        else
+            # If no file was found, returns a client error.
+            res.status(400).send error: 'No file sent' if nofile
+            next()
 
+downloadFromUrl = (form, res, doc, url, name) ->
+
+    followRedirect = (url1, callback, maxRedirect)->
+        https.get(url1, (res1)->
+            if res1.statusCode >= 300 and res1.statusCode < 400 \
+            and res1.headers.location and maxRedirect > 0
+                followRedirect res1.headers.location, callback, maxRedirect - 1
+            else
+                callback res1
+        ).on('error', (err)->
+            log.error "#{JSON.stringify err}"
+            form.emit 'error', err
+        )
+
+    attach = (response) ->
+        name ?= 'file'
+
+        # Build file data
+        fileData =
+            name: name
+            "content-type": response.headers['content-type']
+
+        file =
+            size: response.headers['content-length']
+            lastModification: new Date(response.headers['last-modified'])
+            creationDate: new Date(response.headers['date'])
+
+        db.merge doc.id, file, (err) ->
+            if err
+                log.error "addFileData #{doc.id}/#{doc.name}: #{err}"
+                form.emit 'error', err
+            else
+                log.info "addFileData #{doc.id}/#{doc.name}: Added file data."
+
+                log.info "Attaching Binary to #{doc.id}/#{doc.name}"
+                binaryManagement.addBinary doc, fileData, response,
+                (err)->
+                    if err
+                        log.error "#{JSON.stringify err}"
+                        form.emit 'error', err
+                    else
+                        res.status(201).send success: true
+
+    followRedirect(url, attach, 5)
 
 # GET /data/:id/binaries/:name/
 # Download a the file attached to the binary object.
@@ -90,7 +136,7 @@ module.exports.get = (req, res, next) ->
         id = binary[name].id
 
         # Run the download with Node low level api.
-        request = downloader.download id, name, (err, stream) ->
+        downloadRequest = downloader.download id, name, (err, stream) ->
             if err
                 next err
             else
@@ -98,7 +144,7 @@ module.exports.get = (req, res, next) ->
                 res.setHeader 'Content-Length', stream.headers['content-length']
                 res.setHeader 'Content-Type', stream.headers['content-type']
 
-                req.once 'close', -> request.abort()
+                req.once 'close', -> downloadRequest.abort()
 
                 #@TODO forward other cache-control header
 

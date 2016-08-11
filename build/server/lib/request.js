@@ -149,6 +149,9 @@ initializeDSView = function(callback) {
     file: {
       withoutThumb: {
         map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"file\") {\n        if(doc.class === \"image\" && doc.binary &&\n                doc.binary.file && !doc.binary.thumb) {\n            emit(doc._id, null);\n        }\n    }\n}"
+      },
+      withoutAudioMeta: {
+        map: "function(doc) {\n    if(doc.docType && doc.docType.toLowerCase() === \"file\") {\n        if(doc.class === \"music\" && doc.binary &&\n                doc.binary.file && !doc.binary.audio_metadata) {\n            emit(doc._id, null);\n        }\n    }\n}"
       }
     },
     tags: {

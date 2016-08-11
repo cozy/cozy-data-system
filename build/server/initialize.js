@@ -23,17 +23,22 @@ module.exports = function(app, server, callback) {
         if (err != null) {
           log.error(err);
         }
-        return init.addAccesses(function(err) {
+        return init.addAudioMeta(function(err) {
           if (err != null) {
             log.error(err);
           }
-          return indexer.initialize(function(err) {
+          return init.addAccesses(function(err) {
             if (err != null) {
               log.error(err);
             }
-            if (callback != null) {
-              return callback(app, server);
-            }
+            return indexer.initialize(function(err) {
+              if (err != null) {
+                log.error(err);
+              }
+              if (callback != null) {
+                return callback(app, server);
+              }
+            });
           });
         });
       });
