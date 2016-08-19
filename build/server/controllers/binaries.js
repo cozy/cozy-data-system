@@ -82,9 +82,9 @@ module.exports.add = function(req, res, next) {
 
 downloadFromUrl = function(form, res, doc, url, name) {
   var attach, followRedirect;
-  followRedirect = function(url, callback, maxRedirect) {
-    return https.get(url, function(res1) {
-      if (res1.statusCode >= 300 && res1.statusCode < 400 && res1.headers.location) {
+  followRedirect = function(url1, callback, maxRedirect) {
+    return https.get(url1, function(res1) {
+      if (res1.statusCode >= 300 && res1.statusCode < 400 && res1.headers.location && maxRedirect > 0) {
         return followRedirect(res1.headers.location, callback, maxRedirect - 1);
       } else {
         return callback(res1);
