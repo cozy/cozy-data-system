@@ -1,6 +1,7 @@
 should = require('chai').Should()
 fs = require 'fs'
 Client = require('request-json').JsonClient
+request = require 'request'
 helpers = require './helpers'
 getLostBinaries = require('../server/lib/init').getLostBinaries
 
@@ -87,6 +88,46 @@ describe "Binaries", ->
                 db.get id, (err, body) ->
                     body._rev.should.be.equal rev
                     done()
+
+    describe "Add a binary from an URL", ->
+
+        it "When I send a request with an url attribute", (done) ->
+            path = "data/321/binaries/"
+            formData =
+                name: 'test_from_url.png'
+                fromURL: 'https://raw.githubusercontent.com/cozy/cozy-data-system/master/tests/fixtures/test.png'
+
+            options =
+                url: serverUrl + path
+                formData: formData
+                auth: {user:"home", pass:"token"}
+
+            request.post options, (err, res, body) =>
+                console.log err if err?
+                @response = res
+                done()
+
+        it "Then I got a success response", ->
+            @response.statusCode.should.equal 201
+
+        it "and I claim the binary", (done) ->
+            @timeout 5000
+            setTimeout ->
+                @client = new Client serverUrl
+                @client.setBasicAuth "home", "token"
+                @client.saveFile "data/321/binaries/test_from_url.png", \
+                                 './tests/fixtures/test-get-from-url.png', \
+                                 -> done()
+            , 3000
+
+        it "I got the same file I attached before", (done) ->
+            @timeout 5000
+            setTimeout ->
+                fileStats = fs.statSync './tests/fixtures/test.png'
+                resultStats = fs.statSync './tests/fixtures/test-get-from-url.png'
+                resultStats.size.should.equal fileStats.size
+                done()
+            , 2000
 
     describe "Retrieve a binary", ->
 

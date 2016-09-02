@@ -113,7 +113,7 @@ describe "Indexation", ->
                 done null
 
     describe "indexing and searching", ->
-        it "Given I index four notes", (done) =>
+        it "Given I index four notes", (done) ->
             @timeout 10000
             async.series [
                 createNoteFunction "Note 01", "little stories begin"
