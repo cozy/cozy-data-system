@@ -67,7 +67,8 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
         next()
     else if req.url.indexOf('/replication/_bulk_docs') is 0
         # Use to add/update/delete a document in replication
-        async.forEach req.body.docs, (doc, cb) ->
+        docs = req.body.docs or []
+        async.forEach docs, (doc, cb) ->
             if doc._deleted
                 # Document deletion:
                 #   Get doc and check docType of current document
