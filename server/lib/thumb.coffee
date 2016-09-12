@@ -19,7 +19,7 @@ whiteList = [
 queue = async.queue (task, callback) ->
     db.get task.file, (err, file) ->
         if err
-            log.info "Cant get File #{file.id} for thumb"
+            log.info "Cant get File #{file?.id} for thumb"
             log.info err
             callback()
         else
