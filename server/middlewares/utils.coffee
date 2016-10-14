@@ -94,6 +94,17 @@ module.exports.checkPermissionsPostReplication = (req, res, next) ->
                 else
                     checkReplicationPermissions req, doc, cb
         , next
+    else if req.url.indexOf('/replication/_all_docs') is 0 and req.body.keys
+        async.forEach req.body.keys, (key, cb) ->
+            db.get key, (err, doc) ->
+                if err? and err.error is 'not_found'
+                    cb()
+                else if err
+                    logger.error err
+                    cb err
+                else
+                    checkReplicationPermissions req, doc, cb
+        , next
     else
         err = new Error "Forbidden operation"
         err.status = 403
