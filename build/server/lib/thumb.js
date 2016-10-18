@@ -29,7 +29,7 @@ whiteList = ['image/jpeg', 'image/png'];
 queue = async.queue(function(task, callback) {
   return db.get(task.file, function(err, file) {
     if (err) {
-      log.info("Cant get File " + file.id + " for thumb");
+      log.info("Cant get File " + (file != null ? file.id : void 0) + " for thumb");
       log.info(err);
       return callback();
     } else {

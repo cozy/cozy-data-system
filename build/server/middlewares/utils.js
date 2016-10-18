@@ -68,7 +68,7 @@ module.exports.checkPermissionsByType = function(req, res, next) {
 };
 
 module.exports.checkPermissionsPostReplication = function(req, res, next) {
-  var err;
+  var docs, err;
   if (req.url.indexOf('/replication/_revs_diff') === 0) {
     return next();
   } else if (req.url === '/replication/_ensure_full_commit') {
@@ -76,7 +76,8 @@ module.exports.checkPermissionsPostReplication = function(req, res, next) {
   } else if (req.url.indexOf('/replication/_changes') === 0) {
     return next();
   } else if (req.url.indexOf('/replication/_bulk_docs') === 0) {
-    return async.forEach(req.body.docs, function(doc, cb) {
+    docs = req.body.docs || [];
+    return async.forEach(docs, function(doc, cb) {
       var err;
       if (doc._deleted) {
         return db.get(doc._id, function(err, doc) {
