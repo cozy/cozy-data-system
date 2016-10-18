@@ -40,3 +40,12 @@ before_script:
 script:
     - npm run lint
     - npm run test
+
+deploy:
+  provider: npm
+  email: npm@cozycloud.cc
+  api_key:
+    secure: Vt4Fa++HgooD7ciCl09LDLxkp67lFxNB9snlogjFVLj92oPOzaOA003XKjch6gnqv+dabCSgqNnd1+Lp/1Bh0RbFk72iXN8swgq1SlHc3rbmACXO5JzNanVt+QNAFofuZymCv29CDRzn7MPdjW4kL090+CVtOM6Pm+337orkQ+kYRNFVRRoAmlu1LSLotk7RxeCuxCAXrwREQStgQtJ4j5+snRoDRgXAQKEolpv9dh2TtI2g419IhlLeS3/zhXU3cSqt9xix7Hu4aYMWHr1HHeXw1dFeykCo5wMF31zd/6fBhMyVPICeaODby0JIwWKzBlx1dpXgkBVuyoX8a8U2DawTbFW36m5i0YC1yOQYOSjsTOkt+VE9GHgJvoHbONUMuOZmhky/dHM8LwkUIhf7geOTnDNfLXWUKVqSLEKHCMnSDsqzylpQe6X+6/W02DybtgNjDf5DxxwsP4EClPQObXMHAFsUav0VYmoAg5T80XqY+Xvc2exxPeFt8Gh/HBm6NmNB2a1t6eSGYtSrzQj9iRvopru6kg2CvAOH7xV91Vahc4uTp+xP/Q6PC0xAXxTdILkFmPkUvL1CeilHiPgg5ZseHFB8eF8p9qh9w6UG4mhYAq05OEvq4VP1SQd9k67tOhHoRDMpbyC2I1viIF1iCHwIrp6XlOR3U+TRW1eeghE=
+  on:
+    tags: true
+    repo: cozy/cozy-data-system
