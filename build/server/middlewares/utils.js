@@ -103,6 +103,19 @@ module.exports.checkPermissionsPostReplication = function(req, res, next) {
         }
       }
     }, next);
+  } else if (req.url.indexOf('/replication/_all_docs') === 0 && req.body.keys) {
+    return async.forEach(req.body.keys, function(key, cb) {
+      return db.get(key, function(err, doc) {
+        if ((err != null) && err.error === 'not_found') {
+          return cb();
+        } else if (err) {
+          logger.error(err);
+          return cb(err);
+        } else {
+          return checkReplicationPermissions(req, doc, cb);
+        }
+      });
+    }, next);
   } else {
     err = new Error("Forbidden operation");
     err.status = 403;
