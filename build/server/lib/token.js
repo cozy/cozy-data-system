@@ -331,6 +331,7 @@ initHomeProxy = function(callback) {
     "alarm": "authorized",
     "event": "authorized",
     "userpreference": "authorized",
+    "usetracker": "authorized",
     "cozyinstance": "authorized",
     "encryptedkeys": "authorized",
     "stackapplication": "authorized",
